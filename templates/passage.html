@@ -422,8 +422,149 @@
                                 {% endfor %}
                             </div>
                         </div>
-                    {% endif %}
-                    {% if q.type == 'fill_blank' %}
+                    {% elif q.type == 'matching_headings' %}
+                        <div class="question-group">
+                            <div class="question-title">{{ q.title }}</div>
+                            {% if q.instructions %}
+                                <div class="question-instructions">
+                                    {% for line in q.instructions %}
+                                        <p>{{ line }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="option-pool" style="margin-bottom:16px;">
+                                {% for heading in q.headings %}
+                                    <div class="pool-card">
+                                        <span>{{ heading.key }}</span>
+                                        <span>{{ heading.text }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="statement-list">
+                                {% for para in q.paragraphs %}
+                                    <div class="statement-row">
+                                        <div class="statement-text">
+                                            <span class="statement-number">{{ para.number }}.</span>Paragraph {{ para.letter }}
+                                        </div>
+                                        <div>
+                                            <select name="mh{{ para.number }}" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--line);">
+                                                <option value="">Select heading</option>
+                                                {% for heading in q.headings %}
+                                                    <option value="{{ heading.key }}">{{ heading.key }} - {{ heading.text }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% elif q.type == 'matching_features' %}
+                        <div class="question-group">
+                            <div class="question-title">{{ q.title }}</div>
+                            {% if q.instructions %}
+                                <div class="question-instructions">
+                                    {% for line in q.instructions %}
+                                        <p>{{ line }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="option-pool" style="margin-bottom:16px;">
+                                {% for feature in q.features %}
+                                    <div class="pool-card">
+                                        <span>{{ feature.key }}</span>
+                                        <span>{{ feature.text }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="statement-list">
+                                {% for statement in q.statements %}
+                                    <div class="statement-row">
+                                        <div class="statement-text">
+                                            <span class="statement-number">{{ statement.number }}.</span>{{ statement.text }}
+                                        </div>
+                                        <div class="statement-options">
+                                            {% for feature in q.features %}
+                                                <label class="statement-option">
+                                                    <input type="radio" name="mf{{ statement.number }}" value="{{ feature.key }}">
+                                                    <span>{{ feature.key }}</span>
+                                                </label>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% elif q.type == 'matching_sentence_endings' %}
+                        <div class="question-group">
+                            <div class="question-title">{{ q.title }}</div>
+                            {% if q.instructions %}
+                                <div class="question-instructions">
+                                    {% for line in q.instructions %}
+                                        <p>{{ line }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="option-pool" style="margin-bottom:16px;">
+                                <strong>Endings:</strong>
+                                {% for ending in q.endings %}
+                                    <div class="pool-card">
+                                        <span>{{ ending.key }}</span>
+                                        <span>{{ ending.text }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="statement-list">
+                                {% for beginning in q.sentence_beginnings %}
+                                    <div class="statement-row">
+                                        <div class="statement-text">
+                                            <span class="statement-number">{{ beginning.number }}.</span>{{ beginning.text }}
+                                        </div>
+                                        <div>
+                                            <select name="mse{{ beginning.number }}" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--line);">
+                                                <option value="">Select ending</option>
+                                                {% for ending in q.endings %}
+                                                    <option value="{{ ending.key }}">{{ ending.key }} - {{ ending.text }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% elif q.type == 'diagram_label_completion' %}
+                        <div class="question-group">
+                            <div class="question-title">{{ q.title }}</div>
+                            {% if q.instructions %}
+                                <div class="question-instructions">
+                                    {% for line in q.instructions %}
+                                        <p>{{ line }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="statement-list">
+                                {% for label in q.labels %}
+                                    <div class="statement-row">
+                                        <div class="statement-text">
+                                            <span class="statement-number">{{ label.number }}.</span>{{ label.text }}
+                                        </div>
+                                        <div style="margin-top:8px;">
+                                            <input type="text" name="dlc{{ label.number }}" placeholder="Label from passage" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--line);" />
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% elif q.type == 'short_answer' %}
+                        <div class="question-group">
+                            <div class="question-title">{{ q.number }}. {{ q.text }}</div>
+                            <div class="question-instructions">
+                                <p><em>Answer using NO MORE THAN {{ q.word_limit }} WORDS</em></p>
+                            </div>
+                            <div style="margin-top:8px;">
+                                <input type="text" name="sa{{ q.number }}" placeholder="Write your answer here" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--line);" />
+                            </div>
+                        </div>
+                    {% elif q.type == 'fill_blank' %}
                         <div class="question-group">
                             <div class="question-title">{{ q.number }}. {{ q.text }}</div>
                             <div style="margin-top:8px;">
