@@ -25,8 +25,8 @@ A web application that converts IELTS reading PDF files into interactive online 
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/imChenRH/ILETS-reading-transformer.git
-cd ILETS-reading-transformer
+git clone https://github.com/imChenRH/IELTS-reading-transformer.git
+cd IELTS-reading-transformer
 ```
 
 2. Install dependencies:
@@ -57,7 +57,7 @@ http://localhost:5000
 ## Project Structure
 
 ```
-ILETS-reading-transformer/
+IELTS-reading-transformer/
 ├── app.py              # Main Flask application with PDF processing logic
 ├── templates/
 │   ├── index.html      # Upload page
