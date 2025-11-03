@@ -6,16 +6,21 @@ A web application that converts IELTS reading PDF files into interactive online 
 
 - **PDF Upload**: Upload IELTS reading test PDFs through a simple web interface
 - **Automatic Text Extraction**: Extracts text and structure from PDF using PyMuPDF
-- **Smart Question Recognition**: Identifies and parses multiple question types:
-  - Single/Multiple Choice Questions
-  - Summary Completion (with word banks)
-  - Paragraph Matching
-  - True/False/Not Given
-  - Yes/No/Not Given
-  - Fill-in-the-Blank
+- **Smart Question Recognition**: Identifies and parses all 10 IELTS question types:
+  1. Multiple Choice Questions (MCQ)
+  2. True/False/Not Given
+  3. Yes/No/Not Given
+  4. Matching Headings (roman numerals to paragraphs)
+  5. Matching Information (paragraph matching)
+  6. Matching Features (statements to persons/entities)
+  7. Matching Sentence Endings
+  8. Sentence Completion (fill-in-the-blank)
+  9. Summary/Note/Table/Flow-Chart Completion (with word banks)
+  10. Diagram Label Completion
+  11. Short-Answer Questions (NO MORE THAN X WORDS)
 - **Interactive Test Interface**: Clean, responsive two-panel layout
   - Reading passage with labeled paragraphs (A, B, C, etc.)
-  - Questions with appropriate input controls
+  - Questions with appropriate input controls for each type
 - **Passage Structure Recognition**: Automatically identifies:
   - Passage title
   - Introduction text
@@ -84,26 +89,56 @@ IELTS-reading-transformer/
 - Preserves paragraph organization
 
 ### 4. Question Type Recognition
-The application recognizes these question types:
+The application recognizes all 10 IELTS question types:
 
-**Single Choice Questions**
+**1. Multiple Choice Questions (MCQ)**
 - Format: Numbered questions with A, B, C, D options
+- Keywords: "Choose the correct letter", "According to the text"
 
-**Summary Completion**
-- Format: Text with numbered blanks and lettered word bank
-- Displays summary with dropdown selectors
+**2. True/False/Not Given**
+- Format: Statements requiring True/False/Not Given answers
+- Keywords: "Do the following statements agree with the information"
 
-**Paragraph Matching**
+**3. Yes/No/Not Given**
+- Format: Statements requiring Yes/No/Not Given answers  
+- Keywords: "Do the following statements agree with the writer's views"
+
+**4. Matching Headings**
+- Format: Match roman numeral headings (i, ii, iii) to paragraphs (A, B, C)
+- Keywords: "Choose the correct heading", "List of Headings"
+
+**5. Matching Information**
 - Format: "Which paragraph contains..." statements
-- Extracts paragraph letter options
+- Keywords: "Which paragraph contains", "Which section"
+- Extracts paragraph letter options automatically
 
-**Yes/No/Not Given** or **True/False/Not Given**
-- Format: Statements requiring Yes/No/Not Given answers
-- Provides radio button options
+**6. Matching Features**
+- Format: Match statements to persons/features/entities
+- Keywords: "Match", "List of"
+- Provides radio button options for each statement
 
-**Fill-in-the-Blank**
+**7. Matching Sentence Endings**
+- Format: Complete sentences by matching beginnings to endings
+- Keywords: "Complete", "sentence", "ending"
+- Shows numbered beginnings with lettered ending options
+
+**8. Sentence Completion (Fill-in-the-Blank)**
 - Format: Numbered blanks with context
-- Provides text input fields
+- Provides text input fields with surrounding context
+
+**9. Summary/Note/Table/Flow-Chart Completion**
+- Format: Text with numbered blanks and lettered word bank
+- Keywords: "Complete the summary", "Complete the table"
+- Displays summary with dropdown selectors for each blank
+
+**10. Diagram Label Completion**
+- Format: Label diagram elements using words from passage
+- Keywords: "Label the diagram", "diagram", "figure"
+
+**11. Short-Answer Questions**
+- Format: Questions with word limit restrictions
+- Keywords: "NO MORE THAN", "MAXIMUM OF", "Answer using"
+- Displays word limit prominently
 
 ### 5. Display
 - Responsive two-panel layout
@@ -126,7 +161,12 @@ The application recognizes these question types:
 - `parse_single_choice()`: Parses multiple choice questions
 - `parse_summary_completion()`: Parses summary completion with word banks
 - `parse_paragraph_matching()`: Parses paragraph matching questions
-- `parse_yes_no_not_given()`: Parses Yes/No/Not Given questions
+- `parse_yes_no_not_given()`: Parses Yes/No/Not Given and True/False/Not Given
+- `parse_matching_headings()`: Parses matching headings questions
+- `parse_matching_features()`: Parses matching features questions
+- `parse_matching_sentence_endings()`: Parses sentence ending matching
+- `parse_diagram_label_completion()`: Parses diagram labeling questions
+- `parse_short_answer_questions()`: Parses short answer questions with word limits
 
 ## Development
 

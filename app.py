@@ -1002,30 +1002,46 @@ def parse_short_answer_questions(questions_text: str) -> List[Dict[str, Any]]:
     word_limit_match = word_limit_pattern.search(questions_text)
     word_limit = word_limit_match.group(1) if word_limit_match else 'THREE'
     
-    # Find question numbers and text
-    question_pattern = re.compile(
-        r'(\d+)\s+(.*?)(?=(?:\n\d+\s)|\Z)',
-        re.DOTALL
-    )
+    # Find the section that contains short answer questions
+    heading_pattern = re.compile(r'Questions?\s+(\d+)(?:\s*[-\u2013]\s*(\d+))?', re.IGNORECASE)
+    matches = list(heading_pattern.finditer(questions_text))
     
-    for match in question_pattern.finditer(questions_text):
-        number = match.group(1)
-        text = normalize_whitespace(match.group(2))
+    if not matches:
+        return []
+    
+    for idx, heading_match in enumerate(matches):
+        start_idx = heading_match.start()
+        end_idx = matches[idx + 1].start() if idx + 1 < len(matches) else len(questions_text)
+        section_text = questions_text[start_idx:end_idx].strip()
         
-        # Filter out section headers
-        if 'questions' in text.lower() or 'answer' in text[:20].lower():
+        # Check if this section has word limit instructions
+        if not word_limit_pattern.search(section_text):
             continue
         
-        # Must be a real question
-        if text and len(text) > 10:
-            questions.append({
-                'type': 'short_answer',
-                'number': number,
-                'text': text,
-                'word_limit': word_limit,
-                'match_start': match.start(),
-                'match_end': match.end()
-            })
+        # Find question numbers and text in this section
+        question_pattern = re.compile(
+            r'^(\d+)\s+(.+?)$',
+            re.MULTILINE
+        )
+        
+        for match in question_pattern.finditer(section_text):
+            number = match.group(1)
+            text = normalize_whitespace(match.group(2))
+            
+            # Filter out section headers and instructions
+            if any(keyword in text.lower() for keyword in ['questions', 'answer the', 'write', 'using no more']):
+                continue
+            
+            # Must be a real question (ends with ?)
+            if text and '?' in text:
+                questions.append({
+                    'type': 'short_answer',
+                    'number': number,
+                    'text': text,
+                    'word_limit': word_limit,
+                    'match_start': match.start() + start_idx,
+                    'match_end': match.end() + start_idx
+                })
     
     return questions
 

@@ -33,12 +33,19 @@
 
 ### Supported Question Types
 
-1. **Single/Multiple Choice** - Radio buttons with A, B, C, D options
-2. **Summary Completion** - Dropdown menus with word bank
-3. **Paragraph Matching** - "Which paragraph contains..." statements
-4. **True/False/Not Given** - Three-option radio buttons
-5. **Yes/No/Not Given** - Three-option radio buttons  
-6. **Fill-in-the-Blank** - Text input fields
+The application now recognizes all 10 IELTS question types:
+
+1. **Multiple Choice Questions (MCQ)** - Radio buttons with A, B, C, D options
+2. **True/False/Not Given** - Three-option radio buttons for factual statements
+3. **Yes/No/Not Given** - Three-option radio buttons for opinion-based statements
+4. **Matching Headings** - Dropdown menus to match roman numeral headings to paragraphs
+5. **Matching Information** - Radio buttons or text input for paragraph matching
+6. **Matching Features** - Radio buttons to match statements to persons/entities
+7. **Matching Sentence Endings** - Dropdown menus to complete sentences
+8. **Sentence Completion** - Text input fields for fill-in-the-blank questions
+9. **Summary/Note/Table/Flow-Chart Completion** - Dropdown menus with word bank options
+10. **Diagram Label Completion** - Text input fields to label diagrams from passage
+11. **Short-Answer Questions** - Text input with word limit instructions (e.g., NO MORE THAN THREE WORDS)
 
 ## Testing the Installation
 
