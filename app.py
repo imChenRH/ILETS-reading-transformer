@@ -365,8 +365,9 @@ def parse_single_choice(questions_text: str) -> List[Dict[str, Any]]:
 
     # Improved pattern that requires the question number to be at the start of a line
     # This prevents matching numbers from instruction text like "boxes 27-32"
+    # Stop at next question number OR "Questions" keyword
     pattern = re.compile(
-        r'(?:^|\n)(\d+)\s+(.*?)\s+A\s+(.*?)\s+B\s+(.*?)\s+C\s+(.*?)\s+D\s+(.*?)(?=\n\d+\s+|\Z)',
+        r'(?:^|\n)(\d+)\s+(.*?)\s+A\s+(.*?)\s+B\s+(.*?)\s+C\s+(.*?)\s+D\s+(.*?)(?=\n\d+\s+|\nQuestions?\s+\d+|\Z)',
         re.DOTALL | re.MULTILINE
     )
 
@@ -394,9 +395,13 @@ def parse_single_choice(questions_text: str) -> List[Dict[str, Any]]:
             continue
         
         # Check that options look like real options (not just single words or letters)
-        # Skip if average option length is very short (likely word bank letters, not real MCQ options)
+        # Real MCQ options typically have 10-150 characters
+        # Skip if most options are very short OR if any option is extremely long
         avg_option_length = sum(len(opt) for opt in options) / len(options)
-        if avg_option_length < 15:
+        max_option_length = max(len(opt) for opt in options)
+        
+        # Filter out word banks (very short options) and malformed matches (very long options)
+        if avg_option_length < 15 or max_option_length > 200:
             continue
         
         if options:
@@ -658,11 +663,27 @@ def parse_paragraph_matching(questions_text: str) -> List[Dict[str, Any]]:
         statements_block = '\n'.join(statement_lines).strip()
         statement_pattern = re.compile(r'(\d{1,2})\s+(.*?)(?=(?:\n\d{1,2}\s)|\Z)', re.DOTALL)
         statements: List[Dict[str, str]] = []
+        seen_numbers = set()
         for stmt_match in statement_pattern.finditer(statements_block):
             number = stmt_match.group(1)
             text_value = normalize_whitespace(stmt_match.group(2))
+            
+            # Skip if already seen this number (avoid duplicates from annotations)
+            if number in seen_numbers:
+                continue
+            
+            # Skip if text is too short (likely an annotation)
+            if len(text_value) < 15:
+                continue
+            
+            # Skip if text contains mostly non-ASCII characters (likely Chinese annotations)
+            ascii_count = sum(1 for c in text_value if ord(c) < 128)
+            if ascii_count < len(text_value) * 0.5:  # Less than 50% ASCII
+                continue
+            
             if text_value:
                 statements.append({'number': number, 'text': text_value})
+                seen_numbers.add(number)
 
         if not statements:
             continue
