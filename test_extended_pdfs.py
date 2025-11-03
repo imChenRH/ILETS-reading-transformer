@@ -215,7 +215,7 @@ def run_extended_tests():
             if r['status'] == 'ERROR':
                 print(f"  - {r['name']}: {r['reason']}")
     
-    success_rate = (passed / (total - skipped) * 100) if (total - skipped) > 0 else 0
+    success_rate = ((passed / (total - skipped)) * 100) if (total - skipped) > 0 else 0
     print(f"\nSuccess rate: {success_rate:.1f}% ({passed}/{total - skipped} non-skipped tests)")
     
     if failed == 0 and error == 0:

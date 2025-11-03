@@ -284,28 +284,45 @@ def structure_passage(raw_passage: str, passage_blocks: Optional[List[str]] = No
 
         # Merge subheadings with following paragraphs
         def is_subheading(block: str, next_block: Optional[str] = None) -> bool:
-            """Detect if a block is a subheading that should be merged with the next block."""
+            """
+            Detect if a block is a subheading that should be merged with the next block.
+            
+            A subheading is identified by:
+            1. Short length (< 50 characters)
+            2. No period at the end (headings don't end with periods)
+            3. Starts with capital letter
+            4. Next block is significantly longer (3x threshold indicates this is a heading for that content)
+            5. Matches common subheading patterns found in academic texts
+            
+            Args:
+                block: The text block to check
+                next_block: The following text block (if any)
+            
+            Returns:
+                True if the block is likely a subheading
+            """
             if not block:
                 return False
             
-            # Subheadings are typically:
-            # - Short (< 50 chars)
-            # - No period at the end
-            # - Starts with capital letter
+            # Subheadings are typically short
+            # Using 50 char threshold based on common academic heading lengths
             if len(block) >= 50:
                 return False
             
+            # Subheadings don't end with periods
             if block.endswith('.'):
                 return False
             
-            if not block[0].isupper():
+            # Must start with capital letter
+            if not block or not block[0].isupper():
                 return False
             
-            # If there's a next block and it's much longer, this is likely a subheading
+            # If there's a next block and it's much longer (3x), this is likely a subheading
+            # The 3x multiplier ensures the next block is substantial content, not another heading
             if next_block and len(next_block) > len(block) * 3:
                 return True
             
-            # Common subheading patterns (single word or phrases)
+            # Common subheading patterns found in academic/IELTS texts
             subheading_patterns = [
                 'description of',
                 'methodological',
@@ -363,6 +380,13 @@ def parse_single_choice(questions_text: str) -> List[Dict[str, Any]]:
     if not questions_text:
         return []
 
+    # MCQ validation thresholds
+    MIN_AVG_OPTION_LENGTH = 15  # Minimum average option length to filter word banks
+    MAX_OPTION_LENGTH = 200      # Maximum option length to filter malformed matches
+    
+    # Instruction keywords that indicate this is not a real question
+    INSTRUCTION_KEYWORDS = ['choose the correct letter', 'write the correct letter', 'boxes']
+
     # Improved pattern that requires the question number to be at the start of a line
     # This prevents matching numbers from instruction text like "boxes 27-32"
     # Stop at next question number OR "Questions" keyword
@@ -381,7 +405,7 @@ def parse_single_choice(questions_text: str) -> List[Dict[str, Any]]:
             continue
         
         # Skip if this looks like instruction text
-        if any(keyword in prompt.lower() for keyword in ['choose the correct letter', 'write the correct letter', 'boxes']):
+        if any(keyword in prompt.lower() for keyword in INSTRUCTION_KEYWORDS):
             continue
         
         # Find the last sentence of the prompt
@@ -401,7 +425,7 @@ def parse_single_choice(questions_text: str) -> List[Dict[str, Any]]:
         max_option_length = max(len(opt) for opt in options)
         
         # Filter out word banks (very short options) and malformed matches (very long options)
-        if avg_option_length < 15 or max_option_length > 200:
+        if avg_option_length < MIN_AVG_OPTION_LENGTH or max_option_length > MAX_OPTION_LENGTH:
             continue
         
         if options:
