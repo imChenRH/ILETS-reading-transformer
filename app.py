@@ -282,8 +282,64 @@ def structure_passage(raw_passage: str, passage_blocks: Optional[List[str]] = No
         if source_blocks and len(source_blocks[0]) <= 120 and '.' not in source_blocks[0]:
             intro_text = source_blocks.pop(0)
 
-        for block in source_blocks:
-            paragraphs.append({'letter': '', 'text': block})
+        # Merge subheadings with following paragraphs
+        def is_subheading(block: str, next_block: Optional[str] = None) -> bool:
+            """Detect if a block is a subheading that should be merged with the next block."""
+            if not block:
+                return False
+            
+            # Subheadings are typically:
+            # - Short (< 50 chars)
+            # - No period at the end
+            # - Starts with capital letter
+            if len(block) >= 50:
+                return False
+            
+            if block.endswith('.'):
+                return False
+            
+            if not block[0].isupper():
+                return False
+            
+            # If there's a next block and it's much longer, this is likely a subheading
+            if next_block and len(next_block) > len(block) * 3:
+                return True
+            
+            # Common subheading patterns (single word or phrases)
+            subheading_patterns = [
+                'description of',
+                'methodological',
+                'lessons to',
+                'conclusion',
+                'introduction',
+                'background',
+                'discussion',
+                'results',
+                'methods',
+                'analysis',
+                'overview',
+                'summary',
+            ]
+            
+            block_lower = block.lower()
+            if any(pattern in block_lower for pattern in subheading_patterns):
+                return True
+            
+            return False
+        
+        i = 0
+        while i < len(source_blocks):
+            block = source_blocks[i]
+            next_block = source_blocks[i + 1] if i + 1 < len(source_blocks) else None
+            
+            if is_subheading(block, next_block) and next_block:
+                # Merge subheading with next paragraph
+                merged_text = f"{block}. {next_block}"
+                paragraphs.append({'letter': '', 'text': merged_text})
+                i += 2  # Skip both blocks
+            else:
+                paragraphs.append({'letter': '', 'text': block})
+                i += 1
     else:
         blocks = re.split(r'(?:\r?\n){2,}', raw_passage)
         for block in blocks:
@@ -307,20 +363,42 @@ def parse_single_choice(questions_text: str) -> List[Dict[str, Any]]:
     if not questions_text:
         return []
 
+    # Improved pattern that requires the question number to be at the start of a line
+    # This prevents matching numbers from instruction text like "boxes 27-32"
     pattern = re.compile(
-        r'(\d+)\s+(.*?)\s+A\s+(.*?)\s+B\s+(.*?)\s+C\s+(.*?)\s+D\s+(.*?)(?=\s+\d+\s|\Z)',
-        re.DOTALL
+        r'(?:^|\n)(\d+)\s+(.*?)\s+A\s+(.*?)\s+B\s+(.*?)\s+C\s+(.*?)\s+D\s+(.*?)(?=\n\d+\s+|\Z)',
+        re.DOTALL | re.MULTILINE
     )
 
     questions: List[Dict[str, Any]] = []
     for match in pattern.finditer(questions_text):
         number = match.group(1)
         prompt = re.sub(r'\s+', ' ', match.group(2).strip())
+        
+        # Skip if prompt is too short (likely not a real question)
+        if len(prompt) < 10:
+            continue
+        
+        # Skip if this looks like instruction text
+        if any(keyword in prompt.lower() for keyword in ['choose the correct letter', 'write the correct letter', 'boxes']):
+            continue
+        
         # Find the last sentence of the prompt
         sentences = re.split(r'(?<=[.?!])\s+', prompt)
         actual_prompt = sentences[-1] if sentences else ''
         
         options = [re.sub(r'\s+', ' ', match.group(i).strip()) for i in range(3, 7) if match.group(i)]
+        
+        # Validate options - they should have reasonable length
+        if not options or any(len(opt) < 3 for opt in options):
+            continue
+        
+        # Check that options look like real options (not just single words or letters)
+        # Skip if average option length is very short (likely word bank letters, not real MCQ options)
+        avg_option_length = sum(len(opt) for opt in options) / len(options)
+        if avg_option_length < 15:
+            continue
+        
         if options:
             questions.append({
                 'type': 'single_choice',
@@ -859,6 +937,11 @@ def parse_matching_sentence_endings(questions_text: str) -> List[Dict[str, Any]]
         section_text = questions_text[start_idx:end_idx].strip()
         
         lowered = section_text.lower()
+        
+        # Exclude Yes/No/Not Given and True/False/Not Given sections
+        if ('yes' in lowered and 'not given' in lowered) or ('true' in lowered and 'not given' in lowered):
+            continue
+        
         # Look for sentence ending keywords
         if not any(keyword in lowered for keyword in ['complete', 'sentence', 'ending']):
             continue
