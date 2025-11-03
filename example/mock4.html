@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Mock Test</title>
+    <style>
+        :root {
+            --line: #e5e7eb;
+            --bg: #f6f7fb;
+            --panel: #fff;
+            --accent: #3b82f6;
+            --muted: #6b7280;
+            --shadow: 0 6px 20px rgba(0,0,0,.12);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .shell {
+            display: flex;
+            height: calc(100vh - 60px);
+            width: 100%;
+        }
+        .pane {
+            background: var(--panel);
+            overflow: auto;
+            padding: 20px;
+        }
+        #left {
+            flex: 0 0 50%;
+            min-width: 280px;
+        }
+        #right {
+            flex: 1 1 auto;
+            min-width: 320px;
+            background: #fbfbff;
+            border-left: 1px solid var(--line);
+        }
+        #divider {
+            flex: 0 0 8px;
+            background: linear-gradient(90deg, #e5e7eb, #d1d5db);
+            cursor: ew-resize;
+            position: relative;
+            z-index: 5;
+            user-select: none;
+        }
+        h2, h3, h4 {
+            margin: 0 0 10px;
+        }
+        p {
+            margin: 0 0 12px;
+            line-height: 1.6;
+        }
+        .group {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+        .timer-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-height: 40px;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: auto;
+            min-width: 120px;
+            max-width: 200px;
+            vertical-align: middle;
+            margin: 5px 0;
+        }
+        .droplabel {
+            color: #64748b;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cardpool {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            cursor: grab;
+            box-shadow: 0 1px 0 rgba(0,0,0,.03);
+            white-space: nowrap;
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        .btn {
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: #3b82f6;
+        }
+        .hl {
+            background: #fff3a3;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,.05);
+            cursor: pointer;
+        }
+        .hl:hover {
+            filter: brightness(0.98);
+        }
+        #selbar {
+            position: absolute;
+            display: none;
+            z-index: 2000;
+            background: #111;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: var(--shadow);
+            font-size: 13px;
+            gap: 6px;
+            align-items: center;
+        }
+        #selbar button {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.25);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #selbar button:hover {
+            border-color: #fff;
+        }
+        .practice-nav {
+            background: #fff;
+            border-top: 2px solid var(--line);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 4000;
+            height: 60px;
+            overflow-x: auto;
+        }
+        .practice-nav .q-item {
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 36px;
+            text-align: center;
+        }
+        .practice-nav .q-item:hover {
+            background: #f1f5f9;
+            border-color: var(--accent);
+        }
+        .practice-nav .q-item.answered {
+            background: #e0e7ff;
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .practice-nav .q-item.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .section-title {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        Time remaining: <span id="timer">60:00</span>
+    </div>
+
+    <div class="shell">
+        <section class="pane" id="left">
+            <div class="tab-container">
+                <div class="tab active" data-tab="passage1">Passage 1</div>
+                <div class="tab" data-tab="passage2">Passage 2</div>
+                <div class="tab" data-tab="passage3">Passage 3</div>
+            </div>
+            
+            <div class="tab-content active" id="passage1">
+                <h2>Rubber</h2>
+                <p><strong>A</strong> The plants that produce rubber are spread right across the globe, and grow in many different habitats. One might think it likely, therefore, that humankind has known about rubber for thousands of years. Yet, unlike other crops of economic importance, rubber led a relatively anonymous life until the last 150 years or so. The Indians of South America appear to be the first people to have understood the properties of rubber, and the Aztecs of what is now Mexico were the first to be recorded using the substance; a wall painting dating back to the sixth century depicts a scene of a tribute offering of crude rubber. With the arrival of Columbus in the Americas and the resulting Spanish influx, further evidence starts to appear concerning the Native American use of rubber. Antonio de Herrera y Tordesillas describes a ritual game played with a rubber ball at the court of the Aztec Emperor Montezuma II, and the Mayan and Toltec people are known to have taken part in similar activities. Rubber was also used to make raincoats, shoes, jars, torches and musical instruments, all of which must have been made from the indigenous Castilla elastica, as the Para rubber plant now favoured for rubber cultivation does not grow in the Mexican region.</p>
+                
+                <p><strong>B</strong> The first description of latex (liquid rubber) extraction was made by Juan de Torquemada, who noted that if a receptacle was not at hand the Native Americans would place the latex on their bodies to allow it to solidify. However, no real interest in rubber was shown by any European until Charles de la Condamine, a French mathematician, published an account of his journey to South America in 1735. The journey was undertaken on behalf of the Paris Academy of Sciences to measure an arc of the meridian line on the equator, but the journey home was to turn out to be more significant than the true purpose of the trip. Condamine explored Brazil and Peru and discovered how the local people used one single piece of coagulated latex to make boots. The boots were impervious to water and, when smoked, looked like real leather. In 1747 the first description of the rubber tree and latex tapping was made by a military engineer and amateur botanist, François Fresneau, who was posted to French Guiana. The publications of Condamine and Fresneau created considerable excitement among French scientists, and an attempt was made to discover a solvent that could turn the crude rubber into a substance for commercial exploitation.</p>
+                
+                <p><strong>C</strong> In 1818 a British medical student named James Syme first used rubber to make waterproof cloth. Another early use of the substance was as an eraser of pencil marks, hence the name 'rubber'. This was complemented by balloons, rubber bands, braces, boots for the army and other ideas that met with varying degrees of success. In 1820 Thomas Hancock, an English manufacturer of rubber goods such as driving belts, industrial rollers and rubber hoses, invented a machine he called the 'masticator', which chewed up waste strips for re-use. It was discovered that the masticated rubber was more malleable, while maintaining much of its elasticity. In Scotland at the same time, Charles Mackintosh had discovered a way of using rubber as waterproofing material, by a process he patented in 1823. Hancock and Mackintosh joined forces in 1834, and three years later Hancock invented a machine for spreading rubber onto material.</p>
+                
+                <p><strong>D</strong> Despite their beneficial qualities, such as waterproofing, rubber goods were still not particularly popular as they had some major flaws, including the fact that they dissolved malodorously. They also became pliant when warm and rigid when cold. Then in 1839 the American Charles Goodyear discovered that it was possible to stabilise rubber by mixing it with sulphur while exposing it to heat — a process he called vulcanisation — and the full versatility of this extraordinary substance became apparent.</p>
+                
+                <p><strong>E</strong> Rubber goods could now be manufactured which had all the beneficial qualities of the material, such as durability, elasticity and variability, but which were not sticky, soluble or governed by the vagaries of the weather. The economic potential of rubber was now clearly evident. It played an important role in the Industrial Revolution, being employed in the steam engines found in factories, mills, mines and railways. It made a triumphant entrance as a new and innovative material at the Great Exhibition of 1851, where shoes, airbeds, furniture and clothing made out of newly improved rubber were proudly displayed.</p>
+                
+                <p><strong>F</strong> One of the most important rubber inventions was made in 1888, when an Irishman called John Boyd Dunlop produced the first pneumatic tyre. Solid rubber tyres had been used for the previous 18 years, but Dunlop's new design, which he updated in 1890, immediately became popular. In 1895 Dunlop's tyres were first used in motor cars, and with the mass production of cars just over the horizon the rubber industry had never looked healthier. The import levels of rubber over the nineteenth century bear witness to its irrepressible rise. In 1830 Britain had imported just 211 kg of crude rubber. This had risen to 10,000 kg in 1857, and by 1874 levels were just under six times as much again.</p>
+            </div>
+            
+            <div class="tab-content" id="passage2">
+                <h2>Corporate Social Responsibility</h2>
+                <p><strong>A</strong> An excellent definition was developed in the 1980s by Norwegian Prime Minister Gro Harlem Brundtland and used by the World Business Council for Sustainable Development: "Meeting the needs of the present without compromising the ability of future generations to meet their own needs." Nowadays, governments and companies need to account for the social consequences of their actions. As a result, corporate social responsibility (CSR) has become a priority for business leaders around the world. When a well-run business applies its vast resources and expertise to social problems that it understands and in which it has a stake, it can have a greater impact than any other organisation. The notion of licence to operate derives from the fact that every company needs tacit or explicit permission from governments, communities, and numerous other stakeholders to justify CSR initiatives to improve a company's image, strengthen its brand, enliven morale and even raise the value of its stock.</p>
+                
+                <p><strong>B</strong> To advance CSR, we must root it in a broad understanding of the interrelationship between a corporation and society. Successful corporations need a healthy society. Education, health care, and equal opportunity are essential to a productive workforce. Safe products and working conditions not only attract customers but lower the internal costs of accidents. Efficient utilisation of land, water, energy, and other natural resources makes business more productive. Good government, the rule of law, and property rights are essential for efficiency and innovation. Strong regulatory standards protect both consumers and competitive companies from exploitation. Ultimately, a healthy society creates expanding demand for business, as more human needs are met and aspirations grow. Any business that pursues its ends at the expense of the society in which it operates will find its success to be illusory and ultimately temporary. At the same time, a healthy society needs successful companies. No social programme can rival the business sector when it comes to creating the jobs, wealth, and innovation that improve standards of living and social conditions over time.</p>
+                
+                <p><strong>C</strong> A company's impact on society also changes over time, as social standards evolve and science progresses. Asbestos, now understood as a serious health risk, was thought to be safe in the early 1900s, given the scientific knowledge then available. Evidence of its risks gradually mounted for more than 50 years before any company was held liable for the harms it can cause. Many firms that failed to anticipate the consequences of this evolving body of research have been bankrupted by the results. No longer can companies be content to monitor only the obvious social impacts of today. Without a careful process for identifying evolving social effects of tomorrow, firms may risk their very survival.</p>
+                
+                <p><strong>D</strong> No business can solve all of society's problems or bear the cost of doing so. Instead, each company must select issues that intersect with its particular business. Other social agendas are best left to those companies in other industries, NGOs, or government institutions that are better positioned to address them. The essential test that should guide CSR is not whether a cause is worthy but whether it presents an opportunity to create shared value – that is, a meaningful benefit for society that is also valuable to the business. Each company can identify the particular set of societal problems that it is best equipped to help resolve and from which it can gain the greatest competitive benefit.</p>
+                
+                <p><strong>E</strong> The best corporate citizenship initiatives involve far more than writing a cheque: they specify clear, measurable goals and track results over time. A good example is General Electric's programme to adopt underperforming public high schools near several of its major U.S. facilities. The company contributes between $250,000 and $1 million over a five-year period to each school and makes in-kind donations as well. GE managers and employees take an active role by working with school administrators to assess needs and mentor or tutor students. In an independent study of ten schools in the programme between 1989 and 1999, nearly all showed significant improvement, while the graduation rate in four of the five worst-performing schools doubled from an average of 30 % to 60 %. Effective corporate citizenship initiatives such as this one create goodwill and improve relations with local governments and other important constituencies. What's more, GE's employees feel great pride in their participation. Their effect is inherently limited, however. No matter how beneficial the programme is, it remains incidental to the company's business, and the direct effect on GE's recruiting and retention is modest.</p>
+                
+                <p><strong>F</strong> Microsoft's Working Connections partnership with the American Association of Community Colleges (AACC) is a good example of a shared-value opportunity arising from investments in context. The shortage of information-technology workers is a significant constraint on Microsoft's growth; currently, there are more than 450,000 unfilled IT positions in the United States alone. Community colleges, with an enrolment of 11.6 million students, representing 45 % of all U.S. undergraduates, could be a major solution. Microsoft recognises, however, that community colleges face special challenges: IT curricula are not standardised, technology used in classrooms is often outdated, and there are no systematic professional development programmes to keep faculty up to date. Microsoft's $50 million five-year initiative was aimed at all three problems. In addition to contributing money and products, Microsoft sent employee volunteers to colleges to assess needs, contribute to curriculum development, and create faculty-development institutes. Microsoft has achieved results that have benefited many communities while having a direct and potentially significant impact on the company.</p>
+                
+                <p><strong>G</strong> At the heart of any strategy is a unique value proposition: a set of needs a company can meet for its chosen customers that its competitors cannot. The most strategic CSR occurs when a company adds a social dimension to its value proposition, making social impact integral to the overall strategy. Consider Whole Foods Market, whose value proposition is to sell organic, natural, and healthy food products to customers who are passionate about food and the environment. The company's sourcing emphasises purchases from local farmers through each store's procurement process. Buyers screen out foods containing any of nearly 100 common ingredients that the company considers unhealthy or environmentally damaging. The same standards apply to products made internally. Whole Foods' commitment to natural and environmentally friendly operating practices extends well beyond sourcing. Stores are constructed using a minimum of virgin raw materials. Recently, the company purchased renewable wind-energy credits equal to 100 % of its electricity use in all of its stores and facilities, the only Fortune 500 company to offset its electricity consumption entirely. Spoiled produce and biodegradable waste are trucked to regional centres for composting. Whole Foods' vehicles are being converted to run on biofuels. Even the cleaning products used in its stores are environmentally friendly. And through its philanthropy, the company has created the Animal Compassion Foundation to develop more natural and humane ways of raising farm animals. In short, nearly every aspect of the company's value chain reinforces the social dimensions of its value proposition, distinguishing Whole Foods from its competitors.</p>
+            </div>
+            
+            <div class="tab-content" id="passage3">
+                <h2>Insect-inspired robots</h2>
+                <p><strong>A</strong> A tiny insect navigates its way across featureless salt-pans. A cockroach successfully works out how to scramble over an obstacle. The mantis shrimp scans its aquatic world through hyperspectral eyes. Using the most basic of equipment and brains tinier than a pin-head, insects constantly solve complex problems of movement, vision and navigation – processing data that would challenge a super-computer. How they do it is driving one of the most exciting new fields of technology – biomimetics and biorobotics, the imitation of insect systems to control man-made machines. Delegates at a recent conference presented some outcomes of their work in this area.</p>
+                
+                <p><strong>B</strong> Dr Alex Zelinsky suggested that the method by which wasps use landmarks to find their way back to the nest may one day be part of a system for navigating cars that know where to go. A research team led by Dr Zelinsky has shown that a robot can navigate its way among 50 different landmarks by recognising them individually using a panoramic camera. "The inspiration came from biology, where wasps use a practical method turn back and look to orient themselves as they emerge from their nest. By flying to and fro, they look at the wasp nest from different angles and perspectives so they can recognise it again," he explained. The robot's panoramic camera logs the surrounding area and its key landmarks, which are then stored in its computer according to how reliable they are as navigational aids. The landmarks are then scaled, from small to large, so that the robot can recognise whether it is getting closer to or further away from them. Their location is built into a map in its mind, which operates at different scales and instructs the robot whether to turn left or right at a particular mark. The technology provides a general way for a machine to navigate an unknown landscape.</p>
+                
+                <p><strong>C</strong> For three decades, Professor Ruediger Wehner has journeyed from Switzerland to the Sahara Desert where Cataglyphis, a tiny ant with a brain weighing just 0.1 mg, performs acts of navigational genius when it leaves its nest, forages for food and returns successfully. Cataglyphis uses polarised light, caused when air molecules scatter light, to orient and steer itself. Wehner's team found that the ant has a set of specialised photoreceptors along the upper rim of its eyes that detect polarised light, while other receptors perform different navigational tasks. As the sun moves, the ant notes its direction each time it leaves the nest and updates its internal compass. Using other eye receptors it stores a snapshot image of landmarks close to the nest entrance in its eyes and compares this with what it sees as it returns. The ant also has a way of measuring distance travelled, while a path integrator periodically informs the ant of its current position relative to its point of departure. Rather than integrate all the information it receives in its brain, the ant actually performs a number of complex calculations in different organs. Like a super-computer, the ant has many separate sub-routines going on simultaneously.</p>
+                
+                <p><strong>D</strong> Using the ant's ability to steer by polarised light and to store and reuse landscape images, Wehner and colleagues have built "Sahabot," a small vehicle that uses polarisers and a CCD camera to store 360° images of its surroundings. It navigates by using polarised sunlight and comparing the current images of landmarks to the ones in its memory.</p>
+                
+                <p><strong>E</strong> Professor Robert Michelson had a different desert challenge – to design a flying robot that can not only navigate but also stay aloft and hover in the thin atmosphere of Mars. Drawing inspiration from insect flight, he has gone beyond nature to devise a completely new concept for a flying machine. The "Entomopter" is a sort of double-ended dragonfly whose wings beat reciprocally. Michelson says that the flapping-wing design gives the craft unusually high lift compared with a fixed-wing flyer, enabling it to fly slowly or hover in the thin Martian air – whereas a fixed-wing craft would have to move at more than 400 km/h and could not stop to explore.</p>
+                
+                <p><strong>F</strong> Engineer Roger Quinn and entomologist Professor Roy Ritzmann are taking their inspiration from cockroaches. According to Quinn and Ritzmann, the ability of cockroaches to run very fast over rough terrain may one day give rise to a completely new all-terrain vehicle with six legs, or maybe even wheel-like legs called "whegs." The key to the cockroach's remarkable cross-country performance lies partly in the fact that its legs do a lot of the thinking without having to consult the brain. Quinn and Ritzmann are drawing on cockroach skills to create robotic walkers and control strategies that capture the remarkable capacity of these insects to traverse complex terrain and navigate safely toward goals while avoiding obstacles. The team has already designed a series of robots that run on six legs or on whegs, enabling them to handle surprisingly rugged terrain.</p>
+                
+                <p><strong>G</strong> International experts believe there are tremendous opportunities in biorobotics. However, delegates at the conference had differing visions for the future of the science. While some were concerned that the initial applications of biorobotics may be military, others, such as Dr Barbara Webb, predicted swarms of tiny, cheap, insect-like robots as society's cleaners and collectors. Sonja Kleinlogel hoped the study of the hyperspectral eyes of the mantis shrimp might yield remote sensors that can watch over the environmental health of our oceans. Several delegates were concerned about the ethical implications of biorobotics and urged that close attention be paid to this as the science and technologies develop.</p>
+            </div>
+        </section>
+
+        <div id="divider" title="Drag to resize"></div>
+
+        <section class="pane" id="right">
+            <div class="tab-container">
+                <div class="tab active" data-tab="questions1" data-passage="passage1">Questions 1-13</div>
+                <div class="tab" data-tab="questions2" data-passage="passage2">Questions 14-26</div>
+                <div class="tab" data-tab="questions3" data-passage="passage3">Questions 27-40</div>
+            </div>
+            
+            <div class="tab-content active" id="questions1">
+                <h3>Questions 1–6</h3>
+                <p>Do the following statements agree with the information given in Reading Passage 1?</p>
+                <p>In boxes 1–6 on your answer sheet, write</p>
+                <ul>
+                    <li><strong>TRUE</strong> if the statement agrees with the information</li>
+                    <li><strong>FALSE</strong> if the statement contradicts the information</li>
+                    <li><strong>NOT GIVEN</strong> if there is no information on this</li>
+                </ul>
+                
+                <div class="group">
+                    <p>1 Rubber plants grow only in certain regions of the world.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q1" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q1" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q1" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>2 Rubber was extracted in Mexico as early as the sixth century.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q2" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q2" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q2" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>3 Rubber from the Castilla elastica plant is of poorer quality than that from the Para plant.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q3" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q3" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q3" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>4 A French mathematician inspired real interest in rubber amongst Europeans.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q4" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q4" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q4" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>5 The process of vulcanisation was discovered by accident.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q5" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q5" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q5" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>6 Imports of crude rubber into Britain fell during the nineteenth century.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q6" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q6" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q6" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 7–13</h3>
+                <p>Complete the summary below.</p>
+                <p>Choose <strong>NO MORE THAN THREE WORDS</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 7–13 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>The Commercial Development of Rubber</strong></p>
+                    <p>Early European travellers gave accounts of various rubber objects in use in Central and South America, and these accounts created interest in the commercial exploitation of rubber. In 1818, <input type="text" id="q7" style="width: 120px;"> was produced using rubber, and in 1820 a machine was invented for recycling <input type="text" id="q8" style="width: 120px;"> of rubber. Over the next few years, other attempts were made to improve rubber, but some problems remained. For example, rubber products smelt bad when they were dissolved, and could turn either soft or <input type="text" id="q9" style="width: 120px;"> depending on the temperature. However, in 1839 a new process to <input type="text" id="q10" style="width: 120px;"> the substance greatly increased its potential. For example, rubber was used in the creation of the <input type="text" id="q11" style="width: 120px;"> industry during the Industrial Revolution. Then in 1888 the <input type="text" id="q12" style="width: 120px;"> was developed, and a few years later the <input type="text" id="q13" style="width: 120px;"> of the motor car began.</p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions2">
+                <h3>Questions 14–20</h3>
+                <p>Reading Passage 2 has seven paragraphs, <strong>A–G</strong>.</p>
+                <p>Choose the correct heading for each paragraph from the list of headings below.</p>
+                <p>Write the correct number, <strong>i–viii</strong>, in boxes 14–20 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>List of Headings</strong></p>
+                    <p>i How CSR may help one business to expand</p>
+                    <p>ii CSR in many aspects of a company's business</p>
+                    <p>iii A CSR initiative without a financial gain</p>
+                    <p>iv Lack of action by the state on social issues</p>
+                    <p>v Drivers or pressures motivate companies to address CSR</p>
+                    <p>vi The past illustrates businesses are responsible for future outcomes</p>
+                    <p>vii Companies applying CSR should be selective</p>
+                    <p>viii Reasons that business and society benefit each other</p>
+                    
+                    <p>14 Paragraph <strong>A</strong> 
+                        <div class="dropzone" data-target="q14"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>15 Paragraph <strong>B</strong> 
+                        <div class="dropzone" data-target="q15"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>16 Paragraph <strong>C</strong> 
+                        <div class="dropzone" data-target="q16"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>17 Paragraph <strong>D</strong> 
+                        <div class="dropzone" data-target="q17"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>18 Paragraph <strong>E</strong> 
+                        <div class="dropzone" data-target="q18"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>19 Paragraph <strong>F</strong> 
+                        <div class="dropzone" data-target="q19"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>20 Paragraph <strong>G</strong> 
+                        <div class="dropzone" data-target="q20"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="i">i</div>
+                        <div class="card" draggable="true" data-value="ii">ii</div>
+                        <div class="card" draggable="true" data-value="iii">iii</div>
+                        <div class="card" draggable="true" data-value="iv">iv</div>
+                        <div class="card" draggable="true" data-value="v">v</div>
+                        <div class="card" draggable="true" data-value="vi">vi</div>
+                        <div class="card" draggable="true" data-value="vii">vii</div>
+                        <div class="card" draggable="true" data-value="viii">viii</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 21–22</h3>
+                <p>Complete the summary below.</p>
+                <p>Choose <strong>NO MORE THAN TWO WORDS</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 21-22 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>The implementation of CSR – How?</strong></p>
+                    <p>Promotion of CSR requires the understanding of interdependence between business and society. Corporations' workers' productivity generally needs health care, education, and <input type="text" id="q21" style="width: 120px;">. Restrictions imposed by government and companies both protect consumers from being treated unfairly. Improvement of the safety standard can reduce the <input type="text" id="q22" style="width: 120px;"> of accidents in the workplace. Similarly, society becomes a pool of more human needs and aspirations.</p>
+                </div>
+                
+                <h3>Questions 23–26</h3>
+                <p>Look at the following opinions or deeds (Questions 23–26) and the list of companies below.</p>
+                <p>Match each opinion or deed with the correct company, <strong>A, B or C</strong>.</p>
+                <p>Write the correct letter, <strong>A, B or C</strong>, in boxes 23–26 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>List of Companies</strong></p>
+                    <p>A General Electric</p>
+                    <p>B Microsoft</p>
+                    <p>C Whole Foods Market</p>
+                    
+                    <p>23 Disposable waste
+                        <div class="dropzone" data-target="q23"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>24 The way the company purchases its goods
+                        <div class="dropzone" data-target="q24"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>25 Helping the under-developed
+                        <div class="dropzone" data-target="q25"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>26 Ensuring that people have the latest information
+                        <div class="dropzone" data-target="q26"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions3">
+                <h3>Questions 27–32</h3>
+                <p>Reading Passage 3 has six sections, <strong>A–F</strong>.</p>
+                <p>Which section contains the following information?</p>
+                <p>Write the correct letter, <strong>A–F</strong>, in boxes 27–32 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>27 positive and negative possibilities for the use of insect-inspired robots
+                        <div class="dropzone" data-target="q27"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>28 how perceived size is used as an aid to navigation
+                        <div class="dropzone" data-target="q28"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>29 an example of decision-making taking place in the limbs
+                        <div class="dropzone" data-target="q29"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>30 a description of a potential aid in space exploration
+                        <div class="dropzone" data-target="q30"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>31 the range of skills that have inspired biorobotics
+                        <div class="dropzone" data-target="q31"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>32 how a variety of navigational methods operate at the same time
+                        <div class="dropzone" data-target="q32"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                        <div class="card" draggable="true" data-value="F">F</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 33–36</h3>
+                <p>Answer the questions below.</p>
+                <p>Choose <strong>NO MORE THAN THREE WORDS</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 33–36 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>33 Which creature sees particularly well under water?
+                        <input type="text" id="q33" style="width: 200px;">
+                    </p>
+                    <p>34 In addition to a computer, what technical equipment is fitted in Dr Zelinsky's robot?
+                        <input type="text" id="q34" style="width: 200px;">
+                    </p>
+                    <p>35 Where is the Cataglyphis ant found?
+                        <input type="text" id="q35" style="width: 200px;">
+                    </p>
+                    <p>36 What atmospheric effect helps the Cataglyphis ant to know its direction?
+                        <input type="text" id="q36" style="width: 200px;">
+                    </p>
+                </div>
+                
+                <h3>Questions 37–40</h3>
+                <p>Look at the following people (Questions 37–40) and the list of robots below.</p>
+                <p>Match each person or people with the correct robot, <strong>A–G</strong>.</p>
+                <p>Write the correct letter, <strong>A–G</strong>, in boxes 37–40 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>List of Robots</strong></p>
+                    <p>A a robot that makes use of light as well as stored images for navigational purposes</p>
+                    <p>B a robot that can contribute to environmental health</p>
+                    <p>C a robot that can move over difficult surfaces</p>
+                    <p>D a robot that categorises information from the environment according to its usefulness</p>
+                    <p>E a robot that can be used to clean surfaces and collect rubbish</p>
+                    <p>F a robot that has improved on the ability of the insect on which it is based</p>
+                    <p>G a robot that can replace soldiers in war</p>
+                    
+                    <p>37 Dr Alex Zelinsky
+                        <div class="dropzone" data-target="q37"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>38 Professor Ruediger Wehner
+                        <div class="dropzone" data-target="q38"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>39 Professor Robert Michelson
+                        <div class="dropzone" data-target="q39"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>40 Roger Quinn and Professor Roy Ritzmann
+                        <div class="dropzone" data-target="q40"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                        <div class="card" draggable="true" data-value="F">F</div>
+                        <div class="card" draggable="true" data-value="G">G</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display:flex;gap:8px;margin:20px 0;">
+                <button class="btn btn-primary" onclick="submitAnswers()">Submit Answers</button>
+                <button class="btn" onclick="resetAnswers()">Reset Answers</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="practice-nav">
+        <span class="section-title">Passage 1:</span>
+        <div class="q-item" onclick="scrollToQuestion('q1')">1</div>
+        <div class="q-item" onclick="scrollToQuestion('q2')">2</div>
+        <div class="q-item" onclick="scrollToQuestion('q3')">3</div>
+        <div class="q-item" onclick="scrollToQuestion('q4')">4</div>
+        <div class="q-item" onclick="scrollToQuestion('q5')">5</div>
+        <div class="q-item" onclick="scrollToQuestion('q6')">6</div>
+        <div class="q-item" onclick="scrollToQuestion('q7')">7</div>
+        <div class="q-item" onclick="scrollToQuestion('q8')">8</div>
+        <div class="q-item" onclick="scrollToQuestion('q9')">9</div>
+        <div class="q-item" onclick="scrollToQuestion('q10')">10</div>
+        <div class="q-item" onclick="scrollToQuestion('q11')">11</div>
+        <div class="q-item" onclick="scrollToQuestion('q12')">12</div>
+        <div class="q-item" onclick="scrollToQuestion('q13')">13</div>
+        
+        <span class="section-title">Passage 2:</span>
+        <div class="q-item" onclick="scrollToQuestion('q14')">14</div>
+        <div class="q-item" onclick="scrollToQuestion('q15')">15</div>
+        <div class="q-item" onclick="scrollToQuestion('q16')">16</div>
+        <div class="q-item" onclick="scrollToQuestion('q17')">17</div>
+        <div class="q-item" onclick="scrollToQuestion('q18')">18</div>
+        <div class="q-item" onclick="scrollToQuestion('q19')">19</div>
+        <div class="q-item" onclick="scrollToQuestion('q20')">20</div>
+        <div class="q-item" onclick="scrollToQuestion('q21')">21</div>
+        <div class="q-item" onclick="scrollToQuestion('q22')">22</div>
+        <div class="q-item" onclick="scrollToQuestion('q23')">23</div>
+        <div class="q-item" onclick="scrollToQuestion('q24')">24</div>
+        <div class="q-item" onclick="scrollToQuestion('q25')">25</div>
+        <div class="q-item" onclick="scrollToQuestion('q26')">26</div>
+        
+        <span class="section-title">Passage 3:</span>
+        <div class="q-item" onclick="scrollToQuestion('q27')">27</div>
+        <div class="q-item" onclick="scrollToQuestion('q28')">28</div>
+        <div class="q-item" onclick="scrollToQuestion('q29')">29</div>
+        <div class="q-item" onclick="scrollToQuestion('q30')">30</div>
+        <div class="q-item" onclick="scrollToQuestion('q31')">31</div>
+        <div class="q-item" onclick="scrollToQuestion('q32')">32</div>
+        <div class="q-item" onclick="scrollToQuestion('q33')">33</div>
+        <div class="q-item" onclick="scrollToQuestion('q34')">34</div>
+        <div class="q-item" onclick="scrollToQuestion('q35')">35</div>
+        <div class="q-item" onclick="scrollToQuestion('q36')">36</div>
+        <div class="q-item" onclick="scrollToQuestion('q37')">37</div>
+        <div class="q-item" onclick="scrollToQuestion('q38')">38</div>
+        <div class="q-item" onclick="scrollToQuestion('q39')">39</div>
+        <div class="q-item" onclick="scrollToQuestion('q40')">40</div>
+    </div>
+
+    <div id="selbar">
+        <button id="highlightBtn">高亮</button>
+        <button id="removeHighlightBtn">取消高亮</button>
+    </div>
+
+    <script>
+        // Timer functionality (60 minutes countdown)
+        let totalTime = 60 * 60; // 60 minutes in seconds
+        const timerEl = document.getElementById('timer');
+        
+        function updateTimer() {
+            if (totalTime <= 0) {
+                clearInterval(timerInterval);
+                alert("Time is up! Submitting your answers.");
+                submitAnswers();
+                return;
+            }
+            
+            const minutes = Math.floor(totalTime / 60);
+            const seconds = totalTime % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            totalTime--;
+        }
+        
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call
+        
+        // Tab switching functionality with synchronization
+        function switchTabs(clickedTab, isRightTab = false) {
+            const tabId = clickedTab.getAttribute('data-tab');
+            
+            if (isRightTab) {
+                // If right tab was clicked, also switch the left tab
+                const passageId = clickedTab.getAttribute('data-passage');
+                const leftTab = document.querySelector(`.tab[data-tab="${passageId}"]`);
+                if (leftTab) {
+                    // Remove active class from all left tabs and contents
+                    document.querySelectorAll('#left .tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('#left .tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to corresponding left tab and content
+                    leftTab.classList.add('active');
+                    document.getElementById(passageId).classList.add('active');
+                }
+            }
+            
+            // Remove active class from all tabs and contents in the current container
+            const container = clickedTab.closest('.tab-container');
+            container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            container.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            clickedTab.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Set up tab click events
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const isRightTab = this.closest('#right') !== null;
+                switchTabs(this, isRightTab);
+            });
+        });
+        
+        // Drag and drop functionality
+        const cards = document.querySelectorAll('.card');
+        const dropzones = document.querySelectorAll('.dropzone');
+        
+        cards.forEach(card => {
+            card.addEventListener('dragstart', () => {
+                card.classList.add('dragging');
+            });
+            
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+            });
+        });
+        
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                zone.classList.add('over');
+            });
+            
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('over');
+            });
+            
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('over');
+                
+                const card = document.querySelector('.card.dragging');
+                if (card) {
+                    // Clear existing content
+                    zone.innerHTML = '';
+                    
+                    // Create a clone of the card for the dropzone
+                    const clone = card.cloneNode(true);
+                    clone.setAttribute('draggable', 'false');
+                    clone.classList.remove('dragging');
+                    zone.appendChild(clone);
+                    
+                    // Mark the question as answered in the navigation
+                    const questionId = zone.getAttribute('data-target');
+                    const navItem = document.querySelector(`.q-item[onclick="scrollToQuestion('${questionId}')"]`);
+                    if (navItem) {
+                        navItem.classList.add('answered');
+                    }
+                }
+            });
+        });
+        
+        // Function to scroll to a specific question
+        function scrollToQuestion(questionId) {
+            const questionElement = document.querySelector(`[data-target="${questionId}"]`);
+            if (questionElement) {
+                questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Highlight the question briefly
+                questionElement.style.backgroundColor = '#fff3a3';
+                setTimeout(() => {
+                    questionElement.style.backgroundColor = '';
+                }, 1000);
+            }
+        }
+        
+        // Function to submit answers
+        function submitAnswers() {
+            alert("Answers submitted! This would normally be sent to a server for grading.");
+            // In a real implementation, this would collect all answers and send them for evaluation
+        }
+        
+        // Function to reset answers
+        function resetAnswers() {
+            if (confirm("Are you sure you want to reset all answers?")) {
+                // Clear all dropzones
+                document.querySelectorAll('.dropzone').forEach(zone => {
+                    zone.innerHTML = '<span class="droplabel">Drag answer here</span>';
+                });
+                
+                // Clear all radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.checked = false;
+                });
+                
+                // Clear all text inputs
+                document.querySelectorAll('input[type="text"]').forEach(input => {
+                    input.value = '';
+                });
+                
+                // Remove answered status from navigation
+                document.querySelectorAll('.q-item.answered').forEach(item => {
+                    item.classList.remove('answered');
+                });
+            }
+        }
+        
+        // Divider dragging functionality
+        const divider = document.getElementById('divider');
+        const leftPane = document.getElementById('left');
+        const rightPane = document.getElementById('right');
+        let isResizing = false;
+        
+        divider.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            document.body.style.cursor = 'ew-resize';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const containerRect = document.querySelector('.shell').getBoundingClientRect();
+            const xPosition = e.clientX - containerRect.left;
+            
+            // Set minimum widths for both panes
+            const leftWidth = Math.max(280, Math.min(containerRect.width - 320, xPosition));
+            const rightWidth = containerRect.width - leftWidth - 8; // 8px for the divider
+            
+            leftPane.style.flex = `0 0 ${leftWidth}px`;
+            rightPane.style.flex = `1 1 ${rightWidth}px`;
+        });
+        
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+            document.body.style.cursor = '';
+        });
+
+        // Highlight functionality
+        const selbar = document.getElementById('selbar');
+        const highlightBtn = document.getElementById('highlightBtn');
+        const removeHighlightBtn = document.getElementById('removeHighlightBtn');
+        let currentSelection = null;
+
+        // Listen for text selection
+        document.addEventListener('mouseup', function(e) {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            
+            if (selectedText.length > 0 && !e.target.closest('#selbar')) {
+                currentSelection = selection;
+                
+                // Position the toolbar near the selection
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                selbar.style.display = 'flex';
+                selbar.style.top = (rect.top + window.scrollY - 40) + 'px';
+                selbar.style.left = (rect.left + window.scrollX) + 'px';
+            } else if (!e.target.closest('#selbar')) {
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Highlight button functionality
+        highlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                const selectedText = range.toString();
+                
+                // Create highlight span
+                const span = document.createElement('span');
+                span.className = 'hl';
+                span.textContent = selectedText;
+                
+                // Replace selected text with highlighted span
+                range.deleteContents();
+                range.insertNode(span);
+                
+                // Clear selection and hide toolbar
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Remove highlight button functionality
+        removeHighlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                
+                // Find if the selection contains highlighted text
+                let parent = range.startContainer.parentNode;
+                while (parent && parent !== document.body) {
+                    if (parent.classList && parent.classList.contains('hl')) {
+                        // Replace the highlighted span with just its text content
+                        const text = document.createTextNode(parent.textContent);
+                        parent.parentNode.replaceChild(text, parent);
+                        
+                        // Clear selection and hide toolbar
+                        window.getSelection().removeAllRanges();
+                        selbar.style.display = 'none';
+                        return;
+                    }
+                    parent = parent.parentNode;
+                }
+                
+                // If no highlight found, just clear selection
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Hide toolbar when clicking elsewhere
+        document.addEventListener('mousedown', function(e) {
+            if (!e.target.closest('#selbar') && selbar.style.display === 'flex') {
+                selbar.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

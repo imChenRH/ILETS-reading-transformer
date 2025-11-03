@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Mock Test</title>
+    <style>
+        :root {
+            --line: #e5e7eb;
+            --bg: #f6f7fb;
+            --panel: #fff;
+            --accent: #3b82f6;
+            --muted: #6b7280;
+            --shadow: 0 6px 20px rgba(0,0,0,.12);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .shell {
+            display: flex;
+            height: calc(100vh - 60px);
+            width: 100%;
+        }
+        .pane {
+            background: var(--panel);
+            overflow: auto;
+            padding: 20px;
+        }
+        #left {
+            flex: 0 0 50%;
+            min-width: 280px;
+        }
+        #right {
+            flex: 1 1 auto;
+            min-width: 320px;
+            background: #fbfbff;
+            border-left: 1px solid var(--line);
+        }
+        #divider {
+            flex: 0 0 8px;
+            background: linear-gradient(90deg, #e5e7eb, #d1d5db);
+            cursor: ew-resize;
+            position: relative;
+            z-index: 5;
+            user-select: none;
+        }
+        h2, h3, h4 {
+            margin: 0 0 10px;
+        }
+        p {
+            margin: 0 0 12px;
+            line-height: 1.6;
+        }
+        .group {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+        .timer-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-height: 40px;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: auto;
+            min-width: 120px;
+            max-width: 200px;
+            vertical-align: middle;
+            margin: 5px 0;
+        }
+        .droplabel {
+            color: #64748b;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cardpool {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            cursor: grab;
+            box-shadow: 0 1px 0 rgba(0,0,0,.03);
+            white-space: nowrap;
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        .btn {
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: #3b82f6;
+        }
+        .hl {
+            background: #fff3a3;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,.05);
+            cursor: pointer;
+        }
+        .hl:hover {
+            filter: brightness(0.98);
+        }
+        #selbar {
+            position: absolute;
+            display: none;
+            z-index: 2000;
+            background: #111;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: var(--shadow);
+            font-size: 13px;
+            gap: 6px;
+            align-items: center;
+        }
+        #selbar button {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.25);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #selbar button:hover {
+            border-color: #fff;
+        }
+        .practice-nav {
+            background: #fff;
+            border-top: 2px solid var(--line);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 4000;
+            height: 60px;
+            overflow-x: auto;
+        }
+        .practice-nav .q-item {
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 36px;
+            text-align: center;
+        }
+        .practice-nav .q-item:hover {
+            background: #f1f5f9;
+            border-color: var(--accent);
+        }
+        .practice-nav .q-item.answered {
+            background: #e0e7ff;
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .practice-nav .q-item.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .section-title {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+        .question-container {
+            margin-bottom: 20px;
+        }
+        .question-container p {
+            margin-bottom: 8px;
+        }
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        Time remaining: <span id="timer">60:00</span>
+    </div>
+
+    <div class="shell">
+        <section class="pane" id="left">
+            <div class="tab-container">
+                <div class="tab active" data-tab="passage1">Passage 1</div>
+                <div class="tab" data-tab="passage2">Passage 2</div>
+                <div class="tab" data-tab="passage3">Passage 3</div>
+            </div>
+            
+            <div class="tab-content active" id="passage1">
+                <h2>The History of Tea</h2>
+                <p>The story of tea begins in China. According to legend, in 2737 BC the Chinese emperor Shen Nung was sitting beneath a tree while his servant boiled drinking water, when some leaves from the tree blew into the water. Shen Nung, a renowned herbalist, decided to try the infusion that his servant had accidentally created. The tree was a Camellia sinensis, and the resulting drink was what we now call tea. It is impossible to know whether there is any truth in this story, but tea-drinking certainly became established in China many centuries before it had even been heard of in the West. Containers for tea have been found in tombs dating from the Han Dynasty (206 BC–220 AD), but it was under the Tang Dynasty (618–906 AD) that tea became firmly established as the national drink of China.</p>
+                
+                <p>It became such a favourite that during the late eighth century a writer called Lu Yu wrote the first book entirely about tea, the Ch'a Ching, or Tea Classic. It was shortly after this that tea was first introduced to Japan, by Japanese Buddhist monks who had travelled to China to study. Tea received almost instant imperial sponsorship and spread rapidly from the royal court and monasteries to the other sections of Japanese society.</p>
+                
+                <p>So at this stage in the history of tea, Europe was rather lagging behind. In the latter half of the sixteenth century there are the first brief mentions of tea as a drink among Europeans, mostly from Portuguese who were living in the East as traders and missionaries. But although some of these individuals may have brought back samples of tea to their native country, it was not the Portuguese who were the first to ship back tea as a commercial import.</p>
+                
+                <p>This was done by the Dutch, who in the last years of the sixteenth century began to encroach on Portuguese trading routes in the East. By the turn of the century they had established a trading post on the island of Java, and it was via Java that in 1606 the first consignment of tea was shipped from China to Holland. Tea soon became a fashionable drink among the Dutch, and from there spread to other countries in continental western Europe, but because of its high price it remained a drink for the wealthy.</p>
+                
+                <p>Britain, always a little suspicious of continental trends, had yet to become the nation of tea-drinkers that it is today. Starting in 1600, the British East India Company had a monopoly on importing goods from outside Europe, and it is likely that sailors on these ships brought tea home as gifts. The first coffee-house had been established in London in 1652, and tea was still somewhat unfamiliar to most readers, so it is fair to assume that the drink was still something of a curiosity.</p>
+                
+                <p>Gradually, it became a popular drink in coffee-houses, which were as much locations for the transaction of business as they were for relaxation or pleasure. They were, though, the preserve of middle- and upper-class men; women drank tea in their own homes, and as yet tea was still too expensive to be widespread among the working classes. In part, its high price was due to a punitive system of taxation.</p>
+                
+                <p>One unforeseen consequence of the taxation of tea was the growth of methods to avoid taxation—smuggling and adulteration. By the eighteenth century many Britons wanted to drink tea but could not afford the high prices, and their enthusiasm for the drink was matched by the enthusiasm of criminal gangs to smuggle it in. What began as a small-time illegal trade, selling a few pounds of tea to personal contacts, developed by the late eighteenth century into an astonishing organised-crime network, perhaps importing as much as seven million lb annually, compared to a legal import of five million lb!</p>
+                
+                <p>Worse for the drinkers was that taxation also encouraged the adulteration of tea, particularly of smuggled tea which was not quality-controlled through customs and excise. Leaves from other plants, or leaves which had already been brewed and then dried, were added to tea leaves. By 1784, the government realised that enough was enough, and that heavy taxation was creating more problems than it was worth. The new Prime Minister, William Pitt the Younger, slashed the tax from 119 per cent to 12.5 per cent. Suddenly legal tea was affordable, and smuggling stopped virtually overnight.</p>
+                
+                <p>Another great impetus to tea-drinking resulted from the end of the East India Company's monopoly on trade with China, in 1834. Before that date, China was the country of origin of the vast majority of the tea imported to Britain, but the end of its monopoly stimulated the East India Company to consider growing tea outside China. India had always been the centre of the Company's operations, which led to the increased cultivation of tea in India, beginning in Assam. There were a few false starts, including the destruction by cattle of one of the earliest tea nurseries, but by 1888 British tea imports from India were for the first time greater than those from China.</p>
+                
+                <p>The end of the East India Company's monopoly on trade with China also had another result, which was more dramatic though less important in the long term: it ushered in the era of the tea clippers. While the Company had had the monopoly on trade, there was no rush to bring the tea from China to Britain, but after 1834 the tea trade became a virtual free-for-all. Individual merchants and sea-captains with their own ships raced to bring home the tea and make the most money, using fast new clippers which had sleek lines, tall masts and huge sails. In particular, there was competition between British and American merchants, leading to the famous clipper races of the 1860s. But these races soon came to an end with the opening of the Suez Canal, which made the trade routes to China viable for steamships for the first time.</p>
+            </div>
+            
+            <div class="tab-content" id="passage2">
+                <h2>Playing Soccer</h2>
+                <p><em>There are many differences between playing soccer in the street and joining a youth team in an organized league in the USA</em></p>
+                
+                <p><strong>A</strong> Street soccer, as its name implies, is an informal variation of the sport, often played on the street, particularly in urban areas. There are many reasons for the widespread popularity of street soccer. Unlike youth soccer, its more formally organized counterpart, no large space is needed, and goal posts, corner markers, and marked lines, associated with the formal game, are typically absent, as are game officials or referees. Another attraction of street soccer is that it is played frequently and competitively, but does not necessarily require standard 11-a-side teams or fixed playing positions. Unlike in youth soccer, inexperienced street soccer players rarely learn from repetitive technical and tactical drills. Instead, they learn from their poor performance in competition, unconscious of the skills they are nonetheless developing, and without older adults or coaches present. Players learn without effort through playing the game, and soon attain an almost natural feeling for the sport.</p>
+                
+                <p><strong>B</strong> However, there are lots of cities in the world today where conditions are such that street soccer is no longer possible. Congested traffic now dominates where games were once played. Parks and open fields are used as hangouts for older teenagers with other interests. Add to this the requirement in many localities for official permits to use public spaces and the managed schedules that many young people have today, and spontaneous play of any kind is hard to imagine.</p>
+                
+                <p><strong>C</strong> In spite of all these obstacles, which are probably solvable in most instances, there is another sociological explanation of why in many places street soccer doesn't enjoy the same popularity it once did. In his book How Soccer Explains the World, US writer Franklin Foer observes: But for all the talk of freedom, the 1960s parenting style had a far less relaxed side too. Like the 1960s consumer movement which brought seat belts and airbags to cars, the (youth) soccer movement felt like it could create a set of … regulations that would protect both the child's body and mind from damage. Soccer leagues like the one I played in as a child handed out 'participation' prizes to every player, no matter how few games his (or her) team won. Where most of the world accepts the practice of using your head to hit the ball as an essential element of the game, some (youth) soccer parents have worried over the potential for injury to the brain. An entire industry grew up to manufacture protective headgear. Even though very little medical evidence supports this fear, some youth leagues prohibited heading the ball altogether.</p>
+                
+                <p><strong>D</strong> A growing body of people don't believe street soccer involves a legitimate educational method. They argue that children need to be taught by experts. Youth soccer instruction now begins with four-year-olds, so that they will have an advantage as six-year-olds. This need to get ahead brings with it a fear of falling behind that only expert instruction can prevent. This type of instruction leaves no room for the trial-and-error approach of street soccer.</p>
+                
+                <p><strong>E</strong> One of the basic ideas of street soccer is that young players are assigned a particular role by a better player and are expected to play for the good of the team. Such an assignment runs counter to the idea of youth soccer that every child needs to learn every position and will benefit from doing so. In street soccer, you fill the role that you are best able to at a particular time. While this role assignment can change from game to game, the purpose is always the same: to get the best out of each individual at any given moment.</p>
+                
+                <p><strong>F</strong> In street soccer, children have to learn patience, to wait their turn, to realize that they are not entitled to make decisions, or even be listened to simply because they show up. Positions of responsibility are earned through competition within the team. Younger players in street soccer must wait to attain those positions. In youth soccer, however, with its overly democratic values, youngsters are guaranteed their time in the spotlight. Whether it's their turn to be captain, to play a central position or to take a crucial shot, youth soccer players come to believe that hard work and patience aren't really necessary.</p>
+                
+                <p><strong>G</strong> Not only does every youth soccer player get a chance, it is assumed that each individual has played well. 'Everyone's a winner; no one's a loser' is a guiding principle of youth soccer. This ensures each individual goes away positive about themselves. No one can leave a game or a practice feeling bad. But, if there really are no losers, then why try at all? Since giving less than your best receives the same reward as giving your best, why go to any extra effort?</p>
+                
+                <p>In street soccer, every game results in a winner and a loser and everyone knows who is who. Losing a game is a common experience and players learn early on how to handle this. As a result, unlike most youth soccer players, they acquire resilience.</p>
+                
+                <p>A further difference between these two strands of soccer is that in street soccer a formal record is not kept. You can lose one day and win the next. The results are only temporary and are forgotten within minutes of the end of the match. But in organized youth soccer, the position each person plays and the results are formally noted and maintained throughout a season.</p>
+            </div>
+            
+            <div class="tab-content" id="passage3">
+                <h2>Robert Louis Stevenson</h2>
+                <p><em>The writer of some of the best-known stories in the English language, including Treasure Island and The Strange Case of Dr. Jekyll and Mr. Hyde</em></p>
+                
+                <p>It is more than 100 years since the death of the Scottish writer Robert Louis Stevenson on the South Pacific island of Samoa. And it seems that time has not been kind to Stevenson's memory. Immediately after his death, his family and friends set to work to fashion the legend of Robert Louis Stevenson, or R.L.S. as he became known—one of the few writers familiar from his initials alone. Subsequent works of biography then turned him into a writer of almost religious importance. One example was critic Balfour, who in 1901 portrayed Stevenson's family as ministering angels to the dying genius during his final illness. Similarly, the biographer Crouch absurdly overstated Stevenson's significance by placing him in the same company as those most revered names in English literature, Shakespeare and Keats. The reaction to this nonsense was a number of highly critical assessments of Stevenson's legacy in the 1920s.</p>
+                
+                <p>Normally, the critical pendulum can be relied on to swing back again, but there are several aspects of Stevenson's work that have until recently acted against a more balanced appraisal. First is the allegation that Stevenson was a mere master of linguistic fireworks who lacked moral depth. Some critics accused him of being a literary charlatan, juggling words very prettily to strike effects that overawed an ignorant public and served to distract from the inadequacy of his ideas.</p>
+                
+                <p>Then there has been a prejudice against the adventure story as the proper medium for deep moral seriousness, a prejudice which is still extremely influential today. It seems that we can accept that an adventure film can successfully express profound moral truths, but we reject the same idea for a book. The absurdity of this becomes apparent when we think of writers like Joseph Conrad and Graham Greene, but it is no use pretending that this bias against adventure stories is not part of our high culture. A further problem is that Stevenson has often not found favour in the land of his birth because his conservatism so often collides with the strong radical tradition in Scotland. His many escapist stories and preference for living abroad have led to accusations that he camouflaged Scotland's real problems. Lastly, the high adventure of Stevenson's own lifestyle has sometimes obscured his output. His globe-trotting, and above all the final phase of his life in Samoa, tended to make his own life a greater story than any he could devise. This was precisely what his friends feared would happen towards the end of his short life: his art might be overwhelmed by the drama of life in Samoa.</p>
+                
+                <p>One consequence of this has been that Stevenson's influence on other writers has too often been neglected. The writer and poet Oscar Wilde was deeply influenced by Stevenson, even though he declared that Stevenson would have produced better work if he had lived in London rather than Samoa. Stevenson tends to stick in the throat even of those writers who would like to spit him out, such as Shaw, who claimed to have learned from him that the romantic hero is always mocked by reality. Likewise, the writer Galsworthy, who was a determined critic, later changed his mind and said that the superiority of Stevenson over the novelist Hardy was that Stevenson was all life and Hardy, all death. The influence on the novelist Chesterton would also repay detailed study, for it was through him that Stevenson has managed to cross the ages, emerging as an influence on the modernist movement and our own contemporary Latin American school of magical realism.</p>
+                
+                <p>When making an assessment of his life and work, one question must inevitably be asked: was Robert Louis Stevenson Scotland's greatest writer of English prose? For most commentators this honour falls to Sir Walter Scott, author of Ivanhoe among many other classic novels, and it is true that in terms of craftsmanship, precision and the ability to minutely regulate language to create the desired effect, Scott takes the prize. However, this is not the same thing at all as inherent talent: by way of comparison one may take the example of the two great Russian composers Shostakovich and Prokofiev, of whom the former had learned more precise skills of execution but the latter's intrinsic genius was greater, and so it seems to be with Scott and Stevenson. Admittedly, Scott's detailed style does permit his stories to explore levels of tragedy that are beyond Stevenson's reach, but in this regard they have the musty smell of the museum, somehow artificial and removed from modern-day reality. On the other hand, Stevenson's skill with plotting and narrative give his books a timeless quality, so that they still live today. And Stevenson was also the shrewder judge of behaviour and psychology. For example, his compelling description of a man with a split personality in The Strange Case of Dr. Jekyll and Mr. Hyde has proved so accessible and accurate that the expression "Jekyll and Hyde" has entered common English usage. Even if we do not see a revival of critical interest in this great Scottish writer, it is to be hoped that readers go back to Robert Louis Stevenson's magnificent stories and reassess this neglected genius.</p>
+            </div>
+        </section>
+
+        <div id="divider" title="Drag to resize"></div>
+
+        <section class="pane" id="right">
+            <div class="tab-container">
+                <div class="tab active" data-tab="questions1" data-passage="passage1">Questions 1-13</div>
+                <div class="tab" data-tab="questions2" data-passage="passage2">Questions 14-26</div>
+                <div class="tab" data-tab="questions3" data-passage="passage3">Questions 27-40</div>
+            </div>
+            
+            <div class="tab-content active" id="questions1">
+                <h3>Questions 1–7</h3>
+                <p>Complete the sentences below.</p>
+                <p>Choose ONE WORD ONLY from the passage for each answer.</p>
+                <p>Write your answers in boxes 1–7 on your answer sheet.</p>
+                
+                <div class="group">
+                    <div class="question-container" data-target="q1">
+                        <p>1 Researchers believe the tea containers detected in <input type="text" id="q1"> from the Han Dynasty were the first evidence of the use of tea.</p>
+                    </div>
+                    <div class="question-container" data-target="q2">
+                        <p>2 Lu Yu wrote a <input type="text" id="q2"> about tea before anyone else in the eighth century.</p>
+                    </div>
+                    <div class="question-container" data-target="q3">
+                        <p>3 It was <input type="text" id="q3"> from Japan who brought tea to their native country from China.</p>
+                    </div>
+                    <div class="question-container" data-target="q4">
+                        <p>4 Tea was carried from China to Europe by the <input type="text" id="q4">.</p>
+                    </div>
+                    <div class="question-container" data-target="q5">
+                        <p>5 The British government had to cut the taxation on tea because of the serious crime of <input type="text" id="q5">.</p>
+                    </div>
+                    <div class="question-container" data-target="q6">
+                        <p>6 Tea was planted in <input type="text" id="q6"> besides China in the 19th century.</p>
+                    </div>
+                    <div class="question-container" data-target="q7">
+                        <p>7 In order to compete in shipping speed, traders used <input type="text" id="q7"> for the race.</p>
+                    </div>
+                </div>
+                
+                <h3>Questions 8–13</h3>
+                <p>Do the following statements agree with the information given in Reading Passage 1?</p>
+                <p>In boxes 8–13 on your answer sheet, write</p>
+                <ul>
+                    <li><strong>TRUE</strong> if the statement agrees with the information</li>
+                    <li><strong>FALSE</strong> if the statement contradicts the information</li>
+                    <li><strong>NOT GIVEN</strong> if there is no information on this</li>
+                </ul>
+                
+                <div class="group">
+                    <div class="question-container" data-target="q8">
+                        <p>8 Tea was popular in Britain in the 16th century.</p>
+                        <div class="radio-group">
+                            <label><input type="radio" name="q8" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q8" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q8" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </div>
+                    <div class="question-container" data-target="q9">
+                        <p>9 Tea was more fashionable than coffee in Europe in the late 16th century.</p>
+                        <div class="radio-group">
+                            <label><input type="radio" name="q9" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q9" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q9" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </div>
+                    <div class="question-container" data-target="q10">
+                        <p>10 Tea was enjoyed by all classes in Britain in the 17th century.</p>
+                        <div class="radio-group">
+                            <label><input type="radio" name="q10" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q10" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q10" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </div>
+                    <div class="question-container" data-target="q11">
+                        <p>11 The adulteration of tea also prompted William Pitt the Younger to reduce the tax.</p>
+                        <div class="radio-group">
+                            <label><input type="radio" name="q11" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q11" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q11" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </div>
+                    <div class="question-container" data-target="q12">
+                        <p>12 Initial problems occurred when tea was planted outside China by the East India Company.</p>
+                        <div class="radio-group">
+                            <label><input type="radio" name="q12" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q12" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q12" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </div>
+                    <div class="question-container" data-target="q13">
+                        <p>13 The fastest vessels were owned by America during the 19th-century clipper races.</p>
+                        <div class="radio-group">
+                            <label><input type="radio" name="q13" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q13" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q13" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions2">
+                <h3>Questions 14–19</h3>
+                <p>Reading Passage 2 has seven sections, A–G.</p>
+                <p>Which section contains the following information?</p>
+                <p>Write the correct letter, A–G, in boxes 14–19 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>14 a contrast between the ways young players gain experience of playing different positions
+                        <div class="dropzone" data-target="q14"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>15 examples outside sport of greater emphasis on individual safety
+                        <div class="dropzone" data-target="q15"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>16 a description of methods of selection for leadership on soccer teams
+                        <div class="dropzone" data-target="q16"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>17 details of urban changes that discourage street soccer
+                        <div class="dropzone" data-target="q17"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>18 a mention of the lesson that failure teaches street soccer players
+                        <div class="dropzone" data-target="q18"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>19 an explanation of why youth soccer emphasises the need for coaches
+                        <div class="dropzone" data-target="q19"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                        <div class="card" draggable="true" data-value="F">F</div>
+                        <div class="card" draggable="true" data-value="G">G</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 20 and 21</h3>
+                <p>Choose TWO letters, A–E.</p>
+                <p>Write the correct letters in boxes 20 and 21 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>The list below gives some possible reasons for the popularity of street soccer.</strong></p>
+                    <p>Which TWO of these reasons are mentioned by the writer of the text?</p>
+                    
+                    <p>A Many famous soccer players got their start in street soccer.</p>
+                    <p>B Young people can begin playing street soccer at a very early age.</p>
+                    <p>C You do not need elaborate facilities to play street soccer.</p>
+                    <p>D Inexperienced street soccer players are not criticised for mistakes.</p>
+                    <p>E Street soccer teams can have varying numbers of players.</p>
+                    
+                    <p>20 <div class="dropzone" data-target="q20"><span class="droplabel">Drag answer here</span></div></p>
+                    <p>21 <div class="dropzone" data-target="q21"><span class="droplabel">Drag answer here</span></div></p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 22 and 23</h3>
+                <p>Choose TWO letters, A–E.</p>
+                <p>Write the correct letters in boxes 22 and 23 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>The list below gives some possible results of the 1960s parenting style.</strong></p>
+                    <p>Which TWO of these results are mentioned by Franklin Foer in the excerpt from How Soccer Explains the World?</p>
+                    
+                    <p>A Participation in youth soccer became much more expensive.</p>
+                    <p>B Some youth soccer leagues adopted more restrictive rules of play.</p>
+                    <p>C Fewer young people joined youth soccer teams.</p>
+                    <p>D Youth soccer players were sometimes rewarded for simply playing in games.</p>
+                    <p>E Soccer equipment manufacturers directed advertising towards parents.</p>
+                    
+                    <p>22 <div class="dropzone" data-target="q22"><span class="droplabel">Drag answer here</span></div></p>
+                    <p>23 <div class="dropzone" data-target="q23"><span class="droplabel">Drag answer here</span></div></p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 24–26</h3>
+                <p>Complete the summary below.</p>
+                <p>Choose ONE WORD ONLY from the passage for each answer.</p>
+                <p>Write your answers in boxes 24–26 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>Winners and losers</strong></p>
+                    <p>For youth soccer players, a key <input type="text" id="q24"> is that they should always come away from the game with a positive attitude. In this respect, regardless of the effort the players make, they get some kind of <input type="text" id="q25"> at the end of a game. In street soccer, however, players gain resilience because they have to learn to cope with failure. But the outcome of a match isn't remembered for long. In fact, no-one ever keeps a <input type="text" id="q26"> of the results of games.</p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions3">
+                <h3>Questions 27–31</h3>
+                <p>Choose the correct letter, A, B, C, or D.</p>
+                <p>Write the correct letter in boxes 27–31 on your answer sheet.</p>
+                
+                <div class="group">
+                    <div class="question-container" data-target="q27">
+                        <p>27 In the opinion of the writer, the biographers Balfour and Crouch</p>
+                        <div>
+                            <label><input type="radio" name="q27" value="A"> A misunderstood Stevenson's religious beliefs</label><br>
+                            <label><input type="radio" name="q27" value="B"> B overestimated other writers' influence on Stevenson</label><br>
+                            <label><input type="radio" name="q27" value="C"> C elevated Stevenson above his true status as a writer</label><br>
+                            <label><input type="radio" name="q27" value="D"> D understated the role played by Stevenson's family</label>
+                        </div>
+                    </div>
+                    <div class="question-container" data-target="q28">
+                        <p>28 What is the writer's main point about Stevenson in the second paragraph?</p>
+                        <div>
+                            <label><input type="radio" name="q28" value="A"> A The ethical nature of his stories was often criticised.</label><br>
+                            <label><input type="radio" name="q28" value="B"> B The public judges him more fairly than the critics.</label><br>
+                            <label><input type="radio" name="q28" value="C"> C Recent criticism of him has been justified.</label><br>
+                            <label><input type="radio" name="q28" value="D"> D Critics argued that his style covered up his faults.</label>
+                        </div>
+                    </div>
+                    <div class="question-container" data-target="q29">
+                        <p>29 According to the writer, the adventure story</p>
+                        <div>
+                            <label><input type="radio" name="q29" value="A"> A can be used by writers to tell moral stories</label><br>
+                            <label><input type="radio" name="q29" value="B"> B is more fashionable today than in the past</label><br>
+                            <label><input type="radio" name="q29" value="C"> C has been used by other writers but not Stevenson</label><br>
+                            <label><input type="radio" name="q29" value="D"> D is more appropriate for books than for films</label>
+                        </div>
+                    </div>
+                    <div class="question-container" data-target="q30">
+                        <p>30 What point does the writer make about Stevenson and Scotland?</p>
+                        <div>
+                            <label><input type="radio" name="q30" value="A"> A His unflattering stories about Scotland angered many Scots.</label><br>
+                            <label><input type="radio" name="q30" value="B"> B His ideas contrasted with those of many Scots.</label><br>
+                            <label><input type="radio" name="q30" value="C"> C He demonstrated great sympathy for Scotland's problems.</label><br>
+                            <label><input type="radio" name="q30" value="D"> D He was not considered a true Scot as he was not born there.</label>
+                        </div>
+                    </div>
+                    <div class="question-container" data-target="q31">
+                        <p>31 According to the writer, Stevenson's own lifestyle</p>
+                        <div>
+                            <label><input type="radio" name="q31" value="A"> A attracted more attention than his books</label><br>
+                            <label><input type="radio" name="q31" value="B"> B did not prepare him for living in Samoa</label><br>
+                            <label><input type="radio" name="q31" value="C"> C was envied by his friends</label><br>
+                            <label><input type="radio" name="q31" value="D"> D was responsible for his early death</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3>Questions 32–35</h3>
+                <p>Do the following statements agree with the claims of the writer in Reading Passage 3?</p>
+                <p>In boxes 32–35 on your answer sheet, write</p>
+                <ul>
+                    <li><strong>YES</strong> if the statement agrees with the claims of the writer</li>
+                    <li><strong>NO</strong> if the statement contradicts the claims of the writer</li>
+                    <li><strong>NOT GIVEN</strong> if it is impossible to say what the writer thinks about this</li>
+                </ul>
+                
+                <div class="group">
+                    <div class="question-container" data-target="q32">
+                        <p>32 Although Oscar Wilde admired Robert Louis Stevenson very much, he believed Stevenson could have written greater works.</p>
+                        <div class="radio-group">
+                            <label><input type="radio" name="q32" value="YES"> YES</label>
+                            <label><input type="radio" name="q32" value="NO"> NO</label>
+                            <label><input type="radio" name="q32" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </div>
+                    <div class="question-container" data-target="q33">
+                        <p>33 Robert Louis Stevenson encouraged Oscar Wilde to start writing in the first place.</p>
+                        <div class="radio-group">
+                            <label><input type="radio" name="q33" value="YES"> YES</label>
+                            <label><input type="radio" name="q33" value="NO"> NO</label>
+                            <label><input type="radio" name="q33" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </div>
+                    <div class="question-container" data-target="q34">
+                        <p>34 Galsworthy respected Hardy's works more than Stevenson's.</p>
+                        <div class="radio-group">
+                            <label><input type="radio" name="q34" value="YES"> YES</label>
+                            <label><input type="radio" name="q34" value="NO"> NO</label>
+                            <label><input type="radio" name="q34" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </div>
+                    <div class="question-container" data-target="q35">
+                        <p>35 There is a need to study in detail Stevenson's influence on Chesterton.</p>
+                        <div class="radio-group">
+                            <label><input type="radio" name="q35" value="YES"> YES</label>
+                            <label><input type="radio" name="q35" value="NO"> NO</label>
+                            <label><input type="radio" name="q35" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3>Questions 36–40</h3>
+                <p>Complete the summary using the list of words, A–I, below.</p>
+                <p>Write the correct letter, A–I, in boxes 36–40 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>Sir Walter Scott and Robert Louis Stevenson</strong></p>
+                    <p>A lot of people believe that Sir Walter Scott and Robert Louis Stevenson are the most influential writers in the history of Scotland, but Sir Walter Scott is more proficient in 
+                    <div class="dropzone" data-target="q36"><span class="droplabel">Drag answer here</span></div>, while Stevenson has better 
+                    <div class="dropzone" data-target="q37"><span class="droplabel">Drag answer here</span></div>.</p>
+                    
+                    <p>Scott's books illustrate 
+                    <div class="dropzone" data-target="q38"><span class="droplabel">Drag answer here</span></div>, especially in terms of tragedy, but many readers prefer Stevenson's 
+                    <div class="dropzone" data-target="q39"><span class="droplabel">Drag answer here</span></div>. What's more, Stevenson's understanding of 
+                    <div class="dropzone" data-target="q40"><span class="droplabel">Drag answer here</span></div> gave his works a unique expression of the Scottish people.</p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A natural ability</div>
+                        <div class="card" draggable="true" data-value="B">B romance</div>
+                        <div class="card" draggable="true" data-value="C">C colorful language</div>
+                        <div class="card" draggable="true" data-value="D">D critical acclaim</div>
+                        <div class="card" draggable="true" data-value="E">E humor</div>
+                        <div class="card" draggable="true" data-value="F">F technical control</div>
+                        <div class="card" draggable="true" data-value="G">G storytelling</div>
+                        <div class="card" draggable="true" data-value="H">H depth</div>
+                        <div class="card" draggable="true" data-value="I">I human nature</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display:flex;gap:8px;margin:20px 0;">
+                <button class="btn btn-primary" onclick="submitAnswers()">Submit Answers</button>
+                <button class="btn" onclick="resetAnswers()">Reset Answers</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="practice-nav">
+        <span class="section-title">Passage 1:</span>
+        <div class="q-item" onclick="scrollToQuestion('q1')">1</div>
+        <div class="q-item" onclick="scrollToQuestion('q2')">2</div>
+        <div class="q-item" onclick="scrollToQuestion('q3')">3</div>
+        <div class="q-item" onclick="scrollToQuestion('q4')">4</div>
+        <div class="q-item" onclick="scrollToQuestion('q5')">5</div>
+        <div class="q-item" onclick="scrollToQuestion('q6')">6</div>
+        <div class="q-item" onclick="scrollToQuestion('q7')">7</div>
+        <div class="q-item" onclick="scrollToQuestion('q8')">8</div>
+        <div class="q-item" onclick="scrollToQuestion('q9')">9</div>
+        <div class="q-item" onclick="scrollToQuestion('q10')">10</div>
+        <div class="q-item" onclick="scrollToQuestion('q11')">11</div>
+        <div class="q-item" onclick="scrollToQuestion('q12')">12</div>
+        <div class="q-item" onclick="scrollToQuestion('q13')">13</div>
+        
+        <span class="section-title">Passage 2:</span>
+        <div class="q-item" onclick="scrollToQuestion('q14')">14</div>
+        <div class="q-item" onclick="scrollToQuestion('q15')">15</div>
+        <div class="q-item" onclick="scrollToQuestion('q16')">16</div>
+        <div class="q-item" onclick="scrollToQuestion('q17')">17</div>
+        <div class="q-item" onclick="scrollToQuestion('q18')">18</div>
+        <div class="q-item" onclick="scrollToQuestion('q19')">19</div>
+        <div class="q-item" onclick="scrollToQuestion('q20')">20</div>
+        <div class="q-item" onclick="scrollToQuestion('q21')">21</div>
+        <div class="q-item" onclick="scrollToQuestion('q22')">22</div>
+        <div class="q-item" onclick="scrollToQuestion('q23')">23</div>
+        <div class="q-item" onclick="scrollToQuestion('q24')">24</div>
+        <div class="q-item" onclick="scrollToQuestion('q25')">25</div>
+        <div class="q-item" onclick="scrollToQuestion('q26')">26</div>
+        
+        <span class="section-title">Passage 3:</span>
+        <div class="q-item" onclick="scrollToQuestion('q27')">27</div>
+        <div class="q-item" onclick="scrollToQuestion('q28')">28</div>
+        <div class="q-item" onclick="scrollToQuestion('q29')">29</div>
+        <div class="q-item" onclick="scrollToQuestion('q30')">30</div>
+        <div class="q-item" onclick="scrollToQuestion('q31')">31</div>
+        <div class="q-item" onclick="scrollToQuestion('q32')">32</div>
+        <div class="q-item" onclick="scrollToQuestion('q33')">33</div>
+        <div class="q-item" onclick="scrollToQuestion('q34')">34</div>
+        <div class="q-item" onclick="scrollToQuestion('q35')">35</div>
+        <div class="q-item" onclick="scrollToQuestion('q36')">36</div>
+        <div class="q-item" onclick="scrollToQuestion('q37')">37</div>
+        <div class="q-item" onclick="scrollToQuestion('q38')">38</div>
+        <div class="q-item" onclick="scrollToQuestion('q39')">39</div>
+        <div class="q-item" onclick="scrollToQuestion('q40')">40</div>
+    </div>
+
+    <div id="selbar">
+        <button id="highlightBtn">高亮</button>
+        <button id="removeHighlightBtn">取消高亮</button>
+    </div>
+
+    <script>
+        // Timer functionality (60 minutes countdown)
+        let totalTime = 60 * 60; // 60 minutes in seconds
+        const timerEl = document.getElementById('timer');
+        
+        function updateTimer() {
+            if (totalTime <= 0) {
+                clearInterval(timerInterval);
+                alert("Time is up! Submitting your answers.");
+                submitAnswers();
+                return;
+            }
+            
+            const minutes = Math.floor(totalTime / 60);
+            const seconds = totalTime % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            totalTime--;
+        }
+        
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call
+        
+        // Tab switching functionality with synchronization
+        function switchTabs(clickedTab, isRightTab = false) {
+            const tabId = clickedTab.getAttribute('data-tab');
+            
+            if (isRightTab) {
+                // If right tab was clicked, also switch the left tab
+                const passageId = clickedTab.getAttribute('data-passage');
+                const leftTab = document.querySelector(`.tab[data-tab="${passageId}"]`);
+                if (leftTab) {
+                    // Remove active class from all left tabs and contents
+                    document.querySelectorAll('#left .tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('#left .tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to corresponding left tab and content
+                    leftTab.classList.add('active');
+                    document.getElementById(passageId).classList.add('active');
+                }
+            }
+            
+            // Remove active class from all tabs and contents in the current container
+            const container = clickedTab.closest('.tab-container');
+            container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            container.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            clickedTab.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Set up tab click events
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const isRightTab = this.closest('#right') !== null;
+                switchTabs(this, isRightTab);
+            });
+        });
+        
+        // Drag and drop functionality
+        const cards = document.querySelectorAll('.card');
+        const dropzones = document.querySelectorAll('.dropzone');
+        
+        cards.forEach(card => {
+            card.addEventListener('dragstart', () => {
+                card.classList.add('dragging');
+            });
+            
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+            });
+        });
+        
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                zone.classList.add('over');
+            });
+            
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('over');
+            });
+            
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('over');
+                
+                const card = document.querySelector('.card.dragging');
+                if (card) {
+                    // Clear existing content
+                    zone.innerHTML = '';
+                    
+                    // Create a clone of the card for the dropzone
+                    const clone = card.cloneNode(true);
+                    clone.setAttribute('draggable', 'false');
+                    clone.classList.remove('dragging');
+                    zone.appendChild(clone);
+                    
+                    // Mark the question as answered in the navigation
+                    const questionId = zone.getAttribute('data-target');
+                    const navItem = document.querySelector(`.q-item[onclick="scrollToQuestion('${questionId}')"]`);
+                    if (navItem) {
+                        navItem.classList.add('answered');
+                    }
+                }
+            });
+        });
+        
+        // Function to scroll to a specific question
+        function scrollToQuestion(questionId) {
+            const questionElement = document.querySelector(`[data-target="${questionId}"]`);
+            if (questionElement) {
+                questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Highlight the question briefly
+                questionElement.style.backgroundColor = '#fff3a3';
+                setTimeout(() => {
+                    questionElement.style.backgroundColor = '';
+                }, 1000);
+            }
+        }
+        
+        // Function to submit answers
+        function submitAnswers() {
+            alert("Answers submitted! This would normally be sent to a server for grading.");
+            // In a real implementation, this would collect all answers and send them for evaluation
+        }
+        
+        // Function to reset answers
+        function resetAnswers() {
+            if (confirm("Are you sure you want to reset all answers?")) {
+                // Clear all dropzones
+                document.querySelectorAll('.dropzone').forEach(zone => {
+                    zone.innerHTML = '<span class="droplabel">Drag answer here</span>';
+                });
+                
+                // Clear all radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.checked = false;
+                });
+                
+                // Clear all text inputs
+                document.querySelectorAll('input[type="text"]').forEach(input => {
+                    input.value = '';
+                });
+                
+                // Remove answered status from navigation
+                document.querySelectorAll('.q-item.answered').forEach(item => {
+                    item.classList.remove('answered');
+                });
+            }
+        }
+        
+        // Divider dragging functionality
+        const divider = document.getElementById('divider');
+        const leftPane = document.getElementById('left');
+        const rightPane = document.getElementById('right');
+        let isResizing = false;
+        
+        divider.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            document.body.style.cursor = 'ew-resize';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const containerRect = document.querySelector('.shell').getBoundingClientRect();
+            const xPosition = e.clientX - containerRect.left;
+            
+            // Set minimum widths for both panes
+            const leftWidth = Math.max(280, Math.min(containerRect.width - 320, xPosition));
+            const rightWidth = containerRect.width - leftWidth - 8; // 8px for the divider
+            
+            leftPane.style.flex = `0 0 ${leftWidth}px`;
+            rightPane.style.flex = `1 1 ${rightWidth}px`;
+        });
+        
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+            document.body.style.cursor = '';
+        });
+
+        // Highlight functionality
+        const selbar = document.getElementById('selbar');
+        const highlightBtn = document.getElementById('highlightBtn');
+        const removeHighlightBtn = document.getElementById('removeHighlightBtn');
+        let currentSelection = null;
+
+        // Listen for text selection
+        document.addEventListener('mouseup', function(e) {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            
+            if (selectedText.length > 0 && !e.target.closest('#selbar')) {
+                currentSelection = selection;
+                
+                // Position the toolbar near the selection
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                selbar.style.display = 'flex';
+                selbar.style.top = (rect.top + window.scrollY - 40) + 'px';
+                selbar.style.left = (rect.left + window.scrollX) + 'px';
+            } else if (!e.target.closest('#selbar')) {
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Highlight button functionality
+        highlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                const selectedText = range.toString();
+                
+                // Create highlight span
+                const span = document.createElement('span');
+                span.className = 'hl';
+                span.textContent = selectedText;
+                
+                // Replace selected text with highlighted span
+                range.deleteContents();
+                range.insertNode(span);
+                
+                // Clear selection and hide toolbar
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Remove highlight button functionality
+        removeHighlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                
+                // Find if the selection contains highlighted text
+                let parent = range.startContainer.parentNode;
+                while (parent && parent !== document.body) {
+                    if (parent.classList && parent.classList.contains('hl')) {
+                        // Replace the highlighted span with just its text content
+                        const text = document.createTextNode(parent.textContent);
+                        parent.parentNode.replaceChild(text, parent);
+                        
+                        // Clear selection and hide toolbar
+                        window.getSelection().removeAllRanges();
+                        selbar.style.display = 'none';
+                        return;
+                    }
+                    parent = parent.parentNode;
+                }
+                
+                // If no highlight found, just clear selection
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Hide toolbar when clicking elsewhere
+        document.addEventListener('mousedown', function(e) {
+            if (!e.target.closest('#selbar') && selbar.style.display === 'flex') {
+                selbar.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

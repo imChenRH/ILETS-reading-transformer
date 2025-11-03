@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Mock Test</title>
+    <style>
+        :root {
+            --line: #e5e7eb;
+            --bg: #f6f7fb;
+            --panel: #fff;
+            --accent: #3b82f6;
+            --muted: #6b7280;
+            --shadow: 0 6px 20px rgba(0,0,0,.12);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .shell {
+            display: flex;
+            height: calc(100vh - 60px);
+            width: 100%;
+        }
+        .pane {
+            background: var(--panel);
+            overflow: auto;
+            padding: 20px;
+        }
+        #left {
+            flex: 0 0 50%;
+            min-width: 280px;
+        }
+        #right {
+            flex: 1 1 auto;
+            min-width: 320px;
+            background: #fbfbff;
+            border-left: 1px solid var(--line);
+        }
+        #divider {
+            flex: 0 0 8px;
+            background: linear-gradient(90deg, #e5e7eb, #d1d5db);
+            cursor: ew-resize;
+            position: relative;
+            z-index: 5;
+            user-select: none;
+        }
+        h2, h3, h4 {
+            margin: 0 0 10px;
+        }
+        p {
+            margin: 0 0 12px;
+            line-height: 1.6;
+        }
+        .group {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+        .timer-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-height: 40px;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: auto;
+            min-width: 120px;
+            max-width: 200px;
+            vertical-align: middle;
+            margin: 5px 0;
+        }
+        .droplabel {
+            color: #64748b;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cardpool {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            cursor: grab;
+            box-shadow: 0 1px 0 rgba(0,0,0,.03);
+            white-space: nowrap;
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        .btn {
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: #3b82f6;
+        }
+        .hl {
+            background: #fff3a3;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,.05);
+            cursor: pointer;
+        }
+        .hl:hover {
+            filter: brightness(0.98);
+        }
+        #selbar {
+            position: absolute;
+            display: none;
+            z-index: 2000;
+            background: #111;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: var(--shadow);
+            font-size: 13px;
+            gap: 6px;
+            align-items: center;
+        }
+        #selbar button {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.25);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #selbar button:hover {
+            border-color: #fff;
+        }
+        .practice-nav {
+            background: #fff;
+            border-top: 2px solid var(--line);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 4000;
+            height: 60px;
+            overflow-x: auto;
+        }
+        .practice-nav .q-item {
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 36px;
+            text-align: center;
+        }
+        .practice-nav .q-item:hover {
+            background: #f1f5f9;
+            border-color: var(--accent);
+        }
+        .practice-nav .q-item.answered {
+            background: #e0e7ff;
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .practice-nav .q-item.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .section-title {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        Time remaining: <span id="timer">60:00</span>
+    </div>
+
+    <div class="shell">
+        <section class="pane" id="left">
+            <div class="tab-container">
+                <div class="tab active" data-tab="passage1">Passage 1</div>
+                <div class="tab" data-tab="passage2">Passage 2</div>
+                <div class="tab" data-tab="passage3">Passage 3</div>
+            </div>
+            
+            <div class="tab-content active" id="passage1">
+                <h2>The Rise and Fall of Detective Stories</h2>
+                <p><em>Detective stories became hugely popular in the 19th and 20th centuries. William D. Rubinstein looks at why social changes eventually led to their downfall.</em></p>
+                
+                <p><strong>A</strong> The detective story is normally said to have begun in the fertile brain of the great American writer Edgar Allan Poe (1809–49), especially in his stories featuring the detective C. Auguste Dupin. From 1859, Dupin had a counterpart in Monsieur Lecoq, created by the French author Emile Gaboriau. Despite these American and French origins, it was to Britain that detective fiction migrated, where it took root and flourished, becoming a characteristically British genre.</p>
+                
+                <p><strong>B</strong> This transition occurred because of one author and his great detective. The most famous of all fictional detectives, Sherlock Holmes, was introduced by Sir Arthur Conan Doyle in A Study in Scarlet, first published in 1887, and later became the subject of four novels and 56 short stories. Nearly all of the Holmes stories are narrated by his friend Dr Watson. Watson is constantly amazed and stupefied by Holmes's genius, but despite years of working with him, Watson is never able to produce these brilliant insights himself. Holmes is memorably eccentric, with a range of endearing and less endearing habits. He is a brilliant private detective, categorically better than the plodding and mediocre officials of Scotland Yard, who constantly turn to him when they are baffled. This in itself is pure fiction: in real life there were never any brilliant private detectives to whom Scotland Yard turned when they failed, and the Yard's Criminal Investigation Department (CID) had a remarkable clear-up rate and was highly competent.</p>
+                
+                <p><strong>C</strong> Most of the Holmes stories are set among the higher levels of 19th-century British society, a world inhabited by professional men, retired army officers and country gentlemen, as well as members of royalty and cabinet ministers. Few take place among the working classes or the very poor, whereas in fact much crime was a product of the poverty and gangs in London's underworld.</p>
+                
+                <p><strong>D</strong> In the 20th century detective stories became increasingly popular. Reading these stories was one of the characteristic aspects of the British middle classes in the 'golden age' of British detective fiction—the 1920s and 30s. Their emphasis on rationality, the inevitable triumph of justice, and the existence of an unofficial super-detective tells us much about the society of the time. So, too, do the stock characters and unstated prejudices in these works: country folk and domestic servants were almost always depicted as unintelligent, and women were often depicted in a simplistic, two-dimensional way, although a few female detective writers would present female characters in a more realistic manner.</p>
+                
+                <p><strong>E</strong> Most of the well-known British authors of 'golden age' detective stories were drawn from the middle classes, like their audience. Conan Doyle was a doctor who turned to writing fiction while he awaited his patients; Freeman Wills Crofts was a railway engineer in Northern Ireland; Gilbert Keith Chesterton and Anthony Berkeley were journalists; Cecil Street a career army officer. Apart from a few superstars such as Agatha Christie, financial rewards for these interwar authors were rather meagre; a few hundred pounds per book—a useful income, but nothing princely.</p>
+                
+                <p><strong>F</strong> US writers such as Rex Stout and Ellery Queen attempted to recreate the 'golden age' of British detective fiction. For the most part their books were mere imitations of the British models, although they were seldom wholly successful. But in the 1920s and 1930s, America also saw the rise of the 'hard-boiled' genre and its detective type: the tough private cop who appeared in the works of Dashiell Hammett and Raymond Chandler. Apart from the violence that appeared throughout their works, Hammett's and Chandler's novels were often marked by a political agenda that sought to expose the inequality they saw at the heart of American life. Britain had no real parallel either to their outlook on the world or (until much later) to their violence, but upheld the belief that the authorities should punish criminals regardless of their circumstances.</p>
+                
+                <p><strong>G</strong> By around 1960, the classic British detective story was in serious decline. It seemed that writers had simply run out of ingenious plots and puzzles for their detectives to solve. The best-known crime fiction writers, such as P. D. James, eschewed private detectives for police inspectors, and straightforward puzzles for stories that were full of unexpected twists.</p>
+                
+                <p><strong>H</strong> Today the detective story no longer exists in Britain, at least in its old form. Arguably this mirrors the transformation of that society as a whole. The belief that scientific developments were invariably beneficial possibly reached its height during the period when the classic detective story flourished, as did the belief in putting rationality at the heart of Britain's education system. And finally, the central belief that evil-doers would inevitably get their just deserts through the incorruptibility of the judicial system was replaced by a questioning of some of the procedures and decisions associated with that system.</p>
+            </div>
+            
+            <div class="tab-content" id="passage2">
+                <h2>Jellyfish – The Dominant Species</h2>
+                
+                <p><strong>A</strong> Jellyfish have become the curse of beach holidays, permeating every ocean on the globe, thriving in the Arctic and the tropics. In an ever-changing world where other species struggle to endure, jellyfish populations are on the rise.</p>
+                
+                <p>To the untrained eye, these creatures drift aimlessly on the oceans' currents and appear benign. In addition, they lack sharp claws, piercing teeth or even a brain. Despite this, they are armed with an amazing arsenal of weapons, especially the stinging power of their tentacles. As a result, jellyfish are among the most-feared, least-understood creatures in the seas.</p>
+                
+                <p><strong>B</strong> According to Dr Monty Graham, a jellyfish scientist at the University of South Alabama, US, 'Jellyfish are a pretty good group of animals to track coastal ecosystems. When you start to see jellyfish numbers grow, that usually indicates a stressed system.' While populations appear to be down this year, Dr Graham sees 'a statistically solid increase' over the longer term.</p>
+                
+                <p>This increase first gained attention in the 1980s when a huge number of jellyfish, Atlantic Ocean natives named Mnemiopsis leidyi, devastated the Black Sea, an ecosystem already weakened by overfishing of anchovies. Scientists believe that this species of jellyfish came in on the bottom of a ship and then rapidly multiplied, feeding on anchovy eggs and the plankton that young fish rely on.</p>
+                
+                <p><strong>C</strong> Dense jellyfish aggregations can be a natural feature of healthy ocean ecosystems, but a clear picture is now emerging of more severe and frequent jellyfish outbreaks worldwide. Dr Anthony Richardson, from the University of Queensland, Australia, explains that once jellyfish gain a foothold, if conditions are right, they can establish a massive population at the expense of other ocean life. The problem is that parts of the ocean might switch from being dominated by fish to being dominated by jellyfish.</p>
+                
+                <p><strong>D</strong> A study done by Richardson and his colleagues explores the causes behind jellyfish infestation, and the need for swift, decisive action to stem the jellyfish takeover. Jellyfish outbreaks are linked directly to human actions, including overfishing, the input of fertilizer and sewage into the ocean, and climate change.</p>
+                
+                <p>Overfishing has removed fish from marine ecosystems at astounding rates. According to Richardson, this has made it possible for jellyfish to take their place. 'This is because small fish appear to keep jellyfish in check by predation (on jellyfish when they are very small) and competition (when feeding). So, once we remove fish, jellyfish can proliferate.'</p>
+                
+                <p>Eutrophication is another human-caused change in the ocean that has likely contributed to jellyfish explosions. Eutrophication is an increase in nitrogen and phosphorus in the ocean, largely caused by fertilizer and waste run-off. This leads to algae blooms, which lower oxygen in the marine ecosystem, creating so-called 'dead zones', which have been increasing dramatically around the world. According to Richardson, these low-oxygen waters give jellyfish the advantage. 'Fish avoid low-oxygen waters but jellyfish, having lower oxygen demands, not only survive but can thrive in these conditions as there is less predation and competition from fish.'</p>
+                
+                <p><strong>E</strong> Furthermore, Richardson and his colleagues speculate that climate change may expand the traditional geographical range of jellyfish. 'As water warms, tropical species are moving towards the poles. Many venomous jellyfish species are tropical and could move into more densely populated subtropical and temperate regions.'</p>
+                
+                <p><strong>F</strong> Once jellyfish appear en masse in an ecosystem, they can make it very difficult for fish to stage a comeback. By feeding on fish, the jellyfish successfully prevent fish from returning to their normal population numbers, says Richardson. 'One can thus think of two alternate states with each being stable: one dominated by fish and the other by jellyfish. Unfortunately, where there is a jellyfish-dominated state then this does not support the nutritional needs of other fish, marine mammals, and seabirds.' In other words, an ecosystem that loses fish also loses the species that depend on fish for survival.</p>
+                
+                <p>This state has been defined as a 'monoculture of jellyfish', an apt analogy since the situation shares similarities with other monocultures. When the rich biodiversity of tropical forests is replaced by plantations growing a single species of tree, an area of rich variety becomes a desert in terms of biodiversity, as do ocean ecosystems when jellyfish become the dominant species.</p>
+                
+                <p>One result of large jellyfish populations is the economic effect it has had on the fishing industry. In the Gulf of Mexico, shrimp fishermen are struggling with a jellyfish boom that fills nets, causing them to break and resulting in millions of dollars in losses.</p>
+                
+                <p><strong>G</strong> Experts say that a greater understanding of jellyfish, including their ideal water temperature and feeding habits, is necessary to determine with certainty what is causing the recent massive invasion and to come up with ways to combat it.</p>
+                
+                <p>Due to the difficulty of turning ecosystems around once jellyfish have become dominant, Richardson and his colleagues propose focusing on 'prevention rather than cure'. They recommend a halt to overfishing small fish that are vital to keeping jellyfish in check, reducing the amount of fertilizer and sewage running off into the oceans, and finally, if possible, confronting climate change.</p>
+            </div>
+            
+            <div class="tab-content" id="passage3">
+                <h2>The Voynich Manuscript</h2>
+                
+                <p>The starkly modern Beinecke Library at Yale University is home to some of the most valuable books in the world: first folios of Shakespeare, Gutenberg Bibles and manuscripts from the early Middle Ages. Yet the library's most controversial possession is an unprepossessing vellum manuscript about the size of a hardback book, containing 240-odd pages of drawings and text of unknown age and authorship. Catalogued as MS 408, the manuscript would attract little attention were it not for the fact that the drawings hint at esoteric knowledge, while the text seems to be some sort of code — one that no-one has been able to break. It is known to scholars as the Voynich manuscript, after the American book-dealer Wilfrid Voynich, who bought the manuscript from a Jesuit college in Italy in 1912.</p>
+                
+                <p>Over the years, the manuscript has attracted the attention of everyone from amateur dabblers to top code-breakers, all determined to succeed where countless others have failed. Academic research papers, books and websites are devoted to making sense of the contents of the manuscript, which are freely available to all. "Most other mysteries involve second-hand reports," says Dr Gordon Rugg of Keele University, a leading Voynich expert. "But this is one that you can see for yourself."</p>
+                
+                <p>It is certainly strange: page after page of drawings of weird plants, astrological symbolism and human figures, accompanied by a script that looks like some form of shorthand. What does it say — and what are the drawings about? Voynich himself believed that the manuscript was the work of the 13th-century English monk Roger Bacon, famed for his knowledge of alchemy, philosophy and science. In 1921 Voynich's view that Bacon was the writer appeared to win support from the work of William Newbold, Professor of Philosophy at the University of Pennsylvania, who claimed to have found the key to the cipher system used by Bacon. According to Newbold, the manuscript proved that Bacon had access to a microscope centuries before they were supposedly first invented. The claim that this medieval monk had observed living cells created a sensation. It soon became clear, however, that Newbold had fallen victim to wishful thinking. Other scholars showed that his "decoding" methods produced a host of possible interpretations.</p>
+                
+                <p>The Voynich manuscript has continued to defy the efforts of world-class experts. In 1944, a team was assembled to tackle the mystery, led by William Friedman, the renowned American code-breaker. They began with the most basic code-breaking task: analysing the relative frequencies of the characters making up the text, looking for signs of an underlying structure. Yet Friedman's team soon found themselves in deep water. The precise size of the "alphabet" of the Voynich manuscript was unclear: it is possible to make out more than 70 distinct symbols among the 170,000-character text. Furthermore, Friedman discovered that some words and phrases appeared more often than expected in a standard language, casting doubt on claims that the manuscript concealed a real language, as encryption typically reduces word frequencies.</p>
+                
+                <p>Friedman concluded that the most plausible resolution of this paradox was that "Voynichese" is some sort of specially created artificial language, whose words are devised from concepts rather than linguistics. So could the Voynich manuscript be the earliest-known example of an artificial language? "Friedman's hypothesis commands respect because of the lifetime of cryptanalytic expertise he brought to bear," says Rob Churchill, co-author of The Voynich Manuscript. That still leaves a host of questions unanswered, however, such as the identity of the author and the meaning of the bizarre drawings. "It does little to advance our understanding of the manuscript as a whole," says Churchill.</p>
+                
+                <p>Even though Friedman was working more than 60 years ago, he suspected that major insights would come from using the device that had already transformed code-breaking: the computer. In this he was right — it is now the key tool for uncovering clues about the manuscript's language.</p>
+                
+                <p>The insights so far have been perplexing. For example, in 2001 another leading Voynich scholar, Dr Gabriel Landini of Birmingham University in the UK, published the results of his study of the manuscript using a pattern-detecting method called spectral analysis. This revealed evidence that the manuscript contains genuine words, rather than random nonsense, consistent with the existence of some underlying natural language. Yet the following year, Voynich expert René Zandbergen of the European Space Agency in Darmstadt, Germany, showed that the entropy of the text (a measure of the rate of transfer of information) was consistent with Friedman's suspicions that an artificial language had been used.</p>
+                
+                <p>Many are convinced that the Voynich manuscript is not a hoax. For how could a medieval hoaxer create so many tell-tale signs of a message from random nonsense? Yet even this has been challenged in new research by Rugg. Using a system first published by the Italian mathematician Girolamo Cardano in 1150, in which a specially constructed grille is used to pick out symbols from a table, Rugg found he could rapidly generate text with many of the basic traits of the Voynich manuscript. Publishing his results in 2004, Rugg stresses that he had not set out to prove the manuscript a hoax. "I simply demonstrated that it is feasible to hoax something this complex in a few months," he says.</p>
+                
+                <p>Inevitably, others beg to differ. Some scholars, such as Zandbergen, still suspect the text has genuine meaning, though believe it may never be decipherable. Others, such as Churchill, have suggested that the sheer weirdness of the illustrations and text hints at an author who had lost touch with reality.</p>
+                
+                <p>What is clear is that the book-sized manuscript, kept under lock and key at Yale University, has lost none of its fascination. "Many derive great intellectual pleasure from solving puzzles," says Rugg. "The Voynich manuscript is as challenging a puzzle as anyone could ask for."</p>
+            </div>
+        </section>
+
+        <div id="divider" title="Drag to resize"></div>
+
+        <section class="pane" id="right">
+            <div class="tab-container">
+                <div class="tab active" data-tab="questions1" data-passage="passage1">Questions 1-13</div>
+                <div class="tab" data-tab="questions2" data-passage="passage2">Questions 14-26</div>
+                <div class="tab" data-tab="questions3" data-passage="passage3">Questions 27-40</div>
+            </div>
+            
+            <div class="tab-content active" id="questions1">
+                <h3>Questions 1–8</h3>
+                <p>Do the following statements agree with the information given in Reading Passage 1?</p>
+                <p>In boxes 1–8 on your answer sheet, write</p>
+                <p><strong>TRUE</strong> if the statement agrees with the information<br>
+                <strong>FALSE</strong> if the statement contradicts the information<br>
+                <strong>NOT GIVEN</strong> if there is no information on this</p>
+                
+                <div class="group">
+                    <p>1 C. Auguste Dupin and Émile Gaboriau were both writers of detective stories.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q1" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q1" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q1" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>2 It was Conan Doyle's creation of Sherlock Holmes that made the detective story a typically British genre.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q2" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q2" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q2" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>3 The positive qualities of the character of Sherlock Holmes outweigh the negative qualities.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q3" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q3" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q3" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>4 Officials at Scotland Yard were unhappy at the way they were portrayed in the Sherlock Holmes stories.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q4" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q4" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q4" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>5 Sherlock Holmes is based on a real private detective who was consulted by Scotland Yard.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q5" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q5" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q5" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>6 Conan Doyle's work fails to reflect the reality of crime in 19th-century Britain.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q6" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q6" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q6" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>7 In the 1920s and 1930s, most writers of detective stories started to include interesting female characters in their work.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q7" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q7" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q7" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>8 Agatha Christie only earned a few hundred pounds for her books.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q8" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q8" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q8" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 9–13</h3>
+                <p>Complete the table below.</p>
+                <p>Choose <strong>ONE WORD ONLY</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 9–13 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>The detective story and society</strong></p>
+                    <table style="width:100%; border-collapse: collapse; margin-bottom: 15px;">
+                        <tr>
+                            <th style="border:1px solid #ccc; padding:8px;">Country</th>
+                            <th style="border:1px solid #ccc; padding:8px;">Date</th>
+                            <th style="border:1px solid #ccc; padding:8px;">Key Developments</th>
+                        </tr>
+                        <tr>
+                            <td style="border:1px solid #ccc; padding:8px;">USA</td>
+                            <td style="border:1px solid #ccc; padding:8px;">1920s–1930s</td>
+                            <td style="border:1px solid #ccc; padding:8px;">
+                                <strong>Rex Stout and Ellery Queen's works</strong><br>
+                                • were mainly unsuccessful 9 <input type="text" id="q9" style="width: 100px;"> of British detective fiction<br><br>
+                                <strong>Hammett and Chandler's works:</strong><br>
+                                • introduced the 'tough' private detective<br>
+                                • were full of 10 <input type="text" id="q10" style="width: 100px;"><br>
+                                • had a 11 <input type="text" id="q11" style="width: 100px;"> message about the unfairness of society
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border:1px solid #ccc; padding:8px;">Britain</td>
+                            <td style="border:1px solid #ccc; padding:8px;">1950s–1960s</td>
+                            <td style="border:1px solid #ccc; padding:8px;">
+                                <strong>Writers such as P. D. James:</strong><br>
+                                • wrote about police inspectors, not private detectives<br>
+                                • created stories with many 12 <input type="text" id="q12" style="width: 100px;">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border:1px solid #ccc; padding:8px;">Britain</td>
+                            <td style="border:1px solid #ccc; padding:8px;">Present day</td>
+                            <td style="border:1px solid #ccc; padding:8px;">
+                                <strong>The end of the traditional detective story reflects social changes. For example:</strong><br>
+                                • scientific progress is not always seen as 13 <input type="text" id="q13" style="width: 100px;"><br>
+                                • less trust is now placed in rationality<br>
+                                • there is more questioning of the judicial system
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions2">
+                <h3>Questions 14–17</h3>
+                <p>Reading Passage 2 has seven sections, <strong>A–G</strong>.</p>
+                <p>Which paragraph contains the following information?</p>
+                <p>Write the correct letter, <strong>A–G</strong>, in boxes 14–17 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>14 a prediction as to the direction in which the jellyfish population may spread
+                        <div class="dropzone" data-target="q14"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>15 a description of some physical characteristics of jellyfish
+                        <div class="dropzone" data-target="q15"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>16 an account of the consequences of jellyfish as lone survivors
+                        <div class="dropzone" data-target="q16"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>17 suggestions on how to avoid further jellyfish invasions
+                        <div class="dropzone" data-target="q17"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                        <div class="card" draggable="true" data-value="F">F</div>
+                        <div class="card" draggable="true" data-value="G">G</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 18 and 19</h3>
+                <p>Choose <strong>TWO</strong> letters, <strong>A–E</strong>.</p>
+                <p>Write the correct letters in boxes 18 and 19 on your answer sheet.</p>
+                <p>The list below gives some effects that jellyfish have had on the world.</p>
+                <p>Which <strong>TWO</strong> of these effects are mentioned by the writer of the text?</p>
+                
+                <div class="group">
+                    <p>A They have damaged the tourism industry in some areas.</p>
+                    <p>B They have led to a reduction in the oceans' oxygen levels.</p>
+                    <p>C They have contributed to the decline in the Black Sea anchovy population.</p>
+                    <p>D They have caused the shrimp business in the Gulf of Mexico to shut down.</p>
+                    <p>E They have created financial hardship in the fishing industry.</p>
+                    
+                    <p>18 
+                        <div class="dropzone" data-target="q18"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>19 
+                        <div class="dropzone" data-target="q19"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 20 and 21</h3>
+                <p>Choose <strong>TWO</strong> letters, <strong>A–E</strong>.</p>
+                <p>Write the correct letters in boxes 20 and 21 on your answer sheet.</p>
+                <p>Which <strong>TWO</strong> of the following are possible causes of an increase in jellyfish numbers?</p>
+                
+                <div class="group">
+                    <p>A a shortage of small fish in the oceans</p>
+                    <p>B the dumping of chemicals into the oceans</p>
+                    <p>C a decline in biodiversity in the oceans</p>
+                    <p>D more competition among other fish in the oceans</p>
+                    <p>E a decrease in seabird populations</p>
+                    
+                    <p>20 
+                        <div class="dropzone" data-target="q20"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>21 
+                        <div class="dropzone" data-target="q21"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 22–26</h3>
+                <p>Complete the sentences below.</p>
+                <p>Choose <strong>ONE WORD ONLY</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 22–26 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>22 Some fish in the oceans may be unable to sustain their population as the jellyfish eat their 
+                        <input type="text" id="q22" style="width: 100px;">.</p>
+                    <p>23 The state of jellyfish becoming the main ocean species has been named 
+                        <input type="text" id="q23" style="width: 100px;">.</p>
+                    <p>24 Increasing numbers of jellyfish can damage 
+                        <input type="text" id="q24" style="width: 100px;"> used for commercial fishing.</p>
+                    <p>25 Understanding basic facts about jellyfish, such as the 
+                        <input type="text" id="q25" style="width: 100px;"> of the ocean which suits them best, may help control their numbers.</p>
+                    <p>26 Richardson believes it is better to direct attention to 
+                        <input type="text" id="q26" style="width: 100px;">, instead of just trying to solve existing problems.</p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions3">
+                <h3>Questions 27–30</h3>
+                <p>Do the following statements agree with the information given in Reading Passage 3?</p>
+                <p>In boxes 27–30 on your answer sheet, write</p>
+                <p><strong>TRUE</strong> if the statement agrees with the information<br>
+                <strong>FALSE</strong> if the statement contradicts the information<br>
+                <strong>NOT GIVEN</strong> if there is no information on this</p>
+                
+                <div class="group">
+                    <p>27 It is uncertain when the Voynich manuscript was written.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q27" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q27" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q27" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>28 Wilfrid Voynich donated the manuscript to the Beinecke Library.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q28" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q28" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q28" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>29 Interest in the Voynich manuscript extends beyond that of academics and professional code-breakers.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q29" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q29" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q29" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>30 The text of the Voynich manuscript contains just under 70 symbols.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q30" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q30" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q30" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 31–34</h3>
+                <p>Look at the following statements (Questions 31–34) and the list of people below.</p>
+                <p>Match each statement with the correct person, <strong>A–H</strong>.</p>
+                <p>Write the correct letter, <strong>A–H</strong>, in boxes 31–34 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>List of People</strong></p>
+                    <p>A Gordon Rugg</p>
+                    <p>B Wilfrid Voynich</p>
+                    <p>C William Newbold</p>
+                    <p>D William Friedman</p>
+                    <p>E Rob Churchill</p>
+                    <p>F Gabriel Landini</p>
+                    <p>G René Zandbergen</p>
+                    <p>H Girolamo Cardano</p>
+                    
+                    <p>31 The number of times that some words occur makes it unlikely that the manuscript is based on an authentic language.
+                        <div class="dropzone" data-target="q31"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>32 Unlike some other similar objects of fascination, people can gain direct access to the Voynich manuscript.
+                        <div class="dropzone" data-target="q32"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>33 The person who wrote the manuscript may not have been entirely sane.
+                        <div class="dropzone" data-target="q33"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>34 It is likely that the author of the manuscript is the same person as suggested by Wilfrid Voynich.
+                        <div class="dropzone" data-target="q34"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                        <div class="card" draggable="true" data-value="F">F</div>
+                        <div class="card" draggable="true" data-value="G">G</div>
+                        <div class="card" draggable="true" data-value="H">H</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 35–39</h3>
+                <p>Complete the summary below.</p>
+                <p>Choose <strong>NO MORE THAN TWO WORDS</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 35–39 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>Voynich Researchers</strong></p>
+                    <p>William Newbold believed that the author of the Voynich manuscript had been able to look at cells through a 35 <input type="text" id="q35" style="width: 120px;">. Other researchers later demonstrated that there were flaws in his argument.</p>
+                    <p>William Friedman concluded that the manuscript was written in an artificial language that was based on 36 <input type="text" id="q36" style="width: 120px;">. He couldn't find out the meaning of this language but he believed that the 37 <input type="text" id="q37" style="width: 120px;"> would continue to bring advances in code-breaking.</p>
+                    <p>Dr Gabriel Landini used a system known as 38 <input type="text" id="q38" style="width: 120px;"> in his research, and claims to have demonstrated the presence of genuine words.</p>
+                    <p>Dr Gordon Rugg's system involved a grille, that made it possible to quickly select symbols that appeared in a 39 <input type="text" id="q39" style="width: 120px;">. Rugg's conclusion was that the manuscript lacked genuine meaning.</p>
+                </div>
+                
+                <h3>Question 40</h3>
+                <p>Choose the correct letter, <strong>A, B, C or D</strong>.</p>
+                <p>Write the correct letter in box 40 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>The writer's main aim in this passage is to</p>
+                    <div>
+                        <label><input type="radio" name="q40" value="A"> A explain the meaning of the manuscript.</label><br>
+                        <label><input type="radio" name="q40" value="B"> B determine the true identity of the manuscript's author.</label><br>
+                        <label><input type="radio" name="q40" value="C"> C describe the numerous attempts to decode the manuscript.</label><br>
+                        <label><input type="radio" name="q40" value="D"> D identify which research into the manuscript has had the most media coverage.</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display:flex;gap:8px;margin:20px 0;">
+                <button class="btn btn-primary" onclick="submitAnswers()">Submit Answers</button>
+                <button class="btn" onclick="resetAnswers()">Reset Answers</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="practice-nav">
+        <span class="section-title">Passage 1:</span>
+        <div class="q-item" onclick="scrollToQuestion('q1')">1</div>
+        <div class="q-item" onclick="scrollToQuestion('q2')">2</div>
+        <div class="q-item" onclick="scrollToQuestion('q3')">3</div>
+        <div class="q-item" onclick="scrollToQuestion('q4')">4</div>
+        <div class="q-item" onclick="scrollToQuestion('q5')">5</div>
+        <div class="q-item" onclick="scrollToQuestion('q6')">6</div>
+        <div class="q-item" onclick="scrollToQuestion('q7')">7</div>
+        <div class="q-item" onclick="scrollToQuestion('q8')">8</div>
+        <div class="q-item" onclick="scrollToQuestion('q9')">9</div>
+        <div class="q-item" onclick="scrollToQuestion('q10')">10</div>
+        <div class="q-item" onclick="scrollToQuestion('q11')">11</div>
+        <div class="q-item" onclick="scrollToQuestion('q12')">12</div>
+        <div class="q-item" onclick="scrollToQuestion('q13')">13</div>
+        
+        <span class="section-title">Passage 2:</span>
+        <div class="q-item" onclick="scrollToQuestion('q14')">14</div>
+        <div class="q-item" onclick="scrollToQuestion('q15')">15</div>
+        <div class="q-item" onclick="scrollToQuestion('q16')">16</div>
+        <div class="q-item" onclick="scrollToQuestion('q17')">17</div>
+        <div class="q-item" onclick="scrollToQuestion('q18')">18</div>
+        <div class="q-item" onclick="scrollToQuestion('q19')">19</div>
+        <div class="q-item" onclick="scrollToQuestion('q20')">20</div>
+        <div class="q-item" onclick="scrollToQuestion('q21')">21</div>
+        <div class="q-item" onclick="scrollToQuestion('q22')">22</div>
+        <div class="q-item" onclick="scrollToQuestion('q23')">23</div>
+        <div class="q-item" onclick="scrollToQuestion('q24')">24</div>
+        <div class="q-item" onclick="scrollToQuestion('q25')">25</div>
+        <div class="q-item" onclick="scrollToQuestion('q26')">26</div>
+        
+        <span class="section-title">Passage 3:</span>
+        <div class="q-item" onclick="scrollToQuestion('q27')">27</div>
+        <div class="q-item" onclick="scrollToQuestion('q28')">28</div>
+        <div class="q-item" onclick="scrollToQuestion('q29')">29</div>
+        <div class="q-item" onclick="scrollToQuestion('q30')">30</div>
+        <div class="q-item" onclick="scrollToQuestion('q31')">31</div>
+        <div class="q-item" onclick="scrollToQuestion('q32')">32</div>
+        <div class="q-item" onclick="scrollToQuestion('q33')">33</div>
+        <div class="q-item" onclick="scrollToQuestion('q34')">34</div>
+        <div class="q-item" onclick="scrollToQuestion('q35')">35</div>
+        <div class="q-item" onclick="scrollToQuestion('q36')">36</div>
+        <div class="q-item" onclick="scrollToQuestion('q37')">37</div>
+        <div class="q-item" onclick="scrollToQuestion('q38')">38</div>
+        <div class="q-item" onclick="scrollToQuestion('q39')">39</div>
+        <div class="q-item" onclick="scrollToQuestion('q40')">40</div>
+    </div>
+
+    <div id="selbar">
+        <button id="highlightBtn">高亮</button>
+        <button id="removeHighlightBtn">取消高亮</button>
+    </div>
+
+    <script>
+        // Timer functionality (60 minutes countdown)
+        let totalTime = 60 * 60; // 60 minutes in seconds
+        const timerEl = document.getElementById('timer');
+        
+        function updateTimer() {
+            if (totalTime <= 0) {
+                clearInterval(timerInterval);
+                alert("Time is up! Submitting your answers.");
+                submitAnswers();
+                return;
+            }
+            
+            const minutes = Math.floor(totalTime / 60);
+            const seconds = totalTime % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            totalTime--;
+        }
+        
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call
+        
+        // Tab switching functionality with synchronization
+        function switchTabs(clickedTab, isRightTab = false) {
+            const tabId = clickedTab.getAttribute('data-tab');
+            
+            if (isRightTab) {
+                // If right tab was clicked, also switch the left tab
+                const passageId = clickedTab.getAttribute('data-passage');
+                const leftTab = document.querySelector(`.tab[data-tab="${passageId}"]`);
+                if (leftTab) {
+                    // Remove active class from all left tabs and contents
+                    document.querySelectorAll('#left .tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('#left .tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to corresponding left tab and content
+                    leftTab.classList.add('active');
+                    document.getElementById(passageId).classList.add('active');
+                }
+            }
+            
+            // Remove active class from all tabs and contents in the current container
+            const container = clickedTab.closest('.tab-container');
+            container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            container.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            clickedTab.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Set up tab click events
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const isRightTab = this.closest('#right') !== null;
+                switchTabs(this, isRightTab);
+            });
+        });
+        
+        // Drag and drop functionality
+        const cards = document.querySelectorAll('.card');
+        const dropzones = document.querySelectorAll('.dropzone');
+        
+        cards.forEach(card => {
+            card.addEventListener('dragstart', () => {
+                card.classList.add('dragging');
+            });
+            
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+            });
+        });
+        
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                zone.classList.add('over');
+            });
+            
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('over');
+            });
+            
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('over');
+                
+                const card = document.querySelector('.card.dragging');
+                if (card) {
+                    // Clear existing content
+                    zone.innerHTML = '';
+                    
+                    // Create a clone of the card for the dropzone
+                    const clone = card.cloneNode(true);
+                    clone.setAttribute('draggable', 'false');
+                    clone.classList.remove('dragging');
+                    zone.appendChild(clone);
+                    
+                    // Mark the question as answered in the navigation
+                    const questionId = zone.getAttribute('data-target');
+                    const navItem = document.querySelector(`.q-item[onclick="scrollToQuestion('${questionId}')"]`);
+                    if (navItem) {
+                        navItem.classList.add('answered');
+                    }
+                }
+            });
+        });
+        
+        // Function to scroll to a specific question
+        function scrollToQuestion(questionId) {
+            const questionElement = document.querySelector(`[data-target="${questionId}"]`);
+            if (questionElement) {
+                questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Highlight the question briefly
+                questionElement.style.backgroundColor = '#fff3a3';
+                setTimeout(() => {
+                    questionElement.style.backgroundColor = '';
+                }, 1000);
+            }
+        }
+        
+        // Function to submit answers
+        function submitAnswers() {
+            alert("Answers submitted! This would normally be sent to a server for grading.");
+            // In a real implementation, this would collect all answers and send them for evaluation
+        }
+        
+        // Function to reset answers
+        function resetAnswers() {
+            if (confirm("Are you sure you want to reset all answers?")) {
+                // Clear all dropzones
+                document.querySelectorAll('.dropzone').forEach(zone => {
+                    zone.innerHTML = '<span class="droplabel">Drag answer here</span>';
+                });
+                
+                // Clear all radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.checked = false;
+                });
+                
+                // Clear all text inputs
+                document.querySelectorAll('input[type="text"]').forEach(input => {
+                    input.value = '';
+                });
+                
+                // Remove answered status from navigation
+                document.querySelectorAll('.q-item.answered').forEach(item => {
+                    item.classList.remove('answered');
+                });
+            }
+        }
+        
+        // Divider dragging functionality
+        const divider = document.getElementById('divider');
+        const leftPane = document.getElementById('left');
+        const rightPane = document.getElementById('right');
+        let isResizing = false;
+        
+        divider.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            document.body.style.cursor = 'ew-resize';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const containerRect = document.querySelector('.shell').getBoundingClientRect();
+            const xPosition = e.clientX - containerRect.left;
+            
+            // Set minimum widths for both panes
+            const leftWidth = Math.max(280, Math.min(containerRect.width - 320, xPosition));
+            const rightWidth = containerRect.width - leftWidth - 8; // 8px for the divider
+            
+            leftPane.style.flex = `0 0 ${leftWidth}px`;
+            rightPane.style.flex = `1 1 ${rightWidth}px`;
+        });
+        
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+            document.body.style.cursor = '';
+        });
+
+        // Highlight functionality
+        const selbar = document.getElementById('selbar');
+        const highlightBtn = document.getElementById('highlightBtn');
+        const removeHighlightBtn = document.getElementById('removeHighlightBtn');
+        let currentSelection = null;
+
+        // Listen for text selection
+        document.addEventListener('mouseup', function(e) {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            
+            if (selectedText.length > 0 && !e.target.closest('#selbar')) {
+                currentSelection = selection;
+                
+                // Position the toolbar near the selection
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                selbar.style.display = 'flex';
+                selbar.style.top = (rect.top + window.scrollY - 40) + 'px';
+                selbar.style.left = (rect.left + window.scrollX) + 'px';
+            } else if (!e.target.closest('#selbar')) {
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Highlight button functionality
+        highlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                const selectedText = range.toString();
+                
+                // Create highlight span
+                const span = document.createElement('span');
+                span.className = 'hl';
+                span.textContent = selectedText;
+                
+                // Replace selected text with highlighted span
+                range.deleteContents();
+                range.insertNode(span);
+                
+                // Clear selection and hide toolbar
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Remove highlight button functionality
+        removeHighlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                
+                // Find if the selection contains highlighted text
+                let parent = range.startContainer.parentNode;
+                while (parent && parent !== document.body) {
+                    if (parent.classList && parent.classList.contains('hl')) {
+                        // Replace the highlighted span with just its text content
+                        const text = document.createTextNode(parent.textContent);
+                        parent.parentNode.replaceChild(text, parent);
+                        
+                        // Clear selection and hide toolbar
+                        window.getSelection().removeAllRanges();
+                        selbar.style.display = 'none';
+                        return;
+                    }
+                    parent = parent.parentNode;
+                }
+                
+                // If no highlight found, just clear selection
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Hide toolbar when clicking elsewhere
+        document.addEventListener('mousedown', function(e) {
+            if (!e.target.closest('#selbar') && selbar.style.display === 'flex') {
+                selbar.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Mock Test</title>
+    <style>
+        :root {
+            --line: #e5e7eb;
+            --bg: #f6f7fb;
+            --panel: #fff;
+            --accent: #3b82f6;
+            --muted: #6b7280;
+            --shadow: 0 6px 20px rgba(0,0,0,.12);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .shell {
+            display: flex;
+            height: calc(100vh - 60px);
+            width: 100%;
+        }
+        .pane {
+            background: var(--panel);
+            overflow: auto;
+            padding: 20px;
+        }
+        #left {
+            flex: 0 0 50%;
+            min-width: 280px;
+        }
+        #right {
+            flex: 1 1 auto;
+            min-width: 320px;
+            background: #fbfbff;
+            border-left: 1px solid var(--line);
+        }
+        #divider {
+            flex: 0 0 8px;
+            background: linear-gradient(90deg, #e5e7eb, #d1d5db);
+            cursor: ew-resize;
+            position: relative;
+            z-index: 5;
+            user-select: none;
+        }
+        h2, h3, h4 {
+            margin: 0 0 10px;
+        }
+        p {
+            margin: 0 0 12px;
+            line-height: 1.6;
+        }
+        .group {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+        .timer-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-height: 40px;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: auto;
+            min-width: 120px;
+            max-width: 200px;
+            vertical-align: middle;
+            margin: 5px 0;
+        }
+        .droplabel {
+            color: #64748b;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cardpool {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            cursor: grab;
+            box-shadow: 0 1px 0 rgba(0,0,0,.03);
+            white-space: nowrap;
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        .btn {
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: #3b82f6;
+        }
+        .hl {
+            background: #fff3a3;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,.05);
+            cursor: pointer;
+        }
+        .hl:hover {
+            filter: brightness(0.98);
+        }
+        #selbar {
+            position: absolute;
+            display: none;
+            z-index: 2000;
+            background: #111;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: var(--shadow);
+            font-size: 13px;
+            gap: 6px;
+            align-items: center;
+        }
+        #selbar button {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.25);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #selbar button:hover {
+            border-color: #fff;
+        }
+        .practice-nav {
+            background: #fff;
+            border-top: 2px solid var(--line);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 4000;
+            height: 60px;
+            overflow-x: auto;
+        }
+        .practice-nav .q-item {
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 36px;
+            text-align: center;
+        }
+        .practice-nav .q-item:hover {
+            background: #f1f5f9;
+            border-color: var(--accent);
+        }
+        .practice-nav .q-item.answered {
+            background: #e0e7ff;
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .practice-nav .q-item.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .section-title {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+        .true-false-container {
+            display: flex;
+            gap: 15px;
+            margin: 10px 0;
+        }
+        .true-false-container label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        Time remaining: <span id="timer">60:00</span>
+    </div>
+
+    <div class="shell">
+        <section class="pane" id="left">
+            <div class="tab-container">
+                <div class="tab active" data-tab="passage1">Passage 1</div>
+                <div class="tab" data-tab="passage2">Passage 2</div>
+                <div class="tab" data-tab="passage3">Passage 3</div>
+            </div>
+            
+            <div class="tab-content active" id="passage1">
+                <h2>The Impact of the Potato</h2>
+                <p><em>Jeff Chapman relates the story of history's most important vegetable</em></p>
+                
+                <p>The potato was first cultivated in South America between three and seven thousand years ago, though scientists believe they may have grown wild in the region as long as 13,000 years ago. The genetic patterns of potato distribution indicate that the potato probably originated in the mountainous west-central region of the continent.</p>
+                
+                <p>Early Spanish chroniclers who misused the Indian word batata (sweet potato) as the name for the potato noted the importance of the tuber to the Incan Empire. The Incas had learned to preserve the potato for storage by dehydrating and mashing potatoes into a substance called chufio, which could be stored in a room for up to 10 years, providing excellent insurance against possible crop failures. As well as using the food as a staple crop, the Incas thought potatoes made childbirth easier and used them to treat injuries.</p>
+                
+                <p>The Spanish conquistadors first encountered the potato when they arrived in Peru in 1532 in search of gold, and noted Inca miners eating chufio. At the time the Spaniards failed to realize that the potato represented a far more important treasure than either silver or gold, but they did gradually begin to use potatoes as basic rations aboard their ships. After the arrival of the potato in Spain in 1570, a few Spanish farmers began to cultivate them on a small scale, mostly as food for livestock.</p>
+                
+                <p>Throughout Europe, potatoes were regarded with suspicion, distaste and fear. Generally considered to be unfit for human consumption, they were used only as animal fodder and sustenance for the starving. In northern Europe, potatoes were primarily grown in botanical gardens as an exotic novelty. Even peasants refused to eat from a plant that produced ugly, misshapen tubers and that had come from a heathen civilization. Some felt that the potato plant's resemblance to plants in the nightshade family hinted that it was the creation of witches or devils.</p>
+                
+                <p>In meat-loving England, farmers and urban workers regarded potatoes with extreme distaste. In 1662, the Royal Society recommended the cultivation of the tuber to the English government and the nation, but this recommendation had little impact. Potatoes did not become a staple until, during the food shortages associated with the Revolutionary Wars, the English government began to officially encourage potato cultivation. In 1795, the Board of Agriculture issued a pamphlet entitled "Hints Respecting the Culture and Use of Potatoes"; this was followed shortly by pro-potato editorials and potato recipes in The Times. Gradually, the lower classes began to follow the lead of the upper classes.</p>
+                
+                <p>A similar pattern emerged across the English Channel in the Netherlands, Belgium and France. While the potato slowly gained ground in eastern France (where it was often the only crop remaining after marauding soldiers plundered wheat fields and vineyards), it did not achieve widespread acceptance until the late 1700s. The peasants remained suspicious, in spite of a 1771 paper from the Faculté de Paris testifying that the potato was not harmful but beneficial. The people began to overcome their distaste when the plant received the royal seal of approval: Louis XVI began to sport a potato flower in his buttonhole, and Marie-Antoinette wore a purple potato blossom in her hair.</p>
+                
+                <p>Frederick the Great of Prussia saw the potato's potential to help feed his nation and lower the price of bread, but faced the challenge of overcoming the people's prejudice against the plant. When he issued a 1774 order for his subjects to grow potatoes as protection against famine, the town of Kolberg replied: "The things have neither smell nor taste, not even the dogs will eat them, so what use are they to us?" Trying a less direct approach to encourage his subjects to begin planting potatoes, Frederick used a bit of reverse psychology: he planted a royal field of potato plants and stationed a heavy guard to protect this field from thieves. Nearby peasants naturally assumed that anything worth guarding was worth stealing, and so sneaked into the field and snatched the plants for their home gardens. Of course, this was entirely in line with Frederick's wishes.</p>
+                
+                <p>Historians debate whether the potato was primarily a cause or an effect of the huge population boom in industrial-era England and Wales. Prior to 1800, the English diet had consisted primarily of meat, supplemented by bread, butter and cheese. Few vegetables were consumed, most vegetables being regarded as nutritionally worthless and potentially harmful. This view began to change gradually in the late 1700s. The Industrial Revolution was drawing an ever-increasing percentage of the populace into crowded cities, where only the richest could afford homes with ovens or coal storage rooms, and people were working 12-16-hour days which left them with little time or energy to prepare food. High-yielding, easily prepared potato crops were the obvious solution to England's food problems.</p>
+                
+                <p>Whereas most of their neighbours regarded the potato with suspicion and had to be persuaded to use it by the upper classes, the Irish peasantry embraced the tuber more passionately than anyone since the Incas. The potato was well suited to the Irish soil and climate, and its high yield suited the most important concern of most Irish farmers: to feed their families.</p>
+                
+                <p>The most dramatic example of the potato's potential to alter population patterns occurred in Ireland, where the potato had become a staple by 1800. The Irish population doubled to eight million between 1780 and 1841, this without any significant expansion of industry or reform of agricultural techniques beyond the widespread cultivation of the potato. Though Irish landholding practices were primitive in comparison with those of England, the potato's high yields allowed even the poorest farmers to produce more healthy food than they needed with scarcely any investment or hard labour. Even children could easily plant, harvest and cook potatoes, which of course required no threshing, curing or grinding. The abundance provided by potatoes greatly decreased infant mortality and encouraged early marriage.</p>
+            </div>
+            
+            <div class="tab-content" id="passage2">
+                <h2>Intelligent behaviour in birds</h2>
+                <p><em>Many people are aware of the intelligence of chimpanzees and other mammals. However, birds also demonstrate intelligent behaviour.</em></p>
+                
+                <p><strong>A</strong> For centuries, many scholars maintained that humans were the only intelligent organisms on Earth. Many traits were considered to be exclusively human examples of acumen – for example, language, tool use, deception, and awareness of self and others. However, exciting new research on a number of animals, particularly birds, has called into question the uniqueness of these traits, forcing us to reconsider this opinion. In 1964, people were amazed when naturalist Jane Goodall first discovered chimpanzees making and using tools. But ornithologists, people who study birds, were not overly surprised. Almost 20 years earlier, a renowned ornithologist had shown that tool use was commonplace in populations of woodpecker finches residing on the Galápagos Islands. These tiny birds routinely used twigs to extract grubs from under bark.</p>
+                
+                <p><strong>B</strong> Since then, the catalogue of tool-using animals has grown. At least three Australian bird species make tools similar to those of the woodpecker finch, and when white-winged choughs come across shellfish, they have been known to use rocks as hammers to crack open the recalcitrant shells. Other birds show a more sophisticated level of insight. For example, black kites have been reported dropping bait into lakes to bring fish to the surface of the water, thereby making them easier to catch. A kite may also pick up a smouldering stick from an area recently burned by a bushfire and drop the stick on a patch of unburned grass. The bird then feasts on the small animals that flee from the subsequent fire.</p>
+                
+                <p><strong>C</strong> Most tool-using behaviours are a means of extracting food, which may provide a clue as to how the mental abilities needed for tool use evolved. The predominant explanation is based on the proverb that 'necessity is the mother of invention'. Essentially, brain tissue is energetically expensive, so animals should have evolved only the intellectual capabilities required to overcome the challenges they face in their environment. Consider a hypothetical duck grazing on a seemingly endless supply of grass. Being particularly intelligent will not help the duck eat more grass. In contrast, other species, such as birds of prey, live in a more challenging environment, where food may be distributed erratically, hidden from view or highly mobile. The food itself may be quite intelligent. So, if there are not enough resources to feed all individuals, then only the smartest in each generation will live and reproduce.</p>
+                
+                <p><strong>D</strong> New Caledonian crows boast many different tools in their toolkit. They use a hooked tool made by removing all but one of the side branches from a twig. They fashion serrated rakes (using their beaks as scissors) from stiff, leathery pandanus leaves. They also make probes by modifying their own moutled feathers. Each tool is used in slightly different ways to pull grubs from deep within tree trunks. The crows carry their favourite tool from one foraging site to the next. They also store their tools for later reuse in a secure place on their perch. Problem-solving abilities have traditionally been thought to be beyond the reach of animals. Nevertheless, birds are coming up with innovative solutions all the time. Recently, New Caledonian crows were observed moulding a piece of wire, something they had never seen before, into a hook and then using it to retrieve food.</p>
+                
+                <p><strong>E</strong> Literally hundreds of such reports have accumulated in back copies of scientific journals. Recently, a team of biologists from McGill University in Canada collated them and compared the frequency and size of innovations with the size of the birds' forebrain (the brain area responsible for higher-order information processing) relative to the hindbrain. The team uncovered a clear relationship: birds with relatively large forebrains are able to invent fresh solutions to ecological challenges, and to exploit the discoveries and inventions of others, more often than birds with relatively small forebrains.</p>
+                
+                <p><strong>F</strong> Intelligence in birds may also arise as a result of selection to overcome the dynamic challenges of communal living. Since this involves competition between group members, to be successful a social animal may need to be able to reflect on its own intentions, as well as those of others. The consequence of being part of a community may be the evolution of a distinctly 'political' brain.</p>
+                
+                <p><strong>G</strong> What better way to exercise a political brain than to be deceitful? Perhaps the best example of deception among birds comes from the white-winged choughs. Choughs are cooperative breeders – that is, they form a communal group consisting of one breeding pair and up to 15 non-breeding 'helpers'. However, because young choughs have so little enthusiasm for foraging, or gathering food, they are often too hungry to help. And because it is socially unacceptable to be part of a group and provide little help, young choughs often act deceptively. For example, when an adult is watching, a young though will place some food in the mouth of a hungry chick but not release it. Instead, it waits until the adult departs and then eats the food itself. A though can also help the group by preening the chicks. Interestingly, it is more likely to preen the chicks if another bird can see it do so. A though that has been sitting totally still on the nest while the rest of the group is foraging out of sight will comically spring up and frantically start to preen the chicks as soon as some of its group members come into view. It is likely that these young choughs are only motivated to help when others are watching because they are concerned about their social status. Choughs need other choughs to like them, as they cannot breed without them.</p>
+            </div>
+            
+            <div class="tab-content" id="passage3">
+                <h2>The Robbers Cave Study</h2>
+                <p><em>A review of a famous study into group behaviour</em></p>
+                
+                <p>Group self-centredness seems to occur the minute people are divided into groups. It doesn't matter what the group is, or on what basis it was formed, we perceive the group we belong to as being superior to other groups and we develop an 'in-group' bias.</p>
+                
+                <p>Probably one of the most famous pieces of research looking at group behaviour was a field study conducted by Sheriff in 1956. This study involved 22 boys aged between 11 and 12, who were divided into two groups. The groups were roughly matched in terms of sporting ability, camping experience and general popularity among their peers. Their parents were told that they were going to a three-week summer camp to see how well they would work alongside other boys when put into different teams. The parents were also told that the boys would not be allowed to be visited during that time, but would be able to go home if they wanted to. It was intended that the data for the study would be collected by participant observers.</p>
+                
+                <p>At first, neither set of boys knew of the existence of the other set. They were taken to their respective campsites, which were located on a 200-acre, densely wooded area in Robbers Cave State Park, Oklahoma. The first week was spent doing a variety of activities, such as pitching tents and cooking. During this week, the two groups seemed to develop different group norms, one group being more 'tough' than the other, from which two boys went home early, as they were homesick. The groups were given a set of caps and T-shirts, and gave themselves names: the 'Eagles' and the 'Rattlers' (the latter being the tougher group).</p>
+                
+                <p>At the end of the first week, they became aware of each other's existence by finding litter left by the other group or overhearing voices. Sheriff noticed that already the groups had started to refer to the other group as 'them' and their group as 'us'. This marked the beginning of phase two of the experiment.</p>
+                
+                <p>The groups were told that they were going to take part in a 'Grand Tournament', which involved ten different sporting events, and they were shown the prizes for winning. The tournament was also to include in the final scores points which would be awarded for other activities, such as how tidy the cabins were kept. These scores were displayed on big scoreboards in what now became a joint hall where the two groups ate their meals together. This was necessary so the two groups would think they were on almost equal scores in the time leading up to the final event, which would increase the sense of competition. Needless to say, these scores were manipulated by the experimenters.</p>
+                
+                <p>In order to check how high the levels of group self-centredness were in the groups at this time, a number of tasks were set up which involved the groups rating their own members and members of the other group. Each time, group members rated the boys in their own group much better at the tasks than the other boys, even though there was no real difference between them. They were also asked to rate all others in terms of how desirable they were as friends, and 93 per cent of friendship preferences were in-group preferences.</p>
+                
+                <p>When the tournament started, the first game was basketball. The group that was thought to be less tough lost the game and claimed that they had lost only because the other group were bigger and older than they were. The Eagles won the next ball game and then were said to be cheating in the tug-of-war. This resulted in visits by both groups to each other's cabins over the course of the next 24 hours, where they ripped the mosquito nets, turned over the beds and generally made a mess. The Eagles devised a new weapon in the conflict which consisted of 'rocks in socks' – and so it went on. Eventually, the Eagles won the tournament (with some help from the experimenters) and it was time for phase three to begin.</p>
+                
+                <p>Research has suggested that the best way to reduce group conflict is by non-competitive contact. This required two conditions: that the groups had equal status and that they had a common goal to work towards. This was exactly what Sheriff engineered. There were actually seven situations organised which gave the groups equal-status contact; these were things like having meals together or watching films together. The meals resulted in food fights; the films were enjoyed by both groups sitting totally apart from each other.</p>
+                
+                <p>The other situations, where the groups had to work for common goals, had a much better outcome. These included raising money to go and see a film and solving problems, such as one with the water supply. The final common goal was a visit by truck to Cedar Lake to camp there before the end of the holiday. In this situation, although both groups travelled in separate trucks, another problem-solving situation arose when one of the trucks became stuck. All the boys joined in, using one of the tug-of-war ropes to help move it. At this point the group boundaries were beginning to disappear. On the final day, when they were due to return home, the boys themselves suggested that they travel in one bus and sat in friendship groups rather than as Eagles and Rattlers.</p>
+            </div>
+        </section>
+
+        <div id="divider" title="Drag to resize"></div>
+
+        <section class="pane" id="right">
+            <div class="tab-container">
+                <div class="tab active" data-tab="questions1" data-passage="passage1">Questions 1-13</div>
+                <div class="tab" data-tab="questions2" data-passage="passage2">Questions 14-26</div>
+                <div class="tab" data-tab="questions3" data-passage="passage3">Questions 27-40</div>
+            </div>
+            
+            <div class="tab-content active" id="questions1">
+                <h3>Questions 1–5</h3>
+                <p>Do the following statements agree with the views of the writer in Reading Passage 1?</p>
+                <p>In boxes 1–5 on your answer sheet, write</p>
+                <p><strong>TRUE</strong> if the statement agrees with the information</p>
+                <p><strong>FALSE</strong> if the statement contradicts the information</p>
+                <p><strong>NOT GIVEN</strong> if there is no information on this</p>
+                
+                <div class="group">
+                    <p>1. Early Spanish chroniclers called the potato by the Incan name 'chuño'.
+                        <div class="true-false-container">
+                            <label><input type="radio" name="q1" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q1" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q1" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>2. The purpose of the Spanish coming to Peru was to find potatoes.
+                        <div class="true-false-container">
+                            <label><input type="radio" name="q2" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q2" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q2" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>3. The Spanish believed that the potato had the same nutrients as other vegetables.
+                        <div class="true-false-container">
+                            <label><input type="radio" name="q3" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q3" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q3" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>4. Peasants at that time did not like to eat potatoes because they were ugly.
+                        <div class="true-false-container">
+                            <label><input type="radio" name="q4" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q4" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q4" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>5. The popularity of potatoes in the UK was due to food shortages during the war.
+                        <div class="true-false-container">
+                            <label><input type="radio" name="q5" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q5" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q5" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 6–13</h3>
+                <p>Complete the sentences below.</p>
+                <p>Choose <strong>ONE WORD ONLY</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 6–13 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>6. In France, people began to overcome their disgust towards potatoes because the King put a potato 
+                        <input type="text" id="q6" style="width: 100px;"> in his buttonhole.</p>
+                    <p>7. Frederick realised the potential of the potato, but he had to handle the 
+                        <input type="text" id="q7" style="width: 100px;"> from ordinary people.</p>
+                    <p>8. The King of Prussia adopted a form of 
+                        <input type="text" id="q8" style="width: 100px;"> psychology to make people accept potatoes.</p>
+                    <p>9. Before 1800, English people preferred eating 
+                        <input type="text" id="q9" style="width: 100px;"> with bread, butter and cheese.</p>
+                    <p>10. The obvious way to deal with England's food problems was high-yielding potato 
+                        <input type="text" id="q10" style="width: 100px;">.</p>
+                    <p>11. The Irish 
+                        <input type="text" id="q11" style="width: 100px;"> and climate suited potatoes well.</p>
+                    <p>12. Between 1780 and 1841, thanks to the 
+                        <input type="text" id="q12" style="width: 100px;"> of the potato, the Irish population doubled to eight million.</p>
+                    <p>13. The potato's high yields helped the poorest farmers to produce more healthy food almost without 
+                        <input type="text" id="q13" style="width: 100px;">.</p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions2">
+                <h3>Questions 14–20</h3>
+                <p>Reading Passage 2 has seven paragraphs, <strong>A–G</strong>.</p>
+                <p>Choose the correct heading for each paragraph from the list of headings below.</p>
+                <p>Write the correct number, <strong>i-ix</strong>, in boxes 14-20 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>List of Headings</strong></p>
+                    <p>i &nbsp; &nbsp; The theory linking capacity for tool use in birds and survival</p>
+                    <p>ii &nbsp; The influence of humans on tool use</p>
+                    <p>iii &nbsp; The theory linking cognitive ability and living in a society</p>
+                    <p>iv &nbsp; Reviewing long-held beliefs</p>
+                    <p>v &nbsp; Intelligence helps birds to remember</p>
+                    <p>vi &nbsp; How some birds trick each other</p>
+                    <p>vii &nbsp; Physiological evidence of birds' intelligence</p>
+                    <p>viii &nbsp; Several examples of birds that use tools</p>
+                    <p>ix &nbsp; One species' multiple tool-using techniques</p>
+                    
+                    <p>14 Paragraph <strong>A</strong> 
+                        <div class="dropzone" data-target="q14"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>15 Paragraph <strong>B</strong> 
+                        <div class="dropzone" data-target="q15"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>16 Paragraph <strong>C</strong> 
+                        <div class="dropzone" data-target="q16"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>17 Paragraph <strong>D</strong> 
+                        <div class="dropzone" data-target="q17"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>18 Paragraph <strong>E</strong> 
+                        <div class="dropzone" data-target="q18"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>19 Paragraph <strong>F</strong> 
+                        <div class="dropzone" data-target="q19"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>20 Paragraph <strong>G</strong> 
+                        <div class="dropzone" data-target="q20"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="i">i</div>
+                        <div class="card" draggable="true" data-value="ii">ii</div>
+                        <div class="card" draggable="true" data-value="iii">iii</div>
+                        <div class="card" draggable="true" data-value="iv">iv</div>
+                        <div class="card" draggable="true" data-value="v">v</div>
+                        <div class="card" draggable="true" data-value="vi">vi</div>
+                        <div class="card" draggable="true" data-value="vii">vii</div>
+                        <div class="card" draggable="true" data-value="viii">viii</div>
+                        <div class="card" draggable="true" data-value="ix">ix</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 21–26</h3>
+                <p>Look at the following characteristics (Questions 21-26) and the list of birds below.</p>
+                <p>Match each characteristic with the correct bird, <strong>A, B or C</strong>.</p>
+                <p>Write the correct letter, <strong>A, B or C</strong>, in boxes 21–26 on your answer sheet.</p>
+                <p><strong>NB You may use any letter more than once.</strong></p>
+                
+                <div class="group">
+                    <p><strong>List of Birds</strong></p>
+                    <p>A White-winged choughs</p>
+                    <p>B Black kites</p>
+                    <p>C New Caledonian crows</p>
+                    
+                    <p>21 keeping tools that they like to use
+                        <div class="dropzone" data-target="q21"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>22 drawing out their prey by frightening it
+                        <div class="dropzone" data-target="q22"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>23 the use of tools to remove the outer covering from food
+                        <div class="dropzone" data-target="q23"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>24 using food to attract their prey
+                        <div class="dropzone" data-target="q24"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>25 the use of unfamiliar materials to make tools
+                        <div class="dropzone" data-target="q25"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>26 engaging in certain activities for the benefit of observers
+                        <div class="dropzone" data-target="q26"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions3">
+                <h3>Questions 27 and 28</h3>
+                <p>Choose <strong>TWO</strong> letters, <strong>A–F</strong>.</p>
+                <p>Write the correct letters in boxes 27 and 28 on your answer sheet.</p>
+                <p>Which TWO of the following statements about the boys who took part in the study are made by the writer?</p>
+                
+                <div class="group">
+                    <p><strong>A</strong> They had approximately the same number of friends.</p>
+                    <p><strong>B</strong> Some of their parents helped to set up the camp.</p>
+                    <p><strong>C</strong> They selected the group that they wanted to be in.</p>
+                    <p><strong>D</strong> They were responsible for bringing their own tents.</p>
+                    <p><strong>E</strong> They received clothes that identified the group they belonged to.</p>
+                    <p><strong>F</strong> Some of them were criticised for dropping litter.</p>
+                    
+                    <p>Select two options:
+                        <div class="dropzone" data-target="q27-28"><span class="droplabel">Drag answers here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                        <div class="card" draggable="true" data-value="F">F</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 29–34</h3>
+                <p>Complete the summary below.</p>
+                <p>Choose <strong>NO MORE THAN TWO WORDS</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 29-34 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>The Grand Tournament</strong></p>
+                    <p>The Grand Tournament marked the second part of Sherif's experiment. It included a range of 
+                    <input type="text" id="q29" style="width: 120px;"> that each team would compete in, and the allocation of extra points for things like cleaning cabins.</p>
+                    
+                    <p>To increase the competitive element of the tournament, the organisers used 
+                    <input type="text" id="q30" style="width: 120px;"> in the dining hall. They also made sure that the boys were under the impression that their scores were nearly 
+                    <input type="text" id="q31" style="width: 120px;"> as the tournament neared its end.</p>
+                    
+                    <p>The 
+                    <input type="text" id="q32" style="width: 120px;">, who were thought to be the tougher group, won the first ball game and lost the second. In other games there were accusations of 
+                    <input type="text" id="q33" style="width: 120px;">. During the next day, various instances of conflict occurred within the boys' cabins. Eventually, the tournament was won by the group that was considered to be 
+                    <input type="text" id="q34" style="width: 120px;"> – the Eagles.</p>
+                </div>
+                
+                <h3>Questions 35–38</h3>
+                <p>Complete the table below.</p>
+                <p>Choose <strong>NO MORE THAN TWO WORDS</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 35-38 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>Phase 3: Non-competitive contact</strong></p>
+                    <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+                        <tr>
+                            <th style="border: 1px solid #ccc; padding: 8px;">Conditions</th>
+                            <th style="border: 1px solid #ccc; padding: 8px;">Type of situation</th>
+                            <th style="border: 1px solid #ccc; padding: 8px;">Result</th>
+                        </tr>
+                        <tr>
+                            <td rowspan="2" style="border: 1px solid #ccc; padding: 8px; vertical-align: top;">Equal status</td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">eating</td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"><input type="text" id="q35" style="width: 100px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px;"><input type="text" id="q36" style="width: 100px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">enjoyed them but were not sitting together</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2" style="border: 1px solid #ccc; padding: 8px; vertical-align: top;">A <input type="text" id="q37" style="width: 100px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">raising money</td>
+                            <td style="border: 1px solid #ccc; padding: 8px;" rowspan="2">friendship groups</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px;"><input type="text" id="q38" style="width: 100px;">, e.g. stuck truck</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <h3>Questions 39 and 40</h3>
+                <p>Choose <strong>TWO</strong> letters, <strong>A–F</strong>.</p>
+                <p>Write the correct letters in boxes 39 and 40 on your answer sheet.</p>
+                <p>Which TWO of the following statements are true of the experimenters who ran the study?</p>
+                
+                <div class="group">
+                    <p><strong>A</strong> They collected their data from secret observation posts.</p>
+                    <p><strong>B</strong> They encouraged the boys to use the terms 'them' and 'us'.</p>
+                    <p><strong>C</strong> They used a rating exercise to assess the amount of in-group bias.</p>
+                    <p><strong>D</strong> They took steps to avoid personal injury among the boys.</p>
+                    <p><strong>E</strong> They secretly altered some of the results of the tournament.</p>
+                    <p><strong>F</strong> They joined in with the non-competitive activities.</p>
+                    
+                    <p>Select two options:
+                        <div class="dropzone" data-target="q39-40"><span class="droplabel">Drag answers here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                        <div class="card" draggable="true" data-value="F">F</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display:flex;gap:8px;margin:20px 0;">
+                <button class="btn btn-primary" onclick="submitAnswers()">Submit Answers</button>
+                <button class="btn" onclick="resetAnswers()">Reset Answers</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="practice-nav">
+        <span class="section-title">Passage 1:</span>
+        <div class="q-item" onclick="scrollToQuestion('q1')">1</div>
+        <div class="q-item" onclick="scrollToQuestion('q2')">2</div>
+        <div class="q-item" onclick="scrollToQuestion('q3')">3</div>
+        <div class="q-item" onclick="scrollToQuestion('q4')">4</div>
+        <div class="q-item" onclick="scrollToQuestion('q5')">5</div>
+        <div class="q-item" onclick="scrollToQuestion('q6')">6</div>
+        <div class="q-item" onclick="scrollToQuestion('q7')">7</div>
+        <div class="q-item" onclick="scrollToQuestion('q8')">8</div>
+        <div class="q-item" onclick="scrollToQuestion('q9')">9</div>
+        <div class="q-item" onclick="scrollToQuestion('q10')">10</div>
+        <div class="q-item" onclick="scrollToQuestion('q11')">11</div>
+        <div class="q-item" onclick="scrollToQuestion('q12')">12</div>
+        <div class="q-item" onclick="scrollToQuestion('q13')">13</div>
+        
+        <span class="section-title">Passage 2:</span>
+        <div class="q-item" onclick="scrollToQuestion('q14')">14</div>
+        <div class="q-item" onclick="scrollToQuestion('q15')">15</div>
+        <div class="q-item" onclick="scrollToQuestion('q16')">16</div>
+        <div class="q-item" onclick="scrollToQuestion('q17')">17</div>
+        <div class="q-item" onclick="scrollToQuestion('q18')">18</div>
+        <div class="q-item" onclick="scrollToQuestion('q19')">19</div>
+        <div class="q-item" onclick="scrollToQuestion('q20')">20</div>
+        <div class="q-item" onclick="scrollToQuestion('q21')">21</div>
+        <div class="q-item" onclick="scrollToQuestion('q22')">22</div>
+        <div class="q-item" onclick="scrollToQuestion('q23')">23</div>
+        <div class="q-item" onclick="scrollToQuestion('q24')">24</div>
+        <div class="q-item" onclick="scrollToQuestion('q25')">25</div>
+        <div class="q-item" onclick="scrollToQuestion('q26')">26</div>
+        
+        <span class="section-title">Passage 3:</span>
+        <div class="q-item" onclick="scrollToQuestion('q27-28')">27-28</div>
+        <div class="q-item" onclick="scrollToQuestion('q29')">29</div>
+        <div class="q-item" onclick="scrollToQuestion('q30')">30</div>
+        <div class="q-item" onclick="scrollToQuestion('q31')">31</div>
+        <div class="q-item" onclick="scrollToQuestion('q32')">32</div>
+        <div class="q-item" onclick="scrollToQuestion('q33')">33</div>
+        <div class="q-item" onclick="scrollToQuestion('q34')">34</div>
+        <div class="q-item" onclick="scrollToQuestion('q35')">35</div>
+        <div class="q-item" onclick="scrollToQuestion('q36')">36</div>
+        <div class="q-item" onclick="scrollToQuestion('q37')">37</div>
+        <div class="q-item" onclick="scrollToQuestion('q38')">38</div>
+        <div class="q-item" onclick="scrollToQuestion('q39-40')">39-40</div>
+    </div>
+
+    <div id="selbar">
+        <button id="highlightBtn">高亮</button>
+        <button id="removeHighlightBtn">取消高亮</button>
+    </div>
+
+    <script>
+        // Timer functionality (60 minutes countdown)
+        let totalTime = 60 * 60; // 60 minutes in seconds
+        const timerEl = document.getElementById('timer');
+        
+        function updateTimer() {
+            if (totalTime <= 0) {
+                clearInterval(timerInterval);
+                alert("Time is up! Submitting your answers.");
+                submitAnswers();
+                return;
+            }
+            
+            const minutes = Math.floor(totalTime / 60);
+            const seconds = totalTime % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '极简')}`;
+            totalTime--;
+        }
+        
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call
+        
+        // Tab switching functionality with synchronization
+        function switchTabs(clickedTab, isRightTab = false) {
+            const tabId = clickedTab.getAttribute('data-tab');
+            
+            if (isRightTab) {
+                // If right tab was clicked, also switch the left tab
+                const passageId = clickedTab.getAttribute('data-passage');
+                const leftTab = document.querySelector(`.tab[data-tab="${passageId}"]`);
+                if (leftTab) {
+                    // Remove active class from all left tabs and contents
+                    document.querySelectorAll('#left .tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('#left .tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to corresponding left tab and content
+                    leftTab.classList.add('active');
+                    document.getElementById(passageId).classList.add('active');
+                }
+            }
+            
+            // Remove active class from all tabs and contents in the current container
+            const container = clickedTab.closest('.tab-container');
+            container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            container.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            clickedTab.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Set up tab click events
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const is极简 = this.closest('#right') !== null;
+                switchTabs(this, isRightTab);
+            });
+        });
+        
+        // Drag and drop functionality
+        const cards = document.querySelectorAll('.card');
+        const dropzones = document.querySelectorAll('.dropzone');
+        
+        cards.forEach(card => {
+            card.addEventListener('dragstart', () => {
+                card.classList.add('dragging');
+            });
+            
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+            });
+        });
+        
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                zone.classList.add('over');
+            });
+            
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('over');
+            });
+            
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('over');
+                
+                const card = document.querySelector('.card.dragging');
+                if (card) {
+                    // For multi-select dropzones (like questions 27-28 and 39-40)
+                    if (zone.getAttribute('data-target') === 'q27-28' || zone.getAttribute('data-target') === 'q39-40') {
+                        // Check if this answer is already in the dropzone
+                        const existingCards = zone.querySelectorAll('.card');
+                        const cardValue = card.getAttribute('data-value');
+                        
+                        let alreadyExists = false;
+                        existingCards.forEach(existingCard => {
+                            if (existingCard.getAttribute('data-value') === cardValue) {
+                                alreadyExists = true;
+                            }
+                        });
+                        
+                        if (alreadyExists) return;
+                        
+                        // Limit to 2 selections
+                        if (existingCards.length >= 2) {
+                            alert("You can only select two options for this question.");
+                            return;
+                        }
+                        
+                        // Create a clone of the card for the dropzone
+                        const clone = card.cloneNode(true);
+                        clone.setAttribute('draggable', 'false');
+                        clone.classList.remove('dragging');
+                        zone.appendChild(clone);
+                    } else {
+                        // For single-select dropzones
+                        // Clear existing content
+                        zone.innerHTML = '';
+                        
+                        // Create a clone of the card for the dropzone
+                        const clone = card.cloneNode(true);
+                        clone.setAttribute('draggable', 'false');
+                        clone.classList.remove('dragging');
+                        zone.appendChild(clone);
+                    }
+                    
+                    // Mark the question as answered in the navigation
+                    const questionId = zone.getAttribute('data-target');
+                    const navItem = document.querySelector(`.q-item[onclick="scrollToQuestion('${questionId}')"]`);
+                    if (navItem) {
+                        navItem.classList.add('answered');
+                    }
+                }
+            });
+        });
+        
+        // Function to scroll to a specific question
+        function scrollToQuestion(questionId) {
+            let questionElement;
+            
+            if (questionId.includes('q')) {
+                // For text inputs
+                questionElement = document.getElementById(questionId);
+                
+                if (!questionElement) {
+                    // For dropzones
+                    questionElement = document.querySelector(`[data-target="${questionId}"]`);
+                }
+            }
+            
+            if (questionElement) {
+                questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Highlight the question briefly
+                questionElement.style.backgroundColor = '#fff3a3';
+                setTimeout(() => {
+                    questionElement.style.backgroundColor = '';
+                }, 1000);
+            }
+        }
+        
+        // Function to submit answers
+        function submitAnswers() {
+            alert("Answers submitted! This would normally be sent to a server for grading.");
+            // In a real implementation, this would collect all answers and send them for evaluation
+        }
+        
+        // Function to reset answers
+        function resetAnswers() {
+            if (confirm("Are you sure you want to reset all answers?")) {
+                // Clear all dropzones
+                document.querySelectorAll('.dropzone').forEach(zone => {
+                    zone.innerHTML = '<span class="droplabel">Drag answer here</span>';
+                });
+                
+                // Clear all radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.checked = false;
+                });
+                
+                // Clear all text inputs
+                document.querySelectorAll('input[type="text"]').forEach(input => {
+                    input.value = '';
+                });
+                
+                // Remove answered status from navigation
+                document.querySelectorAll('.q-item.answered').forEach(item => {
+                    item.classList.remove('answered');
+                });
+            }
+        }
+        
+        // Divider dragging functionality
+        const divider = document.getElementById('divider');
+        const leftPane = document.getElementById('left');
+        const rightPane = document.getElementById('right');
+        let isResizing = false;
+        
+        divider.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            document.body.style.cursor = 'ew-resize';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const containerRect = document.querySelector('.shell').getBoundingClientRect();
+            const xPosition = e.clientX - containerRect.left;
+            
+            // Set minimum widths for both panes
+            const leftWidth = Math.max(280, Math.min(containerRect.width - 320, xPosition));
+            const rightWidth = containerRect.width - leftWidth - 8; // 8px for the divider
+            
+            leftPane.style.flex = `0 0 ${leftWidth}px`;
+            rightPane.style.flex = `1 1 ${rightWidth}px`;
+        });
+        
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+            document.body.style.cursor = '';
+        });
+
+        // Highlight functionality
+        const selbar = document.getElementById('selbar');
+        const highlightBtn = document.getElementById('highlightBtn');
+        const removeHighlightBtn = document.getElementById('removeHighlightBtn');
+        let currentSelection = null;
+
+        // Listen for text selection
+        document.addEventListener('mouseup', function(e) {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            
+            if (selectedText.length > 0 && !e.target.closest('#selbar')) {
+                currentSelection = selection;
+                
+                // Position the toolbar near the selection
+                const range = selection.getRangeAt(0);
+                const rect = range.getBounding极简();
+                
+                selbar.style.display = 'flex';
+                selbar.style.top = (rect.top + window.scrollY - 40) + 'px';
+                selbar.style.left = (rect.left + window.scrollX) + 'px';
+            } else if (!e.target.closest('#selbar')) {
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Highlight button functionality
+        highlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                const selectedText = range.toString();
+                
+                // Create highlight span
+                const span = document.createElement('span');
+                span.className = 'hl';
+                span.textContent = selectedText;
+                
+                // Replace selected text with highlighted span
+                range.deleteContents();
+                range.insertNode(span);
+                
+                // Clear selection and hide toolbar
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Remove highlight button functionality
+        removeHighlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                
+                // Find if the selection contains highlighted text
+                let parent = range.startContainer.parentNode;
+                while (parent && parent !== document.body) {
+                    if (parent.classList && parent.classList.contains('hl')) {
+                        // Replace the highlighted span with just its text content
+                        const text = document.createTextNode(parent.textContent);
+                        parent.parentNode.replaceChild(text, parent);
+                        
+                        // Clear selection and hide toolbar
+                        window.getSelection().removeAllRanges();
+                        selbar.style.display = 'none';
+                        return;
+                    }
+                    parent = parent.parentNode;
+                }
+                
+                // If no highlight found, just clear selection
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Hide toolbar when clicking elsewhere
+        document.addEventListener('mousedown', function(e) {
+            if (!e.target.closest('#selbar') && selbar.style.display === 'flex') {
+                selbar.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Mock Test</title>
+    <style>
+        :root {
+            --line: #e5e7eb;
+            --bg: #f6f7fb;
+            --panel: #fff;
+            --accent: #3b82f6;
+            --muted: #6b7280;
+            --shadow: 0 6px 20px rgba(0,0,0,.12);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .shell {
+            display: flex;
+            height: calc(100vh - 60px);
+            width: 100%;
+        }
+        .pane {
+            background: var(--panel);
+            overflow: auto;
+            padding: 20px;
+        }
+        #left {
+            flex: 0 0 50%;
+            min-width: 280px;
+        }
+        #right {
+            flex: 1 1 auto;
+            min-width: 320px;
+            background: #fbfbff;
+            border-left: 1px solid var(--line);
+        }
+        #divider {
+            flex: 0 0 8px;
+            background: linear-gradient(90deg, #e5e7eb, #d1d5db);
+            cursor: ew-resize;
+            position: relative;
+            z-index: 5;
+            user-select: none;
+        }
+        h2, h3, h4 {
+            margin: 0 0 10px;
+        }
+        p {
+            margin: 0 0 12px;
+            line-height: 1.6;
+        }
+        .group {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+        .timer-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-height: 40px;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: auto;
+            min-width: 120px;
+            max-width: 200px;
+            vertical-align: middle;
+            margin: 5px 0;
+        }
+        .droplabel {
+            color: #64748b;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cardpool {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            cursor: grab;
+            box-shadow: 0 1px 0 rgba(0,0,0,.03);
+            white-space: nowrap;
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        .btn {
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: #3b82f6;
+        }
+        .hl {
+            background: #fff3a3;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,.05);
+            cursor: pointer;
+        }
+        .hl:hover {
+            filter: brightness(0.98);
+        }
+        #selbar {
+            position: absolute;
+            display: none;
+            z-index: 2000;
+            background: #111;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: var(--shadow);
+            font-size: 13px;
+            gap: 6px;
+            align-items: center;
+        }
+        #selbar button {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.25);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #selbar button:hover {
+            border-color: #fff;
+        }
+        .practice-nav {
+            background: #fff;
+            border-top: 2px solid var(--line);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 4000;
+            height: 60px;
+            overflow-x: auto;
+        }
+        .practice-nav .q-item {
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 36px;
+            text-align: center;
+        }
+        .practice-nav .q-item:hover {
+            background: #f1f5f9;
+            border-color: var(--accent);
+        }
+        .practice-nav .q-item.answered {
+            background: #e0e7ff;
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .practice-nav .q-item.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .section-title {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        Time remaining: <span id="timer">60:00</span>
+    </div>
+
+    <div class="shell">
+        <section class="pane" id="left">
+            <div class="tab-container">
+                <div class="tab active" data-tab="passage1">Passage 1</div>
+                <div class="tab" data-tab="passage2">Passage 2</div>
+                <div class="tab" data-tab="passage3">Passage 3</div>
+            </div>
+            
+            <div class="tab-content active" id="passage1">
+                <h2>The Origin of Paper</h2>
+                <p>The word paper derives from the Greek term for the ancient Egyptian writing material called papyrus. In about 2400 BC, the Egyptians discovered how to make a writing surface out of papyrus, a type of reed that grows along waterways in southern Europe and North Africa. The Egyptians cut the plant into strips which they softened in water. Papyrus was cross-woven into a mat and then pounded into a hard, thin sheet.</p>
+                
+                <p>As the papyrus plant requires subtropical conditions to grow, papyrus was not much used in Europe at that time; instead, the main material used for writing was parchment. This was made from animal skin and was extremely expensive. In fact, it has been estimated that a single book written on parchment required the skins of 300 sheep. The skins had to be specially prepared by drying them and they were then stretched on a special frame. It is not known when parchment was first introduced, but it was the main writing material in Europe for hundreds of years.</p>
+                
+                <p>Paper—made from pulp, rags and fibres of plants—seems to have been invented in China and is considered to be one of the Four Great Inventions of Ancient China. In 105 AD, under the Han-Dynasty emperor Ho-Ti, a government official in China named Ts'ai Lun was the first to start a papermaking industry. Ts'ai Lun seems to have made his paper by mixing finely chopped mulberry bark and hemp rags with water, mashing the mixture flat with a stone mortar, and then pressing out the water and letting it dry in the sun. He may have based his idea on bark cloth, which was very common in China and also made from mulberry.</p>
+                
+                <p>Previously, during the Shang (1600-1050 BC) and Zhou (1050-256 BC) dynasties of Ancient China, documents were ordinarily written on bone or bamboo (on tablets or bamboo strips bound and rolled together into scrolls), making them very heavy and awkward to transport. The light material of silk was sometimes used, but was normally too expensive to consider. When paper was first invented, it was used for purposes of wrapping or padding protection for delicate bronze mirrors. Although paper for writing became popular by the 3rd century AD, it continued to be used for wrapping and other purposes.</p>
+                
+                <p>During the Tang Dynasty (618-907 AD) paper was folded and sewn into square bags to preserve the flavour of tea. During the same period, according to a written account, tea was served from baskets with multi-coloured paper cups and paper napkins of different sizes and shapes. During the Chinese Song Dynasty (960-1279 AD) not only did the government produce the world's first known printed paper money, or banknote, but paper money bestowed as gifts was wrapped in special paper envelopes.</p>
+                
+                <p>Paper spread widely outside China; other Asian cultures, even after seeing paper, could not make it themselves. Instruction in the manufacturing process was required, and the Chinese were reluctant to share their secrets. It made its true push westward in 751 AD when the Tang Dynasty was at war with the Islamic world. During a battle on the banks of the Talas River, a Chinese caravan was captured which happened to include several papermakers. They were taken away to Samarkand, which was a good place to make paper because it had an abundant supply of hemp and flax. Samarkanders changed the technology of manufacturing paper. They began to prepare it in stone mills and Samarkand became an important papermaking centre.</p>
+                
+                <p>The rudimentary and laborious process of papermaking was refined, and bulk manufacturing of paper began in Iran, where they invented a method to make a thicker sheet of paper, which helped transform papermaking from an art into an important business.</p>
+                
+                <p>Gradually papermakers made their way further west through the Arab world—to Baghdad, Damascus and Cairo. Finally, when the Moors from North Africa invaded Spain and Portugal, they brought the technology with them and so it was that papermaking entered Europe in the 12th century.</p>
+                
+                <p>In Europe, the preferred medium for the artists and literati of the time was still the smooth and lustrous parchment. The notion of paper being used as a practical everyday item did not occur until the 15th century, when Johannes Gutenberg perfected movable-type printing, which included the use of metal moulds and alloys, a special press, and oil-based inks, allowing the mass production of printed books. The birth of the modern paper and printing industry is commonly marked from this date.</p>
+                
+                <p>Printing technology rapidly developed and created an ever-increasing demand for paper. The early European papers were made from recycled cotton and linen—and a huge trade quickly developed around the trading of old rags. It is said that the disease known as the Black Death entered England from Europe on these old rags. Yet soon this source became insufficient and some curious attempts were made to find new materials. Experiments with fibres such as straw, cabbage, wasp nests and finally wood resulted in inexpensive—and replaceable—materials for papermaking. Today, the long, soft fibres of softwoods such as spruce have become the most suitable source of pulp for the mass production of paper.</p>
+            </div>
+            
+            <div class="tab-content" id="passage2">
+                <h2>Born to Trade</h2>
+                <p><em>Long before our ancestors had any trappings of civilisation, they had a taste for material goods. Kate Douglas discovers where this ancient obsession has led us.</em></p>
+                
+                <p><strong>A</strong> Humans are born to trade and we don't need shops or money to do it—the heart of commerce is an instinctive ability for what anthropologists call "reciprocity". This is an ability to exchange goods of equal worth, and it evolved as the brains of our ancient ancestors and societies became more complex, allowing individuals to keep a running tally of their interactions with others. Evidence from modern hunter-gatherers leaves little doubt that the exchange of food and favours is innate, as is the ability to keep track of the credits and debits that accrue as a result. Combine this skill for mental book-keeping with even the most basic material culture, and trade inevitably follows.</p>
+                
+                <p><strong>B</strong> Once trade gets off the ground, the economic benefits quickly make it irresistible. But exchanging tools, food and other essentials of life in a barter economy is a far cry from the shopping mall. Modern consumerism extends beyond subsistence and utilitarianism to encompass everything from Gucci handbags and BMW convertibles to valuable paintings. Clearly, the worth of such goods is not inherent but resides in certain intangible qualities that we invest in them. When did humans start holding these goods in such high esteem?</p>
+                
+                <p><strong>C</strong> All the archaeological evidence for the flowering of consumer culture has up to now pointed to a date of around 40,000 years ago. That's when early modern humans started making increasingly intricate bone and stone tools, carving patterns into rocks and creating representational art such as carved figurines, jewellery and cave paintings. However, discoveries in Africa are pushing the origins of consumerism much further back into human prehistory.</p>
+                
+                <p>A few years ago, reports began to emerge of discoveries made at the Blombos Cave, a site of ancient human habitation in South Africa. Christopher Henshilwood and colleagues from the University of Bergen in Norway dated thousands of pieces of ochre from the cave, and many of them proved to be more than 100,000 years old — before the time that early humans moved out of Africa. Ochre, a coloured clay that comes in various shades from red to black, does not occur naturally around Blombos and must have been imported from quarries at least 30 kilometres away, either directly by Blombos residents or through trade. Although ochre can be used to dry and preserve (cure) animal hides, the researchers are convinced the Blombos ochre had a symbolic purpose. For a start, it is predominantly red—any of the other colours available would have done for curing—and the surfaces of the clay had been scraped in a way that indicates they were used to yield pigment for dyes.</p>
+                
+                <p><strong>D</strong> An even more intriguing discovery from Blombos was of 41 beads dating from 76,000 years ago, found in clusters and made from the shells of a tiny mollusc. These cannot be natural deposits, argue the researchers, as each cluster contains shells of a similar size and colour with consistently placed holes. What's more, all the beads display a pattern of wear suggesting friction from rubbing against thread, clothes or other beads.</p>
+                
+                <p>The previous oldest find of beads in Africa dates back to just 45,000 years ago. And it seems the Blombos people's taste for beautiful items was not an isolated phenomenon. Jessica Thompson of Arizona State University in Tempe has described finding shell fragments from a site in Tanzania that she believes may represent debris from bead manufacture. They are at least 45,000—and possibly 280,000—years old. Although there is no evidence of how the ancient beads were used, their modern counterparts are often traded. So it looks as though our taste for jewellery and art is much older than we thought.</p>
+                
+                <p><strong>E</strong> But why did we come to value these objects in the first place? In many animal species, individuals signal their genetic fitness by showing off with attention-grabbing adornment. Some researchers think that in humans, consumer products play a similar role. Archaeologist Aimee Plourde, from the University of California, also argues that even in egalitarian societies, some people are more successful than others. Among our ancestors, superior skills in areas such as hunting, crafts, environmental knowledge and contact with neighbouring groups would have brought respect—in other words, prestige.</p>
+                
+                <p>And because prestige brings social benefits, people would want to show off their talents. The best way to do this would be through demonstrating possession of material items that are hard to fake. 'A good hunter, for instance, could advertise his skills by wearing the tooth of an animal that is elusive or dangerous,' says Plourde. The benefits of prestige would also lead to competition to acquire it. As a result, the value and variety of prestige goods would spiral and there would be a parallel increase in the ranking of social systems.</p>
+                
+                <p>If Plourde is correct, prestige goods form a direct link between our innate drive for trade and the development of structured, hierarchical societies. They are arguably the first step on the road to modern civilisation, paving the way for agriculture and urbanisation. We may not be impressed by beads any more, but their modern equivalents have the same fascination. Nobody believes the guy who spends €670,000 on a Bugatti Veyron car does so because he needs to travel at 250 mph. We all know in today's consumer society he's buying an exclusive status symbol.</p>
+            </div>
+            
+            <div class="tab-content" id="passage3">
+                <h2>The tuatara – past and future</h2>
+                <p>The New Zealand species of lizard, the tuatara, is firmly embedded in the national psyche: an icon for today which dates from the age of dinosaurs; an ancient reptile commemorated on the back of the five-cent coin. New Zealanders feel an affinity with the tuatara, and accept that active conservation management is required to ensure it will be among the legacies left to future generations.</p>
+                
+                <p>When European explorers reached New Zealand in 1769 they found two large islands, which together they called the mainland, and many tiny offshore islands around the coast. The naturalists who came with the explorers disregarded the tuatara, though it is improbable none were seen. Only several decades later did a tuatara specimen reach the British Museum, where it was eventually classified as just another type of lizard.</p>
+                
+                <p>One of the first scientists who realised that aspects of tuatara anatomy were odd—unchanged for tens of thousands of years—was Albert Gunther in 1876. Gunther believed the tuatara was one of the most valuable objects in zoological anatomical collections, and also noted, in passing, the reptile was likely to become extinct. From today's perspective, it is striking that Gunther expressed no concern about the probable demise of the tuatara. He and his contemporaries were products of their age, strongly influenced by Charles Darwin's theory, which had only recently been published. Their views were something like this: 'Extinction is a natural process. It is sad that species disappear, but that is part of nature.'</p>
+                
+                <p>There is a second important aspect of Gunther's work. He recorded, correctly, that some of the mammals introduced by Europeans were predators of the tuatara—particularly rats. But what he did not realise was that New Zealand has two species of rat, both introduced, both with an appetite for tuatara: the ship's rat came with European explorers and settlers; but the kiore rat had already been in the country for hundreds of years, brought by Polynesians from the Pacific Islands. Gunther failed to recognise the distinction, believing all rats to be a relatively recent introduction.</p>
+                
+                <p>Little further research was conducted until Ian Crook of the NZ Wildlife Service published his findings in 1973, which can be summarised as follows. Tuatara thrive on offshore islands with no rats. Tuatara never survived on islands with ship's rats. On a few islands, small and declining populations of tuatara occur with the kiore. This should not be seen, however, as evidence that tuatara and kiore can coexist. Rather, Crook proposed, kiore probably only arrived recently on such islands, and thus the small populations represent extinctions in progress.</p>
+                
+                <p>Throughout the 1990s, Richard Holdaway and his colleagues at Victoria University in Wellington documented the surprising discovery that kiore probably arrived about 1,800 years ago, although the human population of New Zealand is thought to be no older than 800 years. How is this possible? Presumably, Holdaway argued, the kiore were brought by Polynesian explorers who visited the country but did not settle. Thereafter, the rats were agents of ecological warfare, exterminating perhaps 1,000–3,000 species. Thus, tuatara and many other species were already rare or extinct when permanent human inhabitants—the Maori—arrived around 1300. This hypothesis is still being debated, but the evidence continues to accumulate in its favour.</p>
+                
+                <p>Conservation practice has changed dramatically since Crook's findings were published in 1973. Eradication of rats from any given environment was believed to be virtually impossible until about 1980, but since then has become routine. Enormous conservation benefits are accruing as newly rat-free offshore islands are providing sanctuaries for the country's rarest species. In 1995, for example, Nicola Nelson of the Department of Conservation established 68 tuatara on Titi Island. Since then, four more populations of tuatara have been established elsewhere under similar conditions. Today, numbers of tuatara are still a fraction of what they once were, but for the first time in 1,800 years the decline has been reversed.</p>
+                
+                <p>While the recovery of rare species is itself a good thing, the truly significant outcome of this research is that it liberates the imagination. If we can remove predatory introduced mammals from islands, why not from the mainland too? Perhaps the questions we ask should demonstrate even more visionary ambition. Can non-mammalian pests also be removed from the mainland? Our rivers, for example, are full of surrogate rats, in the form of introduced species of fish called trout. Some day more people will understand that trout have replaced a whole native fauna in our waterways, just as rats replaced tuatara on the mainland. Will such knowledge lead to the creation of mainland 'aquatic islands' where we can once again establish those species of indigenous fish that used to live in our rivers? Similarly, can bellbirds and tuis replace birds like starlings and mynahs?</p>
+                
+                <p>The answers to such questions are uncertain, and opposing sides will doubtless be fiercely debated. But the role of scientific knowledge in illuminating the past will be crucial. Just as we no longer tolerate extinction, in the future we may no longer accept a mainland devoid of the biological wonders of our past such as tuatara. Conservation is thus not primarily about the past but about imagining and then creating the future we wish for our children and ourselves. For 80 million years until humans arrived, tuatara occurred throughout New Zealand—might they do so again?</p>
+            </div>
+        </section>
+
+        <div id="divider" title="Drag to resize"></div>
+
+        <section class="pane" id="right">
+            <div class="tab-container">
+                <div class="tab active" data-tab="questions1" data-passage="passage1">Questions 1-13</div>
+                <div class="tab" data-tab="questions2" data-passage="passage2">Questions 14-26</div>
+                <div class="tab" data-tab="questions3" data-passage="passage3">Questions 27-40</div>
+            </div>
+            
+            <div class="tab-content active" id="questions1">
+                <h3>Questions 1–7</h3>
+                <p>Do the following statements agree with the information given in Reading Passage 1?</p>
+                <p>In boxes 1-7 on your answer sheet, write</p>
+                <ul>
+                    <li><strong>TRUE</strong> if the statement agrees with the information</li>
+                    <li><strong>FALSE</strong> if the statement contradicts the information</li>
+                    <li><strong>NOT GIVEN</strong> if there is no information on this</li>
+                </ul>
+                
+                <div class="group">
+                    <p>1 In Ancient China, writing was occasionally done on silk.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q1" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q1" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q1" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>2 Coloured paper was invented during the Tang Dynasty.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q2" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q2" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q2" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>3 Papermakers from Samarkand were captured by the Chinese.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q3" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q3" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q3" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>4 Papermaking as a large-scale industry originated in Iran.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q4" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q4" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q4" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>5 Papermaking skills were brought to Europe via North Africa.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q5" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q5" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q5" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>6 When Gutenberg invented movable type, paper materials were very expensive.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q6" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q6" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q6" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>7 The end of the trade in rags was brought about by the difficulty of transporting them.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q7" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q7" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q7" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 8–13</h3>
+                <p>Complete the table below.</p>
+                <p>Choose <strong>ONE WORD ONLY</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 8-13 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>The Development of Paper</strong></p>
+                    <table>
+                        <tr>
+                            <th>Place</th>
+                            <th>Date of introduction</th>
+                            <th>Materials used</th>
+                            <th>Method of production</th>
+                        </tr>
+                        <tr>
+                            <td>Egypt</td>
+                            <td>about 2400 BC</td>
+                            <td>a plant called papyrus</td>
+                            <td>8 <input type="text" id="q8" style="width: 100px;"> of the plant were softened in water, woven and pounded</td>
+                        </tr>
+                        <tr>
+                            <td>Europe</td>
+                            <td>unknown</td>
+                            <td>parchment made from the skin of animals such as 9 <input type="text" id="q9" style="width: 100px;"></td>
+                            <td>skin was dried and 10 <input type="text" id="q10" style="width: 100px;"></td>
+                        </tr>
+                        <tr>
+                            <td>China</td>
+                            <td>105 AD</td>
+                            <td>11 <input type="text" id="q11" style="width: 100px;"> of a mulberry tree and hemp rags</td>
+                            <td>ingredients were mixed with water, pressed and put outside in the sun</td>
+                        </tr>
+                        <tr>
+                            <td>12 <input type="text" id="q12" style="width: 100px;"></td>
+                            <td>751 AD</td>
+                            <td>flax and hemp</td>
+                            <td>mills made of 13 <input type="text" id="q13" style="width: 100px;"> were used</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions2">
+                <h3>Questions 14–18</h3>
+                <p>Reading Passage 2 has five sections, <strong>A–E</strong>.</p>
+                <p>Choose the correct heading for each section from the list of headings below.</p>
+                <p>Write the correct number, <strong>i–vii</strong>, in boxes 14–18 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>List of Headings</strong></p>
+                    <p>i &nbsp; &nbsp; The desire to make expensive jewellery</p>
+                    <p>ii &nbsp; The clues that indicate ancient items were decorative</p>
+                    <p>iii &nbsp; Querying the changes in the value of traded items</p>
+                    <p>iv &nbsp; A natural human talent</p>
+                    <p>v &nbsp; How status can be gained from ownership of goods</p>
+                    <p>vi &nbsp; Recent finds alter theories about when consumerism started</p>
+                    <p>vii &nbsp; Changes in research methods</p>
+                    
+                    <p>14 Section <strong>A</strong> 
+                        <div class="dropzone" data-target="q14"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>15 Section <strong>B</strong> 
+                        <div class="dropzone" data-target="q15"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>16 Section <strong>C</strong> 
+                        <div class="dropzone" data-target="q16"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>17 Section <strong>D</strong> 
+                        <div class="dropzone" data-target="q17"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>18 Section <strong>E</strong> 
+                        <div class="dropzone" data-target="q18"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="i">i</div>
+                        <div class="card" draggable="true" data-value="ii">ii</div>
+                        <div class="card" draggable="true" data-value="iii">iii</div>
+                        <div class="card" draggable="true" data-value="iv">iv</div>
+                        <div class="card" draggable="true" data-value="v">v</div>
+                        <div class="card" draggable="true" data-value="vi">vi</div>
+                        <div class="card" draggable="true" data-value="vii">vii</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 19–21</h3>
+                <p>Choose the correct letter, <strong>A, B, C or D</strong>.</p>
+                <p>Write the correct letter in boxes 19–21 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>19 In section A, 'reciprocity' refers to our ancestors' ability to
+                        <div>
+                            <label><input type="radio" name="q19" value="A"> A keep written records of different goods traded</label><br>
+                            <label><input type="radio" name="q19" value="B"> B monitor the balance between goods given and received</label><br>
+                            <label><input type="radio" name="q19" value="C"> C produce more materials for trading purposes</label><br>
+                            <label><input type="radio" name="q19" value="D"> D make money from trading goods and services</label>
+                        </div>
+                    </p>
+                    <p>20 What is said about the ochre found at Blombos Cave?
+                        <div>
+                            <label><input type="radio" name="q20" value="A"> A It is of a type only found in this particular area.</label><br>
+                            <label><input type="radio" name="q20" value="B"> B It has all been dyed to give the same shade of red.</label><br>
+                            <label><input type="radio" name="q20" value="C"> C It has been perfectly preserved despite its age.</label><br>
+                            <label><input type="radio" name="q20" value="D"> D It appears it was selected for its colour.</label>
+                        </div>
+                    </p>
+                    <p>21 What made the researchers realise the purpose of the beads found at Blombos Cave?
+                        <div>
+                            <label><input type="radio" name="q21" value="A"> A They are of many different shapes and sizes.</label><br>
+                            <label><input type="radio" name="q21" value="B"> B They were found in large numbers, clustered together.</label><br>
+                            <label><input type="radio" name="q21" value="C"> C They have patterns in many different colours.</label><br>
+                            <label><input type="radio" name="q21" value="D"> D They have holes and markings suggesting they were joined together.</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 22–26</h3>
+                <p>Complete the summary below.</p>
+                <p>Choose <strong>ONE WORD ONLY</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 22–26 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>Why certain objects are valued?</strong></p>
+                    <p>Some researchers argue that we may use ownership of desirable goods to demonstrate our strength and fitness as other <input type="text" id="q22" style="width: 100px;"> use their attractive physical features. Showing off one's superiority is not a new phenomenon and even in ancient times successful people would have gained <input type="text" id="q23" style="width: 100px;"> from this. A desire for status could have led to an increase in the worth of prestige goods and to <input type="text" id="q24" style="width: 100px;"> among people wishing to achieve this status.</p>
+                    <p>It is thought that our natural desire to trade provided a basis for organised farming and <input type="text" id="q25" style="width: 100px;"> development and finally resulted in the complex societies which can be seen today. Whilst we do not value things such as beads nowadays, other items hold the same appeal for us and bring the same status as owning beads did for our <input type="text" id="q26" style="width: 100px;">.</p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions3">
+                <h3>Questions 27–31</h3>
+                <p>Choose the correct letter, <strong>A, B, C or D</strong>.</p>
+                <p>Write the correct letter in boxes 27-31 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>27 What are we told about the Europeans who arrived in 1769?
+                        <div>
+                            <label><input type="radio" name="q27" value="A"> A They thought there was only one large island.</label><br>
+                            <label><input type="radio" name="q27" value="B"> B They had not come to study natural history.</label><br>
+                            <label><input type="radio" name="q27" value="C"> C They had no interest in the tuatara.</label><br>
+                            <label><input type="radio" name="q27" value="D"> D They sent a tuatara to the British Museum.</label>
+                        </div>
+                    </p>
+                    <p>28 What does the writer say about Albert Gunther in the third paragraph?
+                        <div>
+                            <label><input type="radio" name="q28" value="A"> A He believed the tuatara could fetch a high price.</label><br>
+                            <label><input type="radio" name="q28" value="B"> B He was typical of his generation of scientists.</label><br>
+                            <label><input type="radio" name="q28" value="C"> C He disagreed with Charles Darwin's theory.</label><br>
+                            <label><input type="radio" name="q28" value="D"> D He wanted to stop the tuatara becoming extinct.</label>
+                        </div>
+                    </p>
+                    <p>29 What did Albert Gunther think about the rats in New Zealand?
+                        <div>
+                            <label><input type="radio" name="q29" value="A"> A They did not eat the tuatara.</label><br>
+                            <label><input type="radio" name="q29" value="B"> B There was one species of rat.</label><br>
+                            <label><input type="radio" name="q29" value="C"> C There had always been rats in New Zealand.</label><br>
+                            <label><input type="radio" name="q29" value="D"> D They were killed by Polynesians.</label>
+                        </div>
+                    </p>
+                    <p>30 What did Ian Crook conclude from his research?
+                        <div>
+                            <label><input type="radio" name="q30" value="A"> A Tuatara are safe on small islands.</label><br>
+                            <label><input type="radio" name="q30" value="B"> B Ship's rats kill more tuatara than kiore.</label><br>
+                            <label><input type="radio" name="q30" value="C"> C Kiore cannot swim to offshore islands.</label><br>
+                            <label><input type="radio" name="q30" value="D"> D Rats and tuatara cannot live together.</label>
+                        </div>
+                    </p>
+                    <p>31 What were the findings of Richard Holdaway's research?
+                        <div>
+                            <label><input type="radio" name="q31" value="A"> A Maori settled more recently than previously thought.</label><br>
+                            <label><input type="radio" name="q31" value="B"> B The first Polynesian explorers formed permanent settlements.</label><br>
+                            <label><input type="radio" name="q31" value="C"> C Ship's rats are the oldest rat species in the country.</label><br>
+                            <label><input type="radio" name="q31" value="D"> D Rats caused extinctions before any humans settled.</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 32–35</h3>
+                <p>Do the following statements agree with the claims of the writer in Reading Passage 3?</p>
+                <p>In boxes 32–35 on your answer sheet, write</p>
+                <ul>
+                    <li><strong>YES</strong> if the statement agrees with the claims of the writer</li>
+                    <li><strong>NO</strong> if the statement contradicts the claims of the writer</li>
+                    <li><strong>NOT GIVEN</strong> if it is impossible to say what the writer thinks about this</li>
+                </ul>
+                
+                <div class="group">
+                    <p>32 The available research supports Holdaway's theory but it has not been proved.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q32" value="YES"> YES</label>
+                            <label><input type="radio" name="q32" value="NO"> NO</label>
+                            <label><input type="radio" name="q32" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>33 Nowadays, it is possible to totally destroy a population of rats on a small island.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q33" value="YES"> YES</label>
+                            <label><input type="radio" name="q33" value="NO"> NO</label>
+                            <label><input type="radio" name="q33" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>34 Crook was the first person to recognise the potential of offshore islands as sanctuaries.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q34" value="YES"> YES</label>
+                            <label><input type="radio" name="q34" value="NO"> NO</label>
+                            <label><input type="radio" name="q34" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>35 Tuatara numbers are continuing to fall.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q35" value="YES"> YES</label>
+                            <label><input type="radio" name="q35" value="NO"> NO</label>
+                            <label><input type="radio" name="q35" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 36–40</h3>
+                <p>Complete the summary using the list of words, <strong>A–H</strong>, below.</p>
+                <p>Write the correct letter, <strong>A–H</strong>, in boxes 36-40 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>What conclusions can we draw?</strong></p>
+                    <p>The most important result of the tuatara research is that it frees our <div class="dropzone" data-target="q36"><span class="droplabel">Drag answer here</span></div>. For example, there are many similarities between rats and <div class="dropzone" data-target="q37"><span class="droplabel">Drag answer here</span></div>. Should we now go further and consider reintroducing <div class="dropzone" data-target="q38"><span class="droplabel">Drag answer here</span></div> to our mainland rivers? Perhaps our children will come to believe in the <div class="dropzone" data-target="q39"><span class="droplabel">Drag answer here</span></div> of species, in the same way that our generation refuses to accept <div class="dropzone" data-target="q40"><span class="droplabel">Drag answer here</span></div>.</p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A natural evolution</div>
+                        <div class="card" draggable="true" data-value="B">B creative thought</div>
+                        <div class="card" draggable="true" data-value="C">C indigenous plants</div>
+                        <div class="card" draggable="true" data-value="D">D trout</div>
+                        <div class="card" draggable="true" data-value="E">E pollution</div>
+                        <div class="card" draggable="true" data-value="F">F restoration</div>
+                        <div class="card" draggable="true" data-value="G">G native fish</div>
+                        <div class="card" draggable="true" data-value="H">H extinction</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display:flex;gap:8px;margin:20px 0;">
+                <button class="btn btn-primary" onclick="submitAnswers()">Submit Answers</button>
+                <button class="btn" onclick="resetAnswers()">Reset Answers</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="practice-nav">
+        <span class="section-title">Passage 1:</span>
+        <div class="q-item" onclick="scrollToQuestion('q1')">1</div>
+        <div class="q-item" onclick="scrollToQuestion('q2')">2</div>
+        <div class="q-item" onclick="scrollToQuestion('q3')">3</div>
+        <div class="q-item" onclick="scrollToQuestion('q4')">4</div>
+        <div class="q-item" onclick="scrollToQuestion('q5')">5</div>
+        <div class="q-item" onclick="scrollToQuestion('q6')">6</div>
+        <div class="q-item" onclick="scrollToQuestion('q7')">7</div>
+        <div class="q-item" onclick="scrollToQuestion('q8')">8</div>
+        <div class="q-item" onclick="scrollToQuestion('q9')">9</div>
+        <div class="q-item" onclick="scrollToQuestion('q10')">10</div>
+        <div class="q-item" onclick="scrollToQuestion('q11')">11</div>
+        <div class="q-item" onclick="scrollToQuestion('q12')">12</div>
+        <div class="q-item" onclick="scrollToQuestion('q13')">13</div>
+        
+        <span class="section-title">Passage 2:</span>
+        <div class="q-item" onclick="scrollToQuestion('q14')">14</div>
+        <div class="q-item" onclick="scrollToQuestion('q15')">15</div>
+        <div class="q-item" onclick="scrollToQuestion('q16')">16</div>
+        <div class="q-item" onclick="scrollToQuestion('q17')">17</div>
+        <div class="q-item" onclick="scrollToQuestion('q18')">18</div>
+        <div class="q-item" onclick="scrollToQuestion('q19')">19</div>
+        <div class="q-item" onclick="scrollToQuestion('q20')">20</div>
+        <div class="q-item" onclick="scrollToQuestion('q21')">21</div>
+        <div class="q-item" onclick="scrollToQuestion('q22')">22</div>
+        <div class="q-item" onclick="scrollToQuestion('q23')">23</div>
+        <div class="q-item" onclick="scrollToQuestion('q24')">24</div>
+        <div class="q-item" onclick="scrollToQuestion('q25')">25</div>
+        <div class="q-item" onclick="scrollToQuestion('q26')">26</div>
+        
+        <span class="section-title">Passage 3:</span>
+        <div class="q-item" onclick="scrollToQuestion('q27')">27</div>
+        <div class="q-item" onclick="scrollToQuestion('q28')">28</div>
+        <div class="q-item" onclick="scrollToQuestion('q29')">29</div>
+        <div class="q-item" onclick="scrollToQuestion('q30')">30</div>
+        <div class="q-item" onclick="scrollToQuestion('q31')">31</div>
+        <div class="q-item" onclick="scrollToQuestion('q32')">32</div>
+        <div class="q-item" onclick="scrollToQuestion('q33')">33</div>
+        <div class="q-item" onclick="scrollToQuestion('q34')">34</div>
+        <div class="q-item" onclick="scrollToQuestion('q35')">35</div>
+        <div class="q-item" onclick="scrollToQuestion('q36')">36</div>
+        <div class="q-item" onclick="scrollToQuestion('q37')">37</div>
+        <div class="q-item" onclick="scrollToQuestion('q38')">38</div>
+        <div class="q-item" onclick="scrollToQuestion('q39')">39</div>
+        <div class="q-item" onclick="scrollToQuestion('q40')">40</div>
+    </div>
+
+    <div id="selbar">
+        <button id="highlightBtn">高亮</button>
+        <button id="removeHighlightBtn">取消高亮</button>
+    </div>
+
+    <script>
+        // Timer functionality (60 minutes countdown)
+        let totalTime = 60 * 60; // 60 minutes in seconds
+        const timerEl = document.getElementById('timer');
+        
+        function updateTimer() {
+            if (totalTime <= 0) {
+                clearInterval(timerInterval);
+                alert("Time is up! Submitting your answers.");
+                submitAnswers();
+                return;
+            }
+            
+            const minutes = Math.floor(totalTime / 60);
+            const seconds = totalTime % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            totalTime--;
+        }
+        
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call
+        
+        // Tab switching functionality with synchronization
+        function switchTabs(clickedTab, isRightTab = false) {
+            const tabId = clickedTab.getAttribute('data-tab');
+            
+            if (isRightTab) {
+                // If right tab was clicked, also switch the left tab
+                const passageId = clickedTab.getAttribute('data-passage');
+                const leftTab = document.querySelector(`.tab[data-tab="${passageId}"]`);
+                if (leftTab) {
+                    // Remove active class from all left tabs and contents
+                    document.querySelectorAll('#left .tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('#left .tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to corresponding left tab and content
+                    leftTab.classList.add('active');
+                    document.getElementById(passageId).classList.add('active');
+                }
+            }
+            
+            // Remove active class from all tabs and contents in the current container
+            const container = clickedTab.closest('.tab-container');
+            container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            container.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            clickedTab.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Set up tab click events
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const isRightTab = this.closest('#right') !== null;
+                switchTabs(this, isRightTab);
+            });
+        });
+        
+        // Drag and drop functionality
+        const cards = document.querySelectorAll('.card');
+        const dropzones = document.querySelectorAll('.dropzone');
+        
+        cards.forEach(card => {
+            card.addEventListener('dragstart', () => {
+                card.classList.add('dragging');
+            });
+            
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+            });
+        });
+        
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                zone.classList.add('over');
+            });
+            
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('over');
+            });
+            
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('over');
+                
+                const card = document.querySelector('.card.dragging');
+                if (card) {
+                    // Clear existing content
+                    zone.innerHTML = '';
+                    
+                    // Create a clone of the card for the dropzone
+                    const clone = card.cloneNode(true);
+                    clone.setAttribute('draggable', 'false');
+                    clone.classList.remove('dragging');
+                    zone.appendChild(clone);
+                    
+                    // Mark the question as answered in the navigation
+                    const questionId = zone.getAttribute('data-target');
+                    const navItem = document.querySelector(`.q-item[onclick="scrollToQuestion('${questionId}')"]`);
+                    if (navItem) {
+                        navItem.classList.add('answered');
+                    }
+                }
+            });
+        });
+        
+        // Function to scroll to a specific question
+        function scrollToQuestion(questionId) {
+            const questionElement = document.querySelector(`[data-target="${questionId}"]`);
+            if (questionElement) {
+                questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Highlight the question briefly
+                questionElement.style.backgroundColor = '#fff3a3';
+                setTimeout(() => {
+                    questionElement.style.backgroundColor = '';
+                }, 1000);
+            }
+        }
+        
+        // Function to submit answers
+        function submitAnswers() {
+            alert("Answers submitted! This would normally be sent to a server for grading.");
+            // In a real implementation, this would collect all answers and send them for evaluation
+        }
+        
+        // Function to reset answers
+        function resetAnswers() {
+            if (confirm("Are you sure you want to reset all answers?")) {
+                // Clear all dropzones
+                document.querySelectorAll('.dropzone').forEach(zone => {
+                    zone.innerHTML = '<span class="droplabel">Drag answer here</span>';
+                });
+                
+                // Clear all radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.checked = false;
+                });
+                
+                // Clear all text inputs
+                document.querySelectorAll('input[type="text"]').forEach(input => {
+                    input.value = '';
+                });
+                
+                // Remove answered status from navigation
+                document.querySelectorAll('.q-item.answered').forEach(item => {
+                    item.classList.remove('answered');
+                });
+            }
+        }
+        
+        // Divider dragging functionality
+        const divider = document.getElementById('divider');
+        const leftPane = document.getElementById('left');
+        const rightPane = document.getElementById('right');
+        let isResizing = false;
+        
+        divider.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            document.body.style.cursor = 'ew-resize';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const containerRect = document.querySelector('.shell').getBoundingClientRect();
+            const xPosition = e.clientX - containerRect.left;
+            
+            // Set minimum widths for both panes
+            const leftWidth = Math.max(280, Math.min(containerRect.width - 320, xPosition));
+            const rightWidth = containerRect.width - leftWidth - 8; // 8px for the divider
+            
+            leftPane.style.flex = `0 0 ${leftWidth}px`;
+            rightPane.style.flex = `1 1 ${rightWidth}px`;
+        });
+        
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+            document.body.style.cursor = '';
+        });
+
+        // Highlight functionality
+        const selbar = document.getElementById('selbar');
+        const highlightBtn = document.getElementById('highlightBtn');
+        const removeHighlightBtn = document.getElementById('removeHighlightBtn');
+        let currentSelection = null;
+
+        // Listen for text selection
+        document.addEventListener('mouseup', function(e) {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            
+            if (selectedText.length > 0 && !e.target.closest('#selbar')) {
+                currentSelection = selection;
+                
+                // Position the toolbar near the selection
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                selbar.style.display = 'flex';
+                selbar.style.top = (rect.top + window.scrollY - 40) + 'px';
+                selbar.style.left = (rect.left + window.scrollX) + 'px';
+            } else if (!e.target.closest('#selbar')) {
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Highlight button functionality
+        highlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                const selectedText = range.toString();
+                
+                // Create highlight span
+                const span = document.createElement('span');
+                span.className = 'hl';
+                span.textContent = selectedText;
+                
+                // Replace selected text with highlighted span
+                range.deleteContents();
+                range.insertNode(span);
+                
+                // Clear selection and hide toolbar
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Remove highlight button functionality
+        removeHighlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                
+                // Find if the selection contains highlighted text
+                let parent = range.startContainer.parentNode;
+                while (parent && parent !== document.body) {
+                    if (parent.classList && parent.classList.contains('hl')) {
+                        // Replace the highlighted span with just its text content
+                        const text = document.createTextNode(parent.textContent);
+                        parent.parentNode.replaceChild(text, parent);
+                        
+                        // Clear selection and hide toolbar
+                        window.getSelection().removeAllRanges();
+                        selbar.style.display = 'none';
+                        return;
+                    }
+                    parent = parent.parentNode;
+                }
+                
+                // If no highlight found, just clear selection
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Hide toolbar when clicking elsewhere
+        document.addEventListener('mousedown', function(e) {
+            if (!e.target.closest('#selbar') && selbar.style.display === 'flex') {
+                selbar.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

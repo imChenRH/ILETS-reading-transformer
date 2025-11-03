@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Mock Test</title>
+    <style>
+        :root {
+            --line: #e5e7eb;
+            --bg: #f6f7fb;
+            --panel: #fff;
+            --accent: #3b82f6;
+            --muted: #6b7280;
+            --shadow: 0 6px 20px rgba(0,0,0,.12);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .shell {
+            display: flex;
+            height: calc(100vh - 60px);
+            width: 100%;
+        }
+        .pane {
+            background: var(--panel);
+            overflow: auto;
+            padding: 20px;
+        }
+        #left {
+            flex: 0 0 50%;
+            min-width: 280px;
+        }
+        #right {
+            flex: 1 1 auto;
+            min-width: 320px;
+            background: #fbfbff;
+            border-left: 1px solid var(--line);
+        }
+        #divider {
+            flex: 0 0 8px;
+            background: linear-gradient(90deg, #e5e7eb, #d1d5db);
+            cursor: ew-resize;
+            position: relative;
+            z-index: 5;
+            user-select: none;
+        }
+        h2, h3, h4 {
+            margin: 0 0 10px;
+        }
+        p {
+            margin: 0 0 12px;
+            line-height: 1.6;
+        }
+        .group {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+        .timer-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-height: 40px;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: auto;
+            min-width: 120px;
+            max-width: 200px;
+            vertical-align: middle;
+            margin: 5px 0;
+        }
+        .droplabel {
+            color: #64748b;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cardpool {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            cursor: grab;
+            box-shadow: 0 1px 0 rgba(0,0,0,.03);
+            white-space: nowrap;
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        .btn {
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: #3b82f6;
+        }
+        .hl {
+            background: #fff3a3;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,.05);
+            cursor: pointer;
+        }
+        .hl:hover {
+            filter: brightness(0.98);
+        }
+        #selbar {
+            position: absolute;
+            display: none;
+            z-index: 2000;
+            background: #111;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: var(--shadow);
+            font-size: 13px;
+            gap: 6px;
+            align-items: center;
+        }
+        #selbar button {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.25);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #selbar button:hover {
+            border-color: #fff;
+        }
+        .practice-nav {
+            background: #fff;
+            border-top: 2px solid var(--line);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 4000;
+            height: 60px;
+            overflow-x: auto;
+        }
+        .practice-nav .q-item {
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 36px;
+            text-align: center;
+        }
+        .practice-nav .q-item:hover {
+            background: #f1f5f9;
+            border-color: var(--accent);
+        }
+        .practice-nav .q-item.answered {
+            background: #e0e7ff;
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .practice-nav .q-item.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .section-title {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+        .question-number {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        Time remaining: <span id="timer">60:00</span>
+    </div>
+
+    <div class="shell">
+        <section class="pane" id="left">
+            <div class="tab-container">
+                <div class="tab active" data-tab="passage1">Passage 1</div>
+                <div class="tab" data-tab="passage2">Passage 2</div>
+                <div class="tab" data-tab="passage3">Passage 3</div>
+            </div>
+            
+            <div class="tab-content active" id="passage1">
+                <h2>The Importance of Business Cards</h2>
+                <p><em>The exchange of business cards is as close to a universal ritual as you can find in the business world.</em></p>
+                
+                <p><strong>A</strong> The ritual may be universal, but the details of business cards and how they are swapped vary across countries. Americans throw their cards casually across a table; the Japanese make the exchange of cards a formal ceremony. While there are cards that are discreet and understated, others are crammed full of details and titles. Some businesspeople hand out 24-carat gold cards, and there are kindergarten children who have cards with not only their own contact details, but also with the job descriptions of their parents and even grandparents. This practice has become so common in parts of New York, for example, that the use of such cards is now prohibited by some of these institutions.</p>
+                
+                <p><strong>B</strong> Cards have been around a long time in one form or another. The Chinese invented calling cards in the 15th century to give people notice that they intended to pay them a visit, but these were for social purposes only. Then, in the 17th century, European businesspeople invented a new type of card to act as miniature advertisements, signalling the advent of the business card. In today's world, business cards can cause people to have strong emotional reactions. According to one experienced company director, very few things can provoke more heated discussion at a board meeting than the composition of the company's business cards.</p>
+                
+                <p><strong>C</strong> Lots of companies try to promote themselves by altering the form of the card. Employees at one famous toy company give out little plastic figures with their contact details stamped on them. One fast-food company has business cards which are shaped like a portion of French fries. A Canadian divorce lawyer once gave out cards that could be torn in two – one half for each of the spouses. For many business commentators, such gimmicky business cards prove that the use of a physical business card is nearly at an end. After all, why bother exchanging bits of thick paper at all when you can simply swap electronic versions by smartphone?</p>
+                
+                <p><strong>D</strong> However, one can just as well argue the opposite: that business cards are here to stay, and, in a business world full of meetings and correspondence, it is more important than ever that your card is unique. Attempts to reinvent business cards for the digital age have not been successful. Even at the latest technology conferences, people still greet each other by handing out little rectangles made from paper rather than using a digital alternative.</p>
+                
+                <p><strong>E</strong> To understand business cards, it is necessary to understand how business works. That business cards are thriving in a digital age is a forceful reminder that there is much about business that is timeless. According to Kate Jones, a business lecturer, there is one eternal and inescapable issue. Her 2006 study of more than 200 business executives in North America found that trust was the key element for running a successful business. It is vital to be able to look someone in the eye and decide what sort of person they are. In this way, you can transform acquaintanceships into relationships. A good proportion of business life will always be about building social connections – having dinner or playing sport with clients and colleagues – and while computers can deal with administrative tasks, it is still human beings that have to focus on the emotional.</p>
+                
+                <p><strong>F</strong> The rapid advance of globalisation means that this relationship-building process is becoming ever more demanding. Managers have to put more effort in when dealing with international counterparts, especially when there is not a common language, which is so often the case these days. A recent UK survey showed that chief executives of global organisations now routinely spend three out of every four weeks on international travel. It is in these situations that business cards are doubly useful, as they are a quick way of establishing connections. Cards can also remind you that you have actually met someone in a face-to-face meeting rather than just searched for them on the Internet. Looking through piles of different cards can enhance your memory in ways that simply looking through uniform electronic lists would never do.</p>
+                
+                <p><strong>G</strong> Janet McIntyre is a leading expert on business cards in today's world. She maintains that as companies become more complex, cards are essential in determining the exact status of every contact you meet in multinational corporations. Janet also explains how exchanging business cards can be an effective way of initiating a conversation, because it gives people a ritual to follow when they first meet a new business contact.</p>
+                
+                <p><strong>H</strong> The business world is obsessed with the idea of creating and inventing new things that will change the way we do everything, and this does lead to progress. But there are lots of things that do not need to be changed and, in Janet McIntyre's view, tradition also has an equally valuable role to play. Therefore the practice of exchanging business cards is likely to continue in the business world.</p>
+            </div>
+            
+            <div class="tab-content" id="passage2">
+                <h2>The Fascinating World of Attine Ants</h2>
+                <p><em>Nicholas Wade examines leaf-cutter ants and their amazing agriculture</em></p>
+                
+                <p><strong>A</strong> Leaf-cutting ants and their fungus 'farm' are a marvel of nature and perhaps the best known example of symbiosis — the mutual dependence of two species. Ants cultivate a mushroom-like fungus in 'farms'. Both the ants and their so-called 'agriculture' have been extensively studied over the years, but recent research has uncovered intriguing new findings.</p>
+                
+                <p>Ants invented agriculture 50 million years before people did, and the leaf-cutters, members of the large attine ant family, practise the most sophisticated example of it. They grow their fungus in underground chambers that can reach the size of a football. A single leaf-cutter nest may contain a thousand such chambers, embedded in an underground metropolis up to 18 feet deep, and support a society of more than a million ants.</p>
+                
+                <p><strong>B</strong> These ant communities are the dominant plant-eaters of the Neotropics, the region comprising South and Central America, Mexico and the Caribbean. Biologists believe 15 percent of the leaf production of tropical forests disappears down the nests of leaf-cutter ants. In the nest, the leaves are shredded and added to the fungus, which digests the leaves and is in turn eaten by the ants. The attine ants' achievement is remarkable because it allows them to consume, courtesy of their mushroom's digestive powers, the harvest of tropical forests whose leaves are laden with poisonous chemicals.</p>
+                
+                <p><strong>C</strong> There are more than 200 known species of the attine ant tribe, divided into 12 groups, or genera. The leaf-cutters use fresh vegetation; the other groups, known as the lower attines because their nests are smaller and their techniques more primitive, feed their gardens with similar leaves that have fallen on the ground and insects that lie on the forest floor. Lower attine ants are all a similar size. However, leaf-cutter worker ants come in made-to-fit sizes — large ants to saw off leaves, medium ones to shred them, and miniature workers to seed them with fungus and clean off alien growths.</p>
+                
+                <p><strong>D</strong> In 1994, biologists from the United States Department of Agriculture analysed the DNA of ant fungi. They found that the leaf-cutters' fungus was descended from a single pure strain, propagated for at least 23 million years. However, the fungi grown by lower attine ants fell into four different groups, as if the ants had domesticated wild fungi at least four times in evolutionary history. What could be driving these two patterns of fungus gardening — the pure clone cultivation of the leaf-cutters and the multiple varieties of the lower attines?</p>
+                
+                <p><strong>E</strong> The answer has been suggested by Cameron Currie of the University of Toronto. The pure strain of fungus grown by the leaf-cutters, it seemed to him, resembled the single crops grown by humans to the exclusion of all others, such as potato growing. These 'monocultures', which lack the genetic diversity to respond to changing environmental threats, are particularly vulnerable to parasites — organisms that live and feed on their host, often causing harm. Currie felt there had to be a parasite in the ant-fungus system. But a century of ant research had provided no evidence for his idea. Textbooks describe how leaf-cutter ants scrupulously weed their gardens of all foreign organisms. "People kept telling me the ants keep their gardens free of parasites," said Currie. Nevertheless, after three years of sifting through attine ant gardens, Currie discovered several alien organisms, particularly a family of parasitic moulds called 'Escovopsis'.</p>
+                
+                <p><strong>F</strong> Escovopsis is a deadly disease that can devastate a fungus garden in a couple of days. It blooms like a white cloud which envelops the whole garden. Other ants won't go near it, and the ants associated with the garden just starve to death. Evidently, the ants usually manage to keep Escovopsis and other parasites under control. Nevertheless, with any lapse in control Escovopsis will quickly burst forth. Although new leaf-cutter gardens start off free of Escovopsis, within two years some 60 percent become infected.</p>
+                
+                <p><strong>G</strong> The discovery of Escovopsis's role brings a new level of understanding to the evolution of the attine ants. In the last decade, evolutionary biologists have been increasingly aware of the role of parasites as driving forces in evolution. With Currie's work, there is now a possible reason for the different varieties of fungus in the lower attine mushroom gardens — to stay one step ahead of the relentless Escovopsis. Interestingly, the leaf-cutters had, in general, fewer alien moulds in their gardens than the lower attines, yet more Escovopsis infections. Clearly, the price they pay for cultivating a pure variety of fungus is a higher risk from Escovopsis.</p>
+                
+                <p><strong>H</strong> So how do attine ants keep this parasite under control? People have known for a hundred years that ants have a whitish growth on their body surface. It was thought to be wax but, after examining it under a microscope, Currie discovered a specialised patch on the ants' bodies that harbours a particular kind of bacterium, one well known to the pharmaceutical industry and the source of half the antibiotics used in medicine. This bacterium is a potent poisoner of Escovopsis, inhibiting its growth and suppressing spore formation.</p>
+                
+                <p>Astoundingly, the leaf-cutter ants are accomplishing feats beyond the power of humans: they are growing a monocultural crop year after year without disaster, and they are using an antibiotic apparently so wisely that, unlike people, they are not provoking antibiotic resistance in the target disease-producing organism.</p>
+            </div>
+            
+            <div class="tab-content" id="passage3">
+                <h2>The Significant Role of Mother Tongue in Education</h2>
+                
+                <p><strong>A</strong> One consequence of population mobility is an increasing diversity within schools. To illustrate, in the city of Toronto in Canada, 58% of kindergarten pupils come from homes where English is not the usual language of communication. Schools in Europe and North America have experienced this diversity for years, and educational policies and practices vary widely between countries and even within countries. Some political parties and groups search for ways to solve the problem of diverse communities and their integration in schools and society. However, they see few positive consequences for the host society and worry that this diversity threatens the identity of the host society. Consequently, they promote unfortunate educational policies that will make the "problem" disappear. If students retain their culture and language, they are viewed as less capable of identifying with the mainstream culture and learning the mainstream language of the society.</p>
+                
+                <p><strong>B</strong> The challenge for educators and policy-makers is to shape the evolution of national identity in such a way that the rights of all citizens (including school children) are respected, and the cultural, linguistic, and economic resources of the nation are maximised. To waste the resources of the nation by discouraging children from developing their mother tongues is quite simply unintelligent from the point of view of national self-interest. A first step in providing an appropriate education for culturally and linguistically diverse children is to examine what the existing research says about the role of children's mother tongues in their educational development.</p>
+                
+                <p><strong>C</strong> In fact, the research is very clear. When children continue to develop their abilities in two or more languages throughout their primary school, they gain a deeper understanding of language and how to use it effectively. They have more practice in processing language, especially when they develop literacy in both. More than 150 research studies conducted during the past 25 years strongly support what Goethe, the famous eighteenth-century German philosopher, once said: the person who knows only one language does not truly know that language. Research suggests that bilingual children may also develop more flexibility in their thinking as a result of processing information through two different languages.</p>
+                
+                <p><strong>D</strong> The level of development of children's mother tongue is a strong predictor of their second language development. Children who come to school with a solid foundation in their mother tongue develop stronger literacy abilities in the school language. When parents and other caregivers (e.g., grandparents) are able to spend time with their children and tell stories or discuss issues with them in a way that develops their mother tongue, children come to school well-prepared to learn the school language and succeed educationally. Children's knowledge and skills transfer across languages from the mother tongue to the school language. Transfer across languages can be two-way: both languages nurture each other when the educational environment permits children access to both languages.</p>
+                
+                <p><strong>E</strong> Some educators and parents are suspicious of mother tongue-based teaching programs because they worry that they take time away from the majority language. For example, in a bilingual program when 50% of the time is spent teaching through children's home language and 50% through the majority language, surely children won't progress as far in the latter? One of the most strongly established findings of educational research, however, is that well-implemented bilingual programs can promote literacy and subject-matter knowledge in a minority language without any negative effects on children's development in the majority language. Within Europe, the Foyer program in Belgium, which develops children's speaking and literacy abilities in three languages (their mother tongue, Dutch and French), most clearly illustrates the benefits of bilingual and trilingual education (see Cummins, 2000).</p>
+                
+                <p><strong>F</strong> It is easy to understand how this happens. When children are learning through a minority language, they are learning concepts and intellectual skills too. Pupils who know how to tell the time in their mother tongue understand the concept of telling time. In order to tell time in the majority language, they do not need to re-learn the concept. Similarly, at more advanced stages, there is transfer across languages in other skills such as knowing how to distinguish the main idea from the supporting details of a written passage or story, and distinguishing fact from opinion. Studies of secondary school pupils are providing interesting findings in this area, and it would be worth extending this research.</p>
+                
+                <p><strong>G</strong> Many people marvel at how quickly bilingual children seem to "pick up" conversational skills in the majority language at school (although it takes much longer for them to catch up with native speakers in academic language skills). However, educators are often much less aware of how quickly children can lose their ability to use their mother tongue, even in the home context. The extent and rapidity of language loss will vary according to the concentration of families from a particular linguistic group in the neighborhood. Where the mother tongue is used extensively in the community, then language loss among young children will be less. However, where language communities are not concentrated in particular neighborhoods, children can lose their ability to communicate in their mother tongue within 2–3 years of starting school. They may retain receptive skills in the language but they will use the majority language in speaking with their peers and siblings and in responding to their parents. By the time children become adolescents, the linguistic division between parents and children has become an emotional chasm. Pupils frequently become alienated from the cultures of both home and school with predictable results.</p>
+            </div>
+        </section>
+
+        <div id="divider" title="Drag to resize"></div>
+
+        <section class="pane" id="right">
+            <div class="tab-container">
+                <div class="tab active" data-tab="questions1" data-passage="passage1">Questions 1-13</div>
+                <div class="tab" data-tab="questions2" data-passage="passage2">Questions 14-26</div>
+                <div class="tab" data-tab="questions3" data-passage="passage3">Questions 27-40</div>
+            </div>
+            
+            <div class="tab-content active" id="questions1">
+                <h3>Questions 1–5</h3>
+                <p>Do the following statements agree with the information given in Reading Passage 1?</p>
+                <p>In boxes 1–5 on your answer sheet, write:</p>
+                <p><strong>TRUE</strong> if the statement agrees with the information<br>
+                <strong>FALSE</strong> if the statement contradicts the information<br>
+                <strong>NOT GIVEN</strong> if there is no information on this</p>
+                
+                <div class="group">
+                    <p><span class="question-number">1</span> Children's business cards have been banned in some kindergartens.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q1" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q1" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q1" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p><span class="question-number">2</span> It was the Chinese who first began the practice of using business cards.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q2" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q2" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q2" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p><span class="question-number">3</span> Designing business cards can be a controversial process for some companies.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q3" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q3" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q3" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p><span class="question-number">4</span> A famous toy company has boosted its sales by using one type of unusual business card.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q4" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q4" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q4" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p><span class="question-number">5</span> Some business commentators predict a decline in the use of paper business cards.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q5" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q5" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q5" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 6–13</h3>
+                <p>Complete the notes below.</p>
+                <p>Choose <strong>ONE WORD ONLY</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 6–13 on your answer sheet.</p>
+                
+                <div class="group">
+                    <h4>How business works</h4>
+                    <p><strong>Kate Jones's research</strong></p>
+                    <p>- The most important aspect of business is having <input type="text" id="q6" style="width: 120px;"> in others.</p>
+                    <p>- <input type="text" id="q7" style="width: 120px;"> do not have the ability to establish the good relationships essential to business.</p>
+                    
+                    <p><strong>Business and globalisation</strong></p>
+                    <p>- Managers must work harder when they don't share the same <input type="text" id="q8" style="width: 120px;"> with their contacts.</p>
+                    <p>- A UK survey indicates that <input type="text" id="q9" style="width: 120px;"> takes up the largest part of business leaders' time.</p>
+                    <p>- A business person's <input type="text" id="q10" style="width: 120px;"> of a meeting can be improved by looking at business cards.</p>
+                    
+                    <p><strong>Janet McIntyre</strong></p>
+                    <p>- Business cards clearly show the <input type="text" id="q11" style="width: 120px;"> of each person in a large company.</p>
+                    <p>- The ritual of swapping business cards is a good way of starting a <input type="text" id="q12" style="width: 120px;"> at the beginning of a business relationship.</p>
+                    <p>- Janet feels that in the business world, <input type="text" id="q13" style="width: 120px;"> is just as important as innovation.</p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions2">
+                <h3>Questions 14–19</h3>
+                <p>Reading Passage 2 has eight paragraphs, <strong>A–H</strong>.</p>
+                <p>Which section contains the following information?</p>
+                <p>Write the correct letter, <strong>A–H</strong>, in boxes 14–19 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><span class="question-number">14</span> two things at which leaf-cutter ants have succeeded but humans have failed.
+                        <div class="dropzone" data-target="q14"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p><span class="question-number">15</span> a comparison between the nests of leaf-cutter ants and lower attine ants.
+                        <div class="dropzone" data-target="q15"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p><span class="question-number">16</span> an assessment of the impact leaf-cutter ants have on their environment.
+                        <div class="dropzone" data-target="q16"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p><span class="question-number">17</span> the effect Escovopsis has on ant communities.
+                        <div class="dropzone" data-target="q17"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p><span class="question-number">18</span> the advantage for lower attine ants of growing a range of fungi.
+                        <div class="dropzone" data-target="q18"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p><span class="question-number">19</span> the discovery of the age of the attine-ant fungi.
+                        <div class="dropzone" data-target="q19"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                        <div class="card" draggable="true" data-value="F">F</div>
+                        <div class="card" draggable="true" data-value="G">G</div>
+                        <div class="card" draggable="true" data-value="H">H</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 20–24</h3>
+                <p>Classify the following descriptions as relating to</p>
+                <p><strong>A</strong> Leaf-cutting ants<br>
+                <strong>B</strong> Lower attines<br>
+                <strong>C</strong> Both leaf-cutting ants and lower attine ants</p>
+                <p>Write the correct letter, <strong>A, B or C</strong>, in boxes 20-24 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><span class="question-number">20</span> the use of dead vegetation to cultivate their fungus
+                        <div class="dropzone" data-target="q20"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p><span class="question-number">21</span> very small ants that keep the fungus free of foreign organisms
+                        <div class="dropzone" data-target="q21"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p><span class="question-number">22</span> the ability to safely eat harmful plants
+                        <div class="dropzone" data-target="q22"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p><span class="question-number">23</span> the cultivation of a single fungus
+                        <div class="dropzone" data-target="q23"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p><span class="question-number">24</span> a nest with a very large number of rooms for growing fungus
+                        <div class="dropzone" data-target="q24"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 25–26</h3>
+                <p>Choose the correct letter, <strong>A, B, C or D</strong>.</p>
+                <p>Write the correct letter in boxes 25 and 26 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><span class="question-number">25</span> What does the writer say about Cameron Currie's research?
+                        <div>
+                            <label><input type="radio" name="q25" value="A"> A No previous work had been done in this area.</label><br>
+                            <label><input type="radio" name="q25" value="B"> B Earlier studies did not support his theory.</label><br>
+                            <label><input type="radio" name="q25" value="C"> C Textbooks on this subject lacked specific detail.</label><br>
+                            <label><input type="radio" name="q25" value="D"> D Currie's initial theory had proven to be incorrect.</label>
+                        </div>
+                    </p>
+                    <p><span class="question-number">26</span> Using a microscope, Currie was the first to discover that the body of attine ants
+                        <div>
+                            <label><input type="radio" name="q26" value="A"> A has a white covering.</label><br>
+                            <label><input type="radio" name="q26" value="B"> B is covered in wax.</label><br>
+                            <label><input type="radio" name="q26" value="C"> C is poisonous to humans.</label><br>
+                            <label><input type="radio" name="q26" value="D"> D has a substance useful to humans.</label>
+                        </div>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions3">
+                <h3>Questions 27–30</h3>
+                <p>Choose the correct letter, <strong>A, B, C or D</strong>.</p>
+                <p>Write the correct letter in boxes 27–30 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><span class="question-number">27</span> What point did the writer make in the second paragraph?
+                        <div>
+                            <label><input type="radio" name="q27" value="A"> A Some present studies on children's mother tongues are misleading.</label><br>
+                            <label><input type="radio" name="q27" value="B"> B A culturally rich education programme benefits some children more than others.</label><br>
+                            <label><input type="radio" name="q27" value="C"> C Bilingual children can make a valuable contribution to the wealth of a country.</label><br>
+                            <label><input type="radio" name="q27" value="D"> D The law on mother tongue use at school should be strengthened.</label>
+                        </div>
+                    </p>
+                    <p><span class="question-number">28</span> Why does the writer refer to something that Goethe said?
+                        <div>
+                            <label><input type="radio" name="q28" value="A"> A to lend weight to his argument</label><br>
+                            <label><input type="radio" name="q28" value="B"> B to contradict some research</label><br>
+                            <label><input type="radio" name="q28" value="C"> C to introduce a new concept</label><br>
+                            <label><input type="radio" name="q28" value="D"> D to update current thinking</label>
+                        </div>
+                    </p>
+                    <p><span class="question-number">29</span> The writer believes that when young children have a firm grasp of their mother tongue
+                        <div>
+                            <label><input type="radio" name="q29" value="A"> A They can teach older family members what they learnt at school.</label><br>
+                            <label><input type="radio" name="q29" value="B"> B They go on to do much better throughout their time at school.</label><br>
+                            <label><input type="radio" name="q29" value="C"> C They can read stories about their cultural background.</label><br>
+                            <label><input type="radio" name="q29" value="D"> D They develop stronger relationships with their family than with their peers.</label>
+                        </div>
+                    </p>
+                    <p><span class="question-number">30</span> Why are some people suspicious about mother-tongue-based teaching programmes?
+                        <div>
+                            <label><input type="radio" name="q30" value="A"> A They worry that children will be slow to learn to read in either language.</label><br>
+                            <label><input type="radio" name="q30" value="B"> B They think that children will confuse words in the two languages.</label><br>
+                            <label><input type="radio" name="q30" value="C"> C They believe that the programmes will make children less interested in their lessons.</label><br>
+                            <label><input type="radio" name="q30" value="D"> D They fear that the programmes will use up valuable time in the school day.</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 31–35</h3>
+                <p>Complete the summary using the list of words, <strong>A–J</strong>, below.</p>
+                <p>Write the correct letter, <strong>A–J</strong>, in boxes 31–35 on your answer sheet.</p>
+                
+                <div class="group">
+                    <h4>Bilingual Children</h4>
+                    <p>It was often recorded that bilingual children acquire the <div class="dropzone" data-target="q31"><span class="droplabel">Drag answer here</span></div> to converse in the majority language remarkably quickly. The fact that the mother tongue can disappear at a similar <div class="dropzone" data-target="q32"><span class="droplabel">Drag answer here</span></div> is less well understood. This phenomenon depends, to a certain extent, on the proportion of people with the same linguistic background who have settled in a particular <div class="dropzone" data-target="q33"><span class="droplabel">Drag answer here</span></div>. If this is limited, children are likely to lose the active use of their mother tongue, and thus no longer employ it even with <div class="dropzone" data-target="q34"><span class="droplabel">Drag answer here</span></div>, although they may still understand it. It follows that teenage children in these circumstances experience a sense of <div class="dropzone" data-target="q35"><span class="droplabel">Drag answer here</span></div> in relation to all aspects of their lives.</p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A teachers</div>
+                        <div class="card" draggable="true" data-value="B">B school</div>
+                        <div class="card" draggable="true" data-value="C">C dislocation</div>
+                        <div class="card" draggable="true" data-value="D">D rate</div>
+                        <div class="card" draggable="true" data-value="E">E time</div>
+                        <div class="card" draggable="true" data-value="F">F family</div>
+                        <div class="card" draggable="true" data-value="G">G communication</div>
+                        <div class="card" draggable="true" data-value="H">H type</div>
+                        <div class="card" draggable="true" data-value="I">I ability</div>
+                        <div class="card" draggable="true" data-value="J">J area</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 36–40</h3>
+                <p>Do the following statements agree with the information given in Reading Passage 3?</p>
+                <p>In boxes 36–40 on your answer sheet, write</p>
+                <p><strong>YES</strong> if the statement agrees with the views of the writer<br>
+                <strong>NO</strong> if the statement contradicts the views of the writer<br>
+                <strong>NOT GIVEN</strong> if it is impossible to say what the writer thinks about this</p>
+                
+                <div class="group">
+                    <p><span class="question-number">36</span> Less than half of the children who attend kindergarten in Toronto have English as their mother tongue.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q36" value="YES"> YES</label>
+                            <label><input type="radio" name="q36" value="NO"> NO</label>
+                            <label><input type="radio" name="q36" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p><span class="question-number">37</span> Research proves that learning the host country language at school can have an adverse effect on a child's mother tongue.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q37" value="YES"> YES</label>
+                            <label><input type="radio" name="q37" value="NO"> NO</label>
+                            <label><input type="radio" name="q37" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p><span class="question-number">38</span> The Foyer program is to be accepted by the French education system.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q38" value="YES"> YES</label>
+                            <label><input type="radio" name="q38" value="NO"> NO</label>
+                            <label><input type="radio" name="q38" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p><span class="question-number">39</span> Bilingual children are taught to tell the time earlier than monolingual children.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q39" value="YES"> YES</label>
+                            <label><input type="radio" name="q39" value="NO"> NO</label>
+                            <label><input type="radio" name="q39" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p><span class="question-number">40</span> Bilingual children can apply reading comprehension strategies acquired in one language when reading in the other.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q40" value="YES"> YES</label>
+                            <label><input type="radio" name="q40" value="NO"> NO</label>
+                            <label><input type="radio" name="q40" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+            </div>
+            
+            <div style="display:flex;gap:8px;margin:20px 0;">
+                <button class="btn btn-primary" onclick="submitAnswers()">Submit Answers</button>
+                <button class="btn" onclick="resetAnswers()">Reset Answers</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="practice-nav">
+        <span class="section-title">Passage 1:</span>
+        <div class="q-item" onclick="scrollToQuestion('q1')">1</div>
+        <div class="q-item" onclick="scrollToQuestion('q2')">2</div>
+        <div class="q-item" onclick="scrollToQuestion('q3')">3</div>
+        <div class="q-item" onclick="scrollToQuestion('q4')">4</div>
+        <div class="q-item" onclick="scrollToQuestion('q5')">5</div>
+        <div class="q-item" onclick="scrollToQuestion('q6')">6</div>
+        <div class="q-item" onclick="scrollToQuestion('q7')">7</div>
+        <div class="q-item" onclick="scrollToQuestion('q8')">8</div>
+        <div class="q-item" onclick="scrollToQuestion('q9')">9</div>
+        <div class="q-item" onclick="scrollToQuestion('q10')">10</div>
+        <div class="q-item" onclick="scrollToQuestion('q11')">11</div>
+        <div class="q-item" onclick="scrollToQuestion('q12')">12</div>
+        <div class="q-item" onclick="scrollToQuestion('q13')">13</div>
+        
+        <span class="section-title">Passage 2:</span>
+        <div class="q-item" onclick="scrollToQuestion('q14')">14</div>
+        <div class="q-item" onclick="scrollToQuestion('q15')">15</div>
+        <div class="q-item" onclick="scrollToQuestion('q16')">16</div>
+        <div class="q-item" onclick="scrollToQuestion('q17')">17</div>
+        <div class="q-item" onclick="scrollToQuestion('q18')">18</div>
+        <div class="q-item" onclick="scrollToQuestion('q19')">19</div>
+        <div class="q-item" onclick="scrollToQuestion('q20')">20</div>
+        <div class="q-item" onclick="scrollToQuestion('q21')">21</div>
+        <div class="q-item" onclick="scrollToQuestion('q22')">22</div>
+        <div class="q-item" onclick="scrollToQuestion('q23')">23</div>
+        <div class="q-item" onclick="scrollToQuestion('q24')">24</div>
+        <div class="q-item" onclick="scrollToQuestion('q25')">25</div>
+        <div class="q-item" onclick="scrollToQuestion('q26')">26</div>
+        
+        <span class="section-title">Passage 3:</span>
+        <div class="q-item" onclick="scrollToQuestion('q27')">27</div>
+        <div class="q-item" onclick="scrollToQuestion('q28')">28</div>
+        <div class="q-item" onclick="scrollToQuestion('q29')">29</div>
+        <div class="q-item" onclick="scrollToQuestion('q30')">30</div>
+        <div class="q-item" onclick="scrollToQuestion('q31')">31</div>
+        <div class="q-item" onclick="scrollToQuestion('q32')">32</div>
+        <div class="q-item" onclick="scrollToQuestion('q33')">33</div>
+        <div class="q-item" onclick="scrollToQuestion('q34')">34</div>
+        <div class="q-item" onclick="scrollToQuestion('q35')">35</div>
+        <div class="q-item" onclick="scrollToQuestion('q36')">36</div>
+        <div class="q-item" onclick="scrollToQuestion('q37')">37</div>
+        <div class="q-item" onclick="scrollToQuestion('q38')">38</div>
+        <div class="q-item" onclick="scrollToQuestion('q39')">39</div>
+        <div class="q-item" onclick="scrollToQuestion('q40')">40</div>
+    </div>
+
+    <div id="selbar">
+        <button id="highlightBtn">高亮</button>
+        <button id="removeHighlightBtn">取消高亮</button>
+    </div>
+
+    <script>
+        // Timer functionality (60 minutes countdown)
+        let totalTime = 60 * 60; // 60 minutes in seconds
+        const timerEl = document.getElementById('timer');
+        
+        function updateTimer() {
+            if (totalTime <= 0) {
+                clearInterval(timerInterval);
+                alert("Time is up! Submitting your answers.");
+                submitAnswers();
+                return;
+            }
+            
+            const minutes = Math.floor(totalTime / 60);
+            const seconds = totalTime % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            totalTime--;
+        }
+        
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call
+        
+        // Tab switching functionality with synchronization
+        function switchTabs(clickedTab, isRightTab = false) {
+            const tabId = clickedTab.getAttribute('data-tab');
+            
+            if (isRightTab) {
+                // If right tab was clicked, also switch the left tab
+                const passageId = clickedTab.getAttribute('data-passage');
+                const leftTab = document.querySelector(`.tab[data-tab="${passageId}"]`);
+                if (leftTab) {
+                    // Remove active class from all left tabs and contents
+                    document.querySelectorAll('#left .tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('#left .tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to corresponding left tab and content
+                    leftTab.classList.add('active');
+                    document.getElementById(passageId).classList.add('active');
+                }
+            }
+            
+            // Remove active class from all tabs and contents in the current container
+            const container = clickedTab.closest('.tab-container');
+            container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            container.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            clickedTab.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Set up tab click events
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const isRightTab = this.closest('#right') !== null;
+                switchTabs(this, isRightTab);
+            });
+        });
+        
+        // Drag and drop functionality
+        const cards = document.querySelectorAll('.card');
+        const dropzones = document.querySelectorAll('.dropzone');
+        
+        cards.forEach(card => {
+            card.addEventListener('dragstart', () => {
+                card.classList.add('dragging');
+            });
+            
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+            });
+        });
+        
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                zone.classList.add('over');
+            });
+            
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('over');
+            });
+            
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('over');
+                
+                const card = document.querySelector('.card.dragging');
+                if (card) {
+                    // Clear existing content
+                    zone.innerHTML = '';
+                    
+                    // Create a clone of the card for the dropzone
+                    const clone = card.cloneNode(true);
+                    clone.setAttribute('draggable', 'false');
+                    clone.classList.remove('dragging');
+                    zone.appendChild(clone);
+                    
+                    // Mark the question as answered in the navigation
+                    const questionId = zone.getAttribute('data-target');
+                    const navItem = document.querySelector(`.q-item[onclick="scrollToQuestion('${questionId}')"]`);
+                    if (navItem) {
+                        navItem.classList.add('answered');
+                    }
+                }
+            });
+        });
+        
+        // Function to scroll to a specific question
+        function scrollToQuestion(questionId) {
+            let questionElement;
+            
+            // Check if it's a text input
+            if (document.getElementById(questionId)) {
+                questionElement = document.getElementById(questionId);
+            } 
+            // Check if it's a dropzone
+            else if (document.querySelector(`[data-target="${questionId}"]`)) {
+                questionElement = document.querySelector(`[data-target="${questionId}"]`);
+            }
+            // Check if it's a radio group
+            else if (document.querySelector(`input[name="${questionId}"]`)) {
+                questionElement = document.querySelector(`input[name="${questionId}"]`).parentElement.parentElement;
+            }
+            
+            if (questionElement) {
+                questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Highlight the question briefly
+                const originalBg = questionElement.style.backgroundColor;
+                questionElement.style.backgroundColor = '#fff3a3';
+                setTimeout(() => {
+                    questionElement.style.backgroundColor = originalBg;
+                }, 1000);
+            }
+        }
+        
+        // Function to submit answers
+        function submitAnswers() {
+            alert("Answers submitted! This would normally be sent to a server for grading.");
+            // In a real implementation, this would collect all answers and send them for evaluation
+        }
+        
+        // Function to reset answers
+        function resetAnswers() {
+            if (confirm("Are you sure you want to reset all answers?")) {
+                // Clear all dropzones
+                document.querySelectorAll('.dropzone').forEach(zone => {
+                    zone.innerHTML = '<span class="droplabel">Drag answer here</span>';
+                });
+                
+                // Clear all radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.checked = false;
+                });
+                
+                // Clear all text inputs
+                document.querySelectorAll('input[type="text"]').forEach(input => {
+                    input.value = '';
+                });
+                
+                // Remove answered status from navigation
+                document.querySelectorAll('.q-item.answered').forEach(item => {
+                    item.classList.remove('answered');
+                });
+            }
+        }
+        
+        // Divider dragging functionality
+        const divider = document.getElementById('divider');
+        const leftPane = document.getElementById('left');
+        const rightPane = document.getElementById('right');
+        let isResizing = false;
+        
+        divider.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            document.body.style.cursor = 'ew-resize';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const containerRect = document.querySelector('.shell').getBoundingClientRect();
+            const xPosition = e.clientX - containerRect.left;
+            
+            // Set minimum widths for both panes
+            const leftWidth = Math.max(280, Math.min(containerRect.width - 320, xPosition));
+            const rightWidth = containerRect.width - leftWidth - 8; // 8px for the divider
+            
+            leftPane.style.flex = `0 0 ${leftWidth}px`;
+            rightPane.style.flex = `1 1 ${rightWidth}px`;
+        });
+        
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+            document.body.style.cursor = '';
+        });
+
+        // Highlight functionality
+        const selbar = document.getElementById('selbar');
+        const highlightBtn = document.getElementById('highlightBtn');
+        const removeHighlightBtn = document.getElementById('removeHighlightBtn');
+        let currentSelection = null;
+
+        // Listen for text selection
+        document.addEventListener('mouseup', function(e) {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            
+            if (selectedText.length > 0 && !e.target.closest('#selbar')) {
+                currentSelection = selection;
+                
+                // Position the toolbar near the selection
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                selbar.style.display = 'flex';
+                selbar.style.top = (rect.top + window.scrollY - 40) + 'px';
+                selbar.style.left = (rect.left + window.scrollX) + 'px';
+            } else if (!e.target.closest('#selbar')) {
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Highlight button functionality
+        highlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                const selectedText = range.toString();
+                
+                // Create highlight span
+                const span = document.createElement('span');
+                span.className = 'hl';
+                span.textContent = selectedText;
+                
+                // Replace selected text with highlighted span
+                range.deleteContents();
+                range.insertNode(span);
+                
+                // Clear selection and hide toolbar
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Remove highlight button functionality
+        removeHighlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                
+                // Find if the selection contains highlighted text
+                let parent = range.startContainer.parentNode;
+                while (parent && parent !== document.body) {
+                    if (parent.classList && parent.classList.contains('hl')) {
+                        // Replace the highlighted span with just its text content
+                        const text = document.createTextNode(parent.textContent);
+                        parent.parentNode.replaceChild(text, parent);
+                        
+                        // Clear selection and hide toolbar
+                        window.getSelection().removeAllRanges();
+                        selbar.style.display = 'none';
+                        return;
+                    }
+                    parent = parent.parentNode;
+                }
+                
+                // If no highlight found, just clear selection
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Hide toolbar when clicking elsewhere
+        document.addEventListener('mousedown', function(e) {
+            if (!e.target.closest('#selbar') && selbar.style.display === 'flex') {
+                selbar.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

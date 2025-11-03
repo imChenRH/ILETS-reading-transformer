@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Mock Test</title>
+    <style>
+        :root {
+            --line: #e5e7eb;
+            --bg: #f6f7fb;
+            --panel: #fff;
+            --accent: #3b82f6;
+            --muted: #6b7280;
+            --shadow: 0 6px 20px rgba(0,0,0,.12);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .shell {
+            display: flex;
+            height: calc(100vh - 60px);
+            width: 100%;
+        }
+        .pane {
+            background: var(--panel);
+            overflow: auto;
+            padding: 20px;
+        }
+        #left {
+            flex: 0 0 50%;
+            min-width: 280px;
+        }
+        #right {
+            flex: 1 1 auto;
+            min-width: 320px;
+            background: #fbfbff;
+            border-left: 1px solid var(--line);
+        }
+        #divider {
+            flex: 0 0 8px;
+            background: linear-gradient(90deg, #e5e7eb, #d1d5db);
+            cursor: ew-resize;
+            position: relative;
+            z-index: 5;
+            user-select: none;
+        }
+        h2, h3, h4 {
+            margin: 0 0 10px;
+        }
+        p {
+            margin: 0 0 12px;
+            line-height: 1.6;
+        }
+        .group {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+        .timer-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-height: 40px;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: auto;
+            min-width: 120px;
+            max-width: 200px;
+            vertical-align: middle;
+            margin: 5px 0;
+        }
+        .droplabel {
+            color: #64748b;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cardpool {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            cursor: grab;
+            box-shadow: 0 1px 0 rgba(0,0,0,.03);
+            white-space: nowrap;
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        .btn {
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: #3b82f6;
+        }
+        .hl {
+            background: #fff3a3;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,.05);
+            cursor: pointer;
+        }
+        .hl:hover {
+            filter: brightness(0.98);
+        }
+        #selbar {
+            position: absolute;
+            display: none;
+            z-index: 2000;
+            background: #111;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: var(--shadow);
+            font-size: 13px;
+            gap: 6px;
+            align-items: center;
+        }
+        #selbar button {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.25);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #selbar button:hover {
+            border-color: #fff;
+        }
+        .practice-nav {
+            background: #fff;
+            border-top: 2px solid var(--line);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 4000;
+            height: 60px;
+            overflow-x: auto;
+        }
+        .practice-nav .q-item {
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 36px;
+            text-align: center;
+        }
+        .practice-nav .q-item:hover {
+            background: #f1f5f9;
+            border-color: var(--accent);
+        }
+        .practice-nav .q-item.answered {
+            background: #e0e7ff;
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .practice-nav .q-item.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .section-title {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        Time remaining: <span id="timer">60:00</span>
+    </div>
+
+    <div class="shell">
+        <section class="pane" id="left">
+            <div class="tab-container">
+                <div class="tab active" data-tab="passage1">Passage 1</div>
+                <div class="tab" data-tab="passage2">Passage 2</div>
+                <div class="tab" data-tab="passage3">Passage 3</div>
+            </div>
+            
+            <div class="tab-content active" id="passage1">
+                <h2>Thomas Young: The last man who knew everything</h2>
+                <p><strong>A</strong> Thomas Young (1773–1829) contributed 63 articles to the great British encyclopaedia, Encyclopaedia Britannica, including 46 biographical entries (mostly on scientists and classical scholars) and substantial essays on ‘Bridge’ (a card game), ‘Egypt’, ‘Languages’ and ‘Tides’. Was someone who could write authoritatively about so many subjects a genius, or a dilettante? In an ambitious biography, Andrew Robinson argues that Young is a good contender to be described as “the last man who knew everything”. Young has competition, however: the phrase, which Robinson uses as the title of his biography of Young, also serves as the subtitle of two other recent biographies – Leonard Warren’s 1998 life of palaeontologist Joseph Leidy (1823–1891) and Paula Findlen’s 2004 book on Athanasius Kircher (1602–1680).</p>
+                
+                <p><strong>B</strong> Young, of course, did more than write encyclopaedia entries. He presented his first paper, on the human eye, to the prestigious academic institution, the Royal Society of London, at the age of 20 and was elected a Fellow of the Society shortly afterwards. In the paper, which sought to explain how the eye focuses on objects at varying distances, Young hypothesised that this was achieved by changes in the shape of the lens. He also theorised that light travels in waves and believed that, to be able to see in colour, there must be three receptors in the eye corresponding to the three principal colours (red, green and violet) to which the retina could respond. All these hypotheses were subsequently proved correct.</p>
+                
+                <p><strong>C</strong> Later in his life, when he was in his forties, Young was instrumental in cracking the code that unlocked the unknown script on the Rosetta Stone, a tablet found in Egypt by the Napoleonic army in 1799. The stone has text in three alphabets: Greek, Egyptian hieroglyphs and another script that was originally unrecognisable. The unrecognisable script is now known as demotic and, as Young deduced, is directly related to Egyptian hieroglyphs. His initial work on this appeared in the Britannica entry ‘Egypt’. In another entry, Young coined the term ‘Indo-European’ to describe the family of languages spoken throughout most of Europe and northern India. These works are landmark achievements for a man who was a child prodigy but who, unlike many remarkable children, did not fade into obscurity as an adult.</p>
+                
+                <p><strong>D</strong> Born in 1773 in Somerset, England, Young lived with his maternal grandfather from an early age. He devoured books from the age of two and excelled at Latin, Greek, mathematics and natural philosophy (the 18th-century term for science). After leaving school, he was greatly encouraged by Richard Brocklesby, a physician and Fellow of the Royal Society. Following Brocklesby’s lead, Young decided to pursue a career in medicine. He studied in London and then moved on to more formal education in Edinburgh, Göttingen and Cambridge. After completing his medical training at the University of Cambridge in 1808, Young set up practice as a physician in London and, a few years later, was appointed physician at St George’s Hospital.</p>
+                
+                <p><strong>E</strong> Young’s skill as a physician, however, did not equal his talent as a scholar of natural philosophy or linguistics. In 1801, he had been appointed to a professorship of natural philosophy at the Royal Institution, where he delivered as many as 60 lectures a year. His opinions were sought by civic and national authorities on matters such as the introduction of gas lighting to London streets and methods of ship construction. From 1819, he was Superintendent of the Nautical Almanac and Secretary to the Board of Longitude. Between 1816 and 1825, he contributed many entries to the Encyclopaedia Britannica, and throughout his career he authored numerous other essays, papers and books.</p>
+                
+                <p><strong>F</strong> Young is a perfect subject for a biography – perfect, but daunting. Few men contributed so much to so many technical fields. Robinson’s aim is to introduce non-scientists to Young’s work and life. He succeeds, providing clear expositions of the technical material (especially that on optics and Egyptian hieroglyphs). Some readers of this book will, like Robinson, find Young’s accomplishments impressive; others will see him, as some historians have, as a dilettante. Yet despite the rich material presented in this book, readers will not end up knowing Young personally. We catch glimpses of a playful Young, doodling Greek and Latin phrases in his notes on medical lectures and translating the verses that a young lady had written on the walls of a summerhouse into Greek elegiacs. Young was introduced into elite society, attended the theatre and learned to dance and play the flute. In addition, he was an accomplished horseman. However, his personal life looks pale next to his vibrant career and studies.</p>
+                
+                <p><strong>G</strong> Young married Eliza Maxwell in 1804, and according to Robinson, "their marriage was happy and she appreciated his work". Almost all we know about her is that she sustained her husband through some acrimonious disputes about optics and that she worried about money when his medical career was slow to take off. Little evidence survives concerning the complexities of Young’s relationships with his mother and father, and Robinson does not credit them with shaping Young’s extraordinary mind. Despite the lack of personal detail, anyone interested in what it means to be a genius should read this book.</p>
+            </div>
+            
+            <div class="tab-content" id="passage2">
+                <h2>Keeping the water away</h2>
+                <p><em>New approaches to flood control</em></p>
+                
+                <p><strong>A</strong> Recently, winter floods on the rivers of central Europe have been among the worst for 600 to 700 years, and dams and dykes (protective sea walls) have failed to solve the problem. Traditionally, river engineers have tried to get rid of the water quickly, draining it off the land and down to the sea in rivers reengineered as high-performance drains. But however high they build the artificial riverbanks, the floods keep coming back. And when they come, they seem to be worse than ever.</p>
+                
+                <p><strong>B</strong> Engineers are now turning to a different plan: to sap the water's destructive strength by dispersing it into fields, forgotten lakes and flood plains. They are reviving river bends and marshes to curb the flow, and even plugging city drains to encourage floodwater to use other means to go underground. Back in the days when rivers took a winding path to the sea, floodwaters lost force and volume while meandering across flood plains and inland deltas, but today the water tends to have a direct passage to the sea. This means that, when it rains in the uplands, the water comes down all at once.</p>
+                
+                <p><strong>C</strong> Worse, when the flood plains are closed off, the river's flow downstream becomes more violent and uncontrollable; by turning complex river systems into the simple mechanics of a water pipe, engineers have often created danger where they promised safety. The Rhine, Europe's most engineered river, is a good example. For a long time engineers have erased its backwaters and cut it off from its plain. The aim was partly to improve navigation, and partly to speed floodwaters out of the Alps and down to the North Sea. Now, when it rains in the Alps, the peak flows from several branches of the Rhine coincide where once they arrived separately, and with four-fifths of the Lower Rhine's flood plain barricaded off, the waters rise. The result is more frequent flooding and greater damage. The same thing has happened in the US on the Mississippi River, which drains the world's second-largest river catchment into the Gulf of Mexico. Despite some $7 billion spent over the last century on levees (embankments), the situation is growing worse.</p>
+                
+                <p><strong>D</strong> Specialists in water control now say that a new approach is needed — one which takes the whole landscape into consideration. To help keep London's feet dry, the UK Environment Agency is reflooding 10 square kilometres of the ancient flood plain of the River Thames outside Oxford. Nearer to London, it has spent £100 million creating new wetlands and a relief channel across 16 kilometres of flood plain. Similar ideas are being tested in Austria, in one of Europe's largest river restorations to date. The engineers calculate that the restored flood plain of the Drava River can now store up to 10 million cubic metres of floodwater, and slow down storm surges coming out of the Alps by more than an hour, protecting towns not only in Austria, but as far downstream as Slovenia and Croatia.</p>
+                
+                <p><strong>E</strong> The Dutch, for whom preventing floods is a matter of survival, have gone furthest. This nation, built largely on drained marshes and seabed, has had several severe shocks in the last two decades, when very large numbers of people have had to be evacuated. Since that time, the Dutch have broken one of their most enduring national stereotypes by allowing engineers to punch holes in dykes. They plan to return up to a sixth of the country to its former waterlogged state in order to better protect the rest.</p>
+                
+                <p><strong>F</strong> Water use in cities also needs to change. At the moment, cities seem to create floods; they are concreted and paved so that rains flow quickly into rivers. A new breed of 'soft engineers' wants cities to be porous; Berlin is one place where this is being done. Tough new rules for new developments mean that drains will be prevented from becoming overloaded after heavy rains. Architects of new urban buildings are diverting rainwater from the roofs for use in toilets and the irrigation of roof gardens, while water falling onto the ground is collected in ponds, or passes underground through porous paving. One high-tech urban development can store a sixth of its annual rainfall, and reuse most of the rest.</p>
+                
+                <p><strong>G</strong> Could this be expanded to protect a whole city? The test case could be Los Angeles. With non-porous surfaces covering 70% of the city, drainage is a huge challenge. Billions of dollars have been spent digging huge drains and concreting riverbeds, but many communities still flood regularly. Meanwhile, this desert city ships water from hundreds of kilometres away to fill its taps and swimming pool. Los Angeles has recently launched a new scheme to utilise floodwater in the Sun Valley section of the city. The plan is to catch the rain that falls on thousands of driveways, parking lots and rooftops in the valley. Trees will soak up water from parking lots; houses and public buildings will capture roof water to irrigate gardens and parks, and road drains will empty into old gravel pits to recharge the city's underground water reserves. Result: less flooding and more water for the city. It may sound expensive, until we realise how much is spent trying to drain cities and protect areas from flooding, and how little this method achieves.</p>
+            </div>
+            
+            <div class="tab-content" id="passage3">
+                <h2>What makes a musical expert?</h2>
+                <p><em>How does someone become expert in music? And is it really possible to have a talent for music?</em></p>
+                
+                <p>Does that class of people acknowledged to be musical experts just have more of the same basic skills we are all endowed with, or do they have a set of abilities — or neural structures — that are totally different from those of the rest of us? Are high levels of musical achievement simply the result of training and practice, or are they based on innate brain structure — what we refer to as talent? Talent can be defined as something that originates in genetic structures and that is identifiable by trained people who can recognize its existence before a person has achieved exceptional levels of performance. The emphasis on early identification means that to investigate it, we study the development of skills in children.</p>
+                
+                <p>It is evident that some children acquire skills more rapidly than others: the age of onset for walking and talking varies widely, even between children in the same household. There may be genetic factors at work, but these are closely linked with other factors — with a presumably environmental component — such as motivation and family dynamics. Similar factors can influence musical development and can mask the contribution of genetics to musical ability.</p>
+                
+                <p>Brain studies, so far, haven't been of much use in sorting out the issues. Gottfried Schlaug at Harvard collected brain scans of individuals with absolute pitch* (AP) and showed that a region in the brain called the planum temporale is larger in these people than in others. This suggests that the planum is involved in AP, but it's not clear if it starts out larger in people who eventually acquire AP, or if the acquisition of AP makes the planum increase in size.</p>
+                
+                <p>Results of research into the areas of the brain involved in skilled motor movement are more conclusive. Studies of violin players have shown that the region of the brain responsible for controlling the movement of the left hand (the hand that requires greater precision in violin playing) increases in size as a result of practice. We do not know yet if the propensity for increase pre-exists in some people and not others.</p>
+                
+                <p><em>*individuals with absolute pitch: people who can identify or sing any musical note correctly without help</em></p>
+                
+                <p>The evidence against talent comes from research on how much training the experts do. Like experts in mathematics, chess, or sports, experts in music require lengthy periods of instruction and practice. In several studies, the very best music students were found to have practised more than twice as much as the others. In another study, students were secretly divided into two groups based on teachers' perceptions of their talent. Several years later, it was found that the students who achieved the highest performance ratings had practised the most, irrespective of which talent group they had been assigned to, suggesting that practice does not merely correlate with achievement, but causes it.</p>
+                
+                <p>Anders Ericsson, at Florida State University, approaches the topic of musical expertise as a general problem in cognitive psychology. He takes as a starting point the assumption that there are certain issues involved in becoming an expert at anything; that we can learn about musical expertise by studying expert chess players, athletes, artists, mathematicians, as well as the musicians themselves. The emerging picture from such studies is that ten thousand hours of practice is required to achieve the level of mastery associated with being a world-class expert — in anything. In study after study, of composers, ice-skaters, concert pianists, chess players and master criminals, this number comes up again and again. Someone would do this amount of practice if they practised, for example, roughly 20 hours a week for ten years. Of course, this does not address why some people do not seem to get anywhere when they practise, and why some people get more out of their practice sessions than others. But no-one has yet found a case in which true world-class expertise was accomplished in less time. It seems that it takes the brain this long to assimilate all that it needs to know to achieve true mastery.</p>
+                
+                <p>The ten-thousand-hour theory is consistent with what we know about how the brain learns. Learning requires the assimilation and consolidation of information in neural tissue. The more experiences we have with something, the stronger the memory/learning trace for that experience becomes. Although people differ in how long it takes them to consolidate information neurally, it remains true that increased practice leads to a greater number of neural traces, which create stronger memory representation.</p>
+                
+                <p>The classic rebuttal to this theory goes something like this: What about Mozart? I hear that he composed his first symphony at the age of four! First, there is a factual error here: Mozart did not write it until he was eight. Still, this is unusual, to say the least. However, this early work received little acclaim and was not performed very often. In fact, the only reason we know about it is because the child who wrote it grew up to become Mozart. And Mozart had an expert teacher in his father, who was renowned as a teacher of musicians all over Europe. We do not know how much Mozart practised, but if he started at age two and worked thirty-two hours a week (quite possible, given that his father was a stern taskmaster) he would have made his ten thousand hours by the time he composed his first symphony. This does not mean that there are no genetic factors involved in Mozart's greatness, but that inborn traits may not be the only cause.</p>
+            </div>
+        </section>
+
+        <div id="divider" title="Drag to resize"></div>
+
+        <section class="pane" id="right">
+            <div class="tab-container">
+                <div class="tab active" data-tab="questions1" data-passage="passage1">Questions 1-13</div>
+                <div class="tab" data-tab="questions2" data-passage="passage2">Questions 14-26</div>
+                <div class="tab" data-tab="questions3" data-passage="passage3">Questions 27-40</div>
+            </div>
+            
+            <div class="tab-content active" id="questions1">
+                <h3>Questions 1–7</h3>
+                <p>Do the following statements agree with the information given in Reading Passage 1?</p>
+                <p>In boxes 1–7 on your answer sheet, write</p>
+                <p><strong>TRUE</strong> if the statement agrees with the information<br>
+                   <strong>FALSE</strong> if the statement contradicts the information<br>
+                   <strong>NOT GIVEN</strong> if there is no information on this</p>
+                
+                <div class="group">
+                    <p>1 Other people have been referred to as 'the last man who knew everything'.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q1" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q1" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q1" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>2 The fact that Young's childhood brilliance continued into adulthood was normal.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q2" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q2" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q2" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>3 Young's talents as a doctor are described as surpassing his other skills.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q3" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q3" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q3" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>4 Young's advice was sought by several bodies responsible for local and national matters.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q4" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q4" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q4" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>5 All Young's written works were published in the Encyclopaedia Britannica.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q5" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q5" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q5" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>6 Young was interested in a range of social pastimes.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q6" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q6" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q6" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>7 Young suffered from poor health in his later years.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q7" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q7" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q7" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 8–13</h3>
+                <p>Answer the questions below.</p>
+                <p>Choose <strong>NO MORE THAN THREE WORDS AND/OR A NUMBER</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 8–13 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>8 How many life stories did Thomas Young write for the Encyclopaedia Britannica?
+                        <input type="text" id="q8" style="width: 150px;">
+                    </p>
+                    <p>9 What was the subject of Thomas Young's first academic paper?
+                        <input type="text" id="q9" style="width: 150px;">
+                    </p>
+                    <p>10 What name did Young give to a group of languages?
+                        <input type="text" id="q10" style="width: 150px;">
+                    </p>
+                    <p>11 Who inspired Young to enter the medical profession?
+                        <input type="text" id="q11" style="width: 150px;">
+                    </p>
+                    <p>12 At which place of higher learning did Young hold a teaching position?
+                        <input type="text" id="q12" style="width: 150px;">
+                    </p>
+                    <p>13 What was the improvement to London roads on which Young's ideas were sought?
+                        <input type="text" id="q13" style="width: 150px;">
+                    </p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions2">
+                <h3>Questions 14–19</h3>
+                <p>Reading Passage 2 has seven paragraphs, <strong>A–G</strong>.</p>
+                <p>Which paragraph contains the following information?</p>
+                <p>Write the correct letter, <strong>A–G</strong>, in boxes 14–19 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>14 how legislation has forced building designers to improve water use
+                        <div class="dropzone" data-target="q14"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>15 two reasons why one river was isolated from its flood plain
+                        <div class="dropzone" data-target="q15"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>16 how natural watercourses in the past assisted flood control
+                        <div class="dropzone" data-target="q16"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>17 an example of flood control on one river, affecting three countries
+                        <div class="dropzone" data-target="q17"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>18 a country which has partly destroyed one of its most typical features in order to control water
+                        <div class="dropzone" data-target="q18"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>19 the writer's comment on the comparative cost-effectiveness of traditional flood control and newer methods
+                        <div class="dropzone" data-target="q19"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                        <div class="card" draggable="true" data-value="F">F</div>
+                        <div class="card" draggable="true" data-value="G">G</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 20–21</h3>
+                <p>Choose <strong>TWO</strong> letters, <strong>A–E</strong>.</p>
+                <p>Write the correct letters in boxes 20 and 21 on your answer sheet.</p>
+                <p>According to the article, which <strong>TWO</strong> of these statements are true of the new approach to flood control?</p>
+                
+                <div class="group">
+                    <p><strong>A</strong> It aims to slow the movement of water to the sea.
+                        <input type="checkbox" name="q20" value="A">
+                    </p>
+                    <p><strong>B</strong> It aims to channel water more directly into rivers.
+                        <input type="checkbox" name="q20" value="B">
+                    </p>
+                    <p><strong>C</strong> It will cost more than twice as much as former measures.
+                        <input type="checkbox" name="q20" value="C">
+                    </p>
+                    <p><strong>D</strong> It will involve the loss of some areas of land.
+                        <input type="checkbox" name="q20" value="D">
+                    </p>
+                    <p><strong>E</strong> It has been tested only in the Netherlands.
+                        <input type="checkbox" name="q20" value="E">
+                    </p>
+                </div>
+                
+                <h3>Questions 22–26</h3>
+                <p>Complete the sentences below.</p>
+                <p>Choose <strong>NO MORE THAN TWO WORDS</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 22–26 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>22 Some of the most severe floods for many centuries have recently occurred in parts of
+                        <input type="text" id="q22" style="width: 150px;">.
+                    </p>
+                    <p>23 The Rhine and the
+                        <input type="text" id="q23" style="width: 150px;"> river have experienced similar problems with water control.
+                    </p>
+                    <p>24 An area near Oxford will be flooded to protect the city of
+                        <input type="text" id="q24" style="width: 150px;">.
+                    </p>
+                    <p>25 Planners who wish to allow water to pass more freely through city surfaces are called
+                        <input type="text" id="q25" style="width: 150px;">.
+                    </p>
+                    <p>26 A proposal for part of the city of
+                        <input type="text" id="q26" style="width: 150px;"> could show whether small-scale water projects could be applied on a large scale.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions3">
+                <h3>Questions 27–30</h3>
+                <p>Choose the correct letter, <strong>A, B, C or D</strong>.</p>
+                <p>Write the correct letter in boxes 27–30 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>27 In the first paragraph, the writer suggests that a talented musician is someone
+                        <div>
+                            <label><input type="radio" name="q27" value="A"> A who is aware of being set apart from other people.</label><br>
+                            <label><input type="radio" name="q27" value="B"> B whose brain structure is unlike that of other people.</label><br>
+                            <label><input type="radio" name="q27" value="C"> C who can perform extremely well in early childhood.</label><br>
+                            <label><input type="radio" name="q27" value="D"> D whose essential skills are more varied than those of ordinary people.</label>
+                        </div>
+                    </p>
+                    <p>28 According to the writer, what is unclear about the findings of Gottfried Schlaug?
+                        <div>
+                            <label><input type="radio" name="q28" value="A"> A which part of the brain is linked to a particular musical skill.</label><br>
+                            <label><input type="radio" name="q28" value="B"> B which type of musical skill leads to the greatest change in the brain.</label><br>
+                            <label><input type="radio" name="q28" value="C"> C whether a feature of the brain is a cause or an effect of a musical skill.</label><br>
+                            <label><input type="radio" name="q28" value="D"> D whether the acquisition of a musical skill is easier for some people than others.</label>
+                        </div>
+                    </p>
+                    <p>29 According to the writer, what has been established by studies of violin players?
+                        <div>
+                            <label><input type="radio" name="q29" value="A"> A Changes may occur in the brain following violin practice.</label><br>
+                            <label><input type="radio" name="q29" value="B"> B Left-handed violinists have a different brain structure from other people.</label><br>
+                            <label><input type="radio" name="q29" value="C"> C A violinist's hand size is not due to practice but to genetic factors.</label><br>
+                            <label><input type="radio" name="q29" value="D"> D Violinists are born with brains that have a particular structure.</label>
+                        </div>
+                    </p>
+                    <p>30 According to the writer, findings on the amount of practice done by expert musicians suggest that
+                        <div>
+                            <label><input type="radio" name="q30" value="A"> A talent may have little to do with expertise.</label><br>
+                            <label><input type="radio" name="q30" value="B"> B practice may actually prevent the development of talent.</label><br>
+                            <label><input type="radio" name="q30" value="C"> C talent may not be recognised by teachers.</label><br>
+                            <label><input type="radio" name="q30" value="D"> D expertise may be related to quality of instruction.</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 31–36</h3>
+                <p>Do the following statements agree with the claims of the writer in Reading Passage 3?</p>
+                <p>In boxes 31–36 on your answer sheet, write</p>
+                <p><strong>YES</strong> if the statement agrees with the claims of the writer<br>
+                   <strong>NO</strong> if the statement contradicts the claims of the writer<br>
+                   <strong>NOT GIVEN</strong> if it is impossible to say what the writer thinks about this</p>
+                
+                <div class="group">
+                    <p>31 Anders Ericsson's work with cognitive psychology has influenced other researchers.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q31" value="YES"> YES</label>
+                            <label><input type="radio" name="q31" value="NO"> NO</label>
+                            <label><input type="radio" name="q31" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>32 Different areas of expertise seem to have one specific thing in common.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q32" value="YES"> YES</label>
+                            <label><input type="radio" name="q32" value="NO"> NO</label>
+                            <label><input type="radio" name="q32" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>33 In order to be useful, practice must be carried out regularly every day.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q33" value="YES"> YES</label>
+                            <label><input type="radio" name="q33" value="NO"> NO</label>
+                            <label><input type="radio" name="q33" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>34 Anyone who practises for long enough can reach the level of a world-class expert.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q34" value="YES"> YES</label>
+                            <label><input type="radio" name="q34" value="NO"> NO</label>
+                            <label><input type="radio" name="q34" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>35 Occasionally, someone can become an expert at a global level with fewer than 10,000 hours' practice.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q35" value="YES"> YES</label>
+                            <label><input type="radio" name="q35" value="NO"> NO</label>
+                            <label><input type="radio" name="q35" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>36 Existing knowledge of learning and cognitive skills supports the importance of practice.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q36" value="YES"> YES</label>
+                            <label><input type="radio" name="q36" value="NO"> NO</label>
+                            <label><input type="radio" name="q36" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 37–40</h3>
+                <p>Complete the summary using the list of words, <strong>A–J</strong>, below.</p>
+                <p>Write the correct letter, <strong>A–J</strong>, in boxes 37–40 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>Mozart</strong></p>
+                    <p>The case of Mozart could be quoted as evidence against the 10,000-hour practice theory. However, the writer points out that the young Mozart received a lot of <div class="dropzone" data-target="q37"><span class="droplabel">Drag answer here</span></div> from his father, and that the symphony he wrote at the age of <div class="dropzone" data-target="q38"><span class="droplabel">Drag answer here</span></div> was not <div class="dropzone" data-target="q39"><span class="droplabel">Drag answer here</span></div> and may be of only academic interest. The case therefore supports the view that expertise is not solely the result of <div class="dropzone" data-target="q40"><span class="droplabel">Drag answer here</span></div> characteristics.</p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A popular</div>
+                        <div class="card" draggable="true" data-value="B">B artistic</div>
+                        <div class="card" draggable="true" data-value="C">C completed</div>
+                        <div class="card" draggable="true" data-value="D">D eight</div>
+                        <div class="card" draggable="true" data-value="E">E tuition</div>
+                        <div class="card" draggable="true" data-value="F">F encouragement</div>
+                        <div class="card" draggable="true" data-value="G">G inherited</div>
+                        <div class="card" draggable="true" data-value="H">H four</div>
+                        <div class="card" draggable="true" data-value="I">I practice</div>
+                        <div class="card" draggable="true" data-value="J">J two</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display:flex;gap:8px;margin:20px 0;">
+                <button class="btn btn-primary" onclick="submitAnswers()">Submit Answers</button>
+                <button class="btn" onclick="resetAnswers()">Reset Answers</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="practice-nav">
+        <span class="section-title">Passage 1:</span>
+        <div class="q-item" onclick="scrollToQuestion('q1')">1</div>
+        <div class="q-item" onclick="scrollToQuestion('q2')">2</div>
+        <div class="q-item" onclick="scrollToQuestion('q3')">3</div>
+        <div class="q-item" onclick="scrollToQuestion('q4')">4</div>
+        <div class="q-item" onclick="scrollToQuestion('q5')">5</div>
+        <div class="q-item" onclick="scrollToQuestion('q6')">6</div>
+        <div class="q-item" onclick="scrollToQuestion('q7')">7</div>
+        <div class="q-item" onclick="scrollToQuestion('q8')">8</div>
+        <div class="q-item" onclick="scrollToQuestion('q9')">9</div>
+        <div class="q-item" onclick="scrollToQuestion('q10')">10</div>
+        <div class="q-item" onclick="scrollToQuestion('q11')">11</div>
+        <div class="q-item" onclick="scrollToQuestion('q12')">12</div>
+        <div class="q-item" onclick="scrollToQuestion('q13')">13</div>
+        
+        <span class="section-title">Passage 2:</span>
+        <div class="q-item" onclick="scrollToQuestion('q14')">14</div>
+        <div class="q-item" onclick="scrollToQuestion('q15')">15</div>
+        <div class="q-item" onclick="scrollToQuestion('q16')">16</div>
+        <div class="q-item" onclick="scrollToQuestion('q17')">17</div>
+        <div class="q-item" onclick="scrollToQuestion('q18')">18</div>
+        <div class="q-item" onclick="scrollToQuestion('q19')">19</div>
+        <div class="q-item" onclick="scrollToQuestion('q20')">20</div>
+        <div class="q-item" onclick="scrollToQuestion('q21')">21</div>
+        <div class="q-item" onclick="scrollToQuestion('q22')">22</div>
+        <div class="q-item" onclick="scrollToQuestion('q23')">23</div>
+        <div class="q-item" onclick="scrollToQuestion('q24')">24</div>
+        <div class="q-item" onclick="scrollToQuestion('q25')">25</div>
+        <div class="q-item" onclick="scrollToQuestion('q26')">26</div>
+        
+        <span class="section-title">Passage 3:</span>
+        <div class="q-item" onclick="scrollToQuestion('q27')">27</div>
+        <div class="q-item" onclick="scrollToQuestion('q28')">28</div>
+        <div class="q-item" onclick="scrollToQuestion('q29')">29</div>
+        <div class="q-item" onclick="scrollToQuestion('q30')">30</div>
+        <div class="q-item" onclick="scrollToQuestion('q31')">31</div>
+        <div class="q-item" onclick="scrollToQuestion('q32')">32</div>
+        <div class="q-item" onclick="scrollToQuestion('q33')">33</div>
+        <div class="q-item" onclick="scrollToQuestion('q34')">34</div>
+        <div class="q-item" onclick="scrollToQuestion('q35')">35</div>
+        <div class="q-item" onclick="scrollToQuestion('q36')">36</div>
+        <div class="q-item" onclick="scrollToQuestion('q37')">37</div>
+        <div class="q-item" onclick="scrollToQuestion('q38')">38</div>
+        <div class="q-item" onclick="scrollToQuestion('q39')">39</div>
+        <div class="q-item" onclick="scrollToQuestion('q40')">40</div>
+    </div>
+
+    <div id="selbar">
+        <button id="highlightBtn">高亮</button>
+        <button id="removeHighlightBtn">取消高亮</button>
+    </div>
+
+    <script>
+        // Timer functionality (60 minutes countdown)
+        let totalTime = 60 * 60; // 60 minutes in seconds
+        const timerEl = document.getElementById('timer');
+        
+        function updateTimer() {
+            if (totalTime <= 0) {
+                clearInterval(timerInterval);
+                alert("Time is up! Submitting your answers.");
+                submitAnswers();
+                return;
+            }
+            
+            const minutes = Math.floor(totalTime / 60);
+            const seconds = totalTime % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            totalTime--;
+        }
+        
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call
+        
+        // Tab switching functionality with synchronization
+        function switchTabs(clickedTab, isRightTab = false) {
+            const tabId = clickedTab.getAttribute('data-tab');
+            
+            if (isRightTab) {
+                // If right tab was clicked, also switch the left tab
+                const passageId = clickedTab.getAttribute('data-passage');
+                const leftTab = document.querySelector(`.tab[data-tab="${passageId}"]`);
+                if (leftTab) {
+                    // Remove active class from all left tabs and contents
+                    document.querySelectorAll('#left .tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('#left .tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to corresponding left tab and content
+                    leftTab.classList.add('active');
+                    document.getElementById(passageId).classList.add('active');
+                }
+            }
+            
+            // Remove active class from all tabs and contents in the current container
+            const container = clickedTab.closest('.tab-container');
+            container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            container.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            clickedTab.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Set up tab click events
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const isRightTab = this.closest('#right') !== null;
+                switchTabs(this, isRightTab);
+            });
+        });
+        
+        // Drag and drop functionality
+        const cards = document.querySelectorAll('.card');
+        const dropzones = document.querySelectorAll('.dropzone');
+        
+        cards.forEach(card => {
+            card.addEventListener('dragstart', () => {
+                card.classList.add('dragging');
+            });
+            
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+            });
+        });
+        
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                zone.classList.add('over');
+            });
+            
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('over');
+            });
+            
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('over');
+                
+                const card = document.querySelector('.card.dragging');
+                if (card) {
+                    // Clear existing content
+                    zone.innerHTML = '';
+                    
+                    // Create a clone of the card for the dropzone
+                    const clone = card.cloneNode(true);
+                    clone.setAttribute('draggable', 'false');
+                    clone.classList.remove('dragging');
+                    zone.appendChild(clone);
+                    
+                    // Mark the question as answered in the navigation
+                    const questionId = zone.getAttribute('data-target');
+                    const navItem = document.querySelector(`.q-item[onclick="scrollToQuestion('${questionId}')"]`);
+                    if (navItem) {
+                        navItem.classList.add('answered');
+                    }
+                }
+            });
+        });
+        
+        // Function to scroll to a specific question
+        function scrollToQuestion(questionId) {
+            const questionElement = document.querySelector(`[data-target="${questionId}"]`);
+            if (questionElement) {
+                questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Highlight the question briefly
+                questionElement.style.backgroundColor = '#fff3a3';
+                setTimeout(() => {
+                    questionElement.style.backgroundColor = '';
+                }, 1000);
+            }
+        }
+        
+        // Function to submit answers
+        function submitAnswers() {
+            alert("Answers submitted! This would normally be sent to a server for grading.");
+            // In a real implementation, this would collect all answers and send them for evaluation
+        }
+        
+        // Function to reset answers
+        function resetAnswers() {
+            if (confirm("Are you sure you want to reset all answers?")) {
+                // Clear all dropzones
+                document.querySelectorAll('.dropzone').forEach(zone => {
+                    zone.innerHTML = '<span class="droplabel">Drag answer here</span>';
+                });
+                
+                // Clear all radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.checked = false;
+                });
+                
+                // Clear all text inputs
+                document.querySelectorAll('input[type="text"]').forEach(input => {
+                    input.value = '';
+                });
+                
+                // Clear all checkboxes
+                document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                
+                // Remove answered status from navigation
+                document.querySelectorAll('.q-item.answered').forEach(item => {
+                    item.classList.remove('answered');
+                });
+            }
+        }
+        
+        // Divider dragging functionality
+        const divider = document.getElementById('divider');
+        const leftPane = document.getElementById('left');
+        const rightPane = document.getElementById('right');
+        let isResizing = false;
+        
+        divider.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            document.body.style.cursor = 'ew-resize';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const containerRect = document.querySelector('.shell').getBoundingClientRect();
+            const xPosition = e.clientX - containerRect.left;
+            
+            // Set minimum widths for both panes
+            const leftWidth = Math.max(280, Math.min(containerRect.width - 320, xPosition));
+            const rightWidth = containerRect.width - leftWidth - 8; // 8px for the divider
+            
+            leftPane.style.flex = `0 0 ${leftWidth}px`;
+            rightPane.style.flex = `1 1 ${rightWidth}px`;
+        });
+        
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+            document.body.style.cursor = '';
+        });
+
+        // Highlight functionality
+        const selbar = document.getElementById('selbar');
+        const highlightBtn = document.getElementById('highlightBtn');
+        const removeHighlightBtn = document.getElementById('removeHighlightBtn');
+        let currentSelection = null;
+
+        // Listen for text selection
+        document.addEventListener('mouseup', function(e) {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            
+            if (selectedText.length > 0 && !e.target.closest('#selbar')) {
+                currentSelection = selection;
+                
+                // Position the toolbar near the selection
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                selbar.style.display = 'flex';
+                selbar.style.top = (rect.top + window.scrollY - 40) + 'px';
+                selbar.style.left = (rect.left + window.scrollX) + 'px';
+            } else if (!e.target.closest('#selbar')) {
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Highlight button functionality
+        highlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                const selectedText = range.toString();
+                
+                // Create highlight span
+                const span = document.createElement('span');
+                span.className = 'hl';
+                span.textContent = selectedText;
+                
+                // Replace selected text with highlighted span
+                range.deleteContents();
+                range.insertNode(span);
+                
+                // Clear selection and hide toolbar
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Remove highlight button functionality
+        removeHighlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                
+                // Find if the selection contains highlighted text
+                let parent = range.startContainer.parentNode;
+                while (parent && parent !== document.body) {
+                    if (parent.classList && parent.classList.contains('hl')) {
+                        // Replace the highlighted span with just its text content
+                        const text = document.createTextNode(parent.textContent);
+                        parent.parentNode.replaceChild(text, parent);
+                        
+                        // Clear selection and hide toolbar
+                        window.getSelection().removeAllRanges();
+                        selbar.style.display = 'none';
+                        return;
+                    }
+                    parent = parent.parentNode;
+                }
+                
+                // If no highlight found, just clear selection
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Hide toolbar when clicking elsewhere
+        document.addEventListener('mousedown', function(e) {
+            if (!e.target.closest('#selbar') && selbar.style.display === 'flex') {
+                selbar.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Mock Test</title>
+    <style>
+        :root {
+            --line: #e5e7eb;
+            --bg: #f6f7fb;
+            --panel: #fff;
+            --accent: #3b82f6;
+            --muted: #6b7280;
+            --shadow: 0 6px 20px rgba(0,0,0,.12);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .shell {
+            display: flex;
+            height: calc(100vh - 60px);
+            width: 100%;
+        }
+        .pane {
+            background: var(--panel);
+            overflow: auto;
+            padding: 20px;
+        }
+        #left {
+            flex: 0 0 50%;
+            min-width: 280px;
+        }
+        #right {
+            flex: 1 1 auto;
+            min-width: 320px;
+            background: #fbfbff;
+            border-left: 1px solid var(--line);
+        }
+        #divider {
+            flex: 0 0 8px;
+            background: linear-gradient(90deg, #e5e7eb, #d1d5db);
+            cursor: ew-resize;
+            position: relative;
+            z-index: 5;
+            user-select: none;
+        }
+        h2, h3, h4 {
+            margin: 0 0 10px;
+        }
+        p {
+            margin: 0 0 12px;
+            line-height: 1.6;
+        }
+        .group {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+        .timer-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-height: 40px;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: auto;
+            min-width: 120px;
+            max-width: 200px;
+            vertical-align: middle;
+            margin: 5px 0;
+        }
+        .droplabel {
+            color: #64748b;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cardpool {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            cursor: grab;
+            box-shadow: 0 1px 0 rgba(0,0,0,.03);
+            white-space: nowrap;
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        .btn {
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: #3b82f6;
+        }
+        .hl {
+            background: #fff3a3;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,.05);
+            cursor: pointer;
+        }
+        .hl:hover {
+            filter: brightness(0.98);
+        }
+        #selbar {
+            position: absolute;
+            display: none;
+            z-index: 2000;
+            background: #111;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: var(--shadow);
+            font-size: 13px;
+            gap: 6px;
+            align-items: center;
+        }
+        #selbar button {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.25);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #selbar button:hover {
+            border-color: #fff;
+        }
+        .practice-nav {
+            background: #fff;
+            border-top: 2px solid var(--line);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 4000;
+            height: 60px;
+            overflow-x: auto;
+        }
+        .practice-nav .q-item {
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 36px;
+            text-align: center;
+        }
+        .practice-nav .q-item:hover {
+            background: #f1f5f9;
+            border-color: var(--accent);
+        }
+        .practice-nav .q-item.answered {
+            background: #e0e7ff;
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .practice-nav .q-item.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .section-title {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+        .true-false-options {
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .true-false-options label {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        Time remaining: <span id="timer">60:00</span>
+    </div>
+
+    <div class="shell">
+        <section class="pane" id="left">
+            <div class="tab-container">
+                <div class="tab active" data-tab="passage1">Passage 1</div>
+                <div class="tab" data-tab="passage2">Passage 2</div>
+                <div class="tab" data-tab="passage3">Passage 3</div>
+            </div>
+            
+            <div class="tab-content active" id="passage1">
+                <h2>A survivor's story</h2>
+                <p><em>One native bird in New Zealand that has managed to survive the introduction of non-native species</em></p>
+                
+                <p><strong>A</strong> As an island country with a fauna dominated by birds, New Zealand was once home to an owl species which is now extinct, the laughing owl, named for its distinctive cry. This bird was widespread throughout the islands when European settlers arrived in the middle of the 19th century and it remained in good numbers for some years thereafter. Where other native birds suffered from predation by the Polynesian rat, the laughing owl turned the tables and adapted its diet to include the rodent. It was also capable of catching and killing the other New Zealand owl, the morepork, and even larger birds, such as the weka. However, the laughing owl was wiped out around the beginning of the 20th century, its demise caused by specimen collectors, habitat changes, and non-native predators including cats and stoats. Surprisingly, it is the smaller owl, the morepork, that has managed to survive until this day.</p>
+                
+                <p><strong>B</strong> Speckled dark brown, with yellow eyes and long tails, they are around 29 centimetres long from head to tail and 175 grams in weight. Moreporks have fringes on the edge of their feathers, so they can fly almost silently and not alert potential prey. They have acute hearing and their large eyes are very sensitive to light.</p>
+                
+                <p><strong>C</strong> Moreporks nest in tree hollows, in clumps of plants, or in cavities among rocks and roots. In the wild, moreporks usually start nesting in October, although two specimens have been recorded nesting in mid-winter, possibly stimulated by an ample food supply. The female lays up to three white eggs, which she incubates for 20 to 30 days. During this time, she rarely hunts, and the male brings food to her.</p>
+                
+                <p><strong>D</strong> Once the chicks hatch, she stays mainly on the nest until the young owls are fully feathered. When hatched, chicks are covered in light grey down and have their eyes closed. The eyes do not open until the eighth day after hatching. They can fly at around 35 days.</p>
+                
+                <p><strong>E</strong> By day, moreporks sleep in roosts. By night, they hunt a variety of animals – mainly large invertebrates including scarab and huhu beetles, moths, caterpillars and spiders. They also take small birds and mice. They can find suitable food in pine forest as well as native forest. A morepork uses its sharp talons to catch or stun its prey, which it then carries away in its bill. Moreporks are clever hunters, and birds such as robins, grey warblers and fantails can end up as their prey. In the day, these small birds sometimes mob drowsy moreporks and chase them away from their roosts; they force the sleepy predators to search for a more peaceful spot.</p>
+                
+                <p><strong>F</strong> Moreporks have proved to be ungracious hosts. Scientists trying to establish a population of plovers on Motuora Island in New Zealand's Hauraki Gulf were mystified as to why only two birds survived out of the 75 placed there. The culprits turned out to be five pairs of moreporks that ate or chased away the new arrivals.</p>
+                
+                <p><strong>G</strong> Although moreporks are still considered to be relatively common, it is likely that numbers are in gradual decline due to predation and loss of habitat. As the female is a hole-nester, she is vulnerable to predators such as stoats and possums during the breeding season, and eggs and chicks will also be at risk from rats. The use of pesticides is another possible threat to the owls, though not a direct one. As moreporks are at the top of the food chain, they could be affected by an accumulative poison by consuming prey that has ingested poison.</p>
+                
+                <p><strong>H</strong> The New Zealand Department of Conservation is taking steps to ensure the preservation of New Zealand's only native owl. The department is involved in measuring the population of moreporks and has put transmitters on a number of birds to determine survival and mortality. As well as being New Zealand's only native owl, the morepork has symbolic and spiritual importance, so in monitoring the birds it is hoped that the morepork will continue to survive and thrive.</p>
+                
+                <p><strong>I</strong> At dusk, the melancholy sound of the morepork can be heard in forests and parks as it calls to other moreporks and claims territory. Its Māori name (ruru) echoes its two-part cry. In the tradition of the Māori people of New Zealand, the morepork, or ruru, was often seen as a careful guardian. A number of sayings referred to the bird's alertness. As a bird of the night, it was associated with the spirit world. Moreporks were believed to act as messengers to the gods in the heavens, flying along spiritual paths in the sky. They were the mediums used to communicate with the gods. The occasional high, piercing call of the morepork signified bad news, but the lower-pitched and more common "ruru" call heralded good news.</p>
+            </div>
+            
+            <div class="tab-content" id="passage2">
+                <h2>The Return of Monkey Life</h2>
+                <p><em>Rain-forest trees growing anew on Central American farmland are helping scientists find ways for monkey and agriculture to benefit one another.</em></p>
+                
+                <p><strong>A</strong> Hacienda La Pacifica, a remote working cattle ranch in Guanacaste Province of northern Costa Rica, has for decades been home to a community of mantled howler monkeys. Other native primates—white-faced capuchin monkeys and spider monkeys—were once common in this area too, but vanished after the Pan-American Highway was built nearby in the 1950s and most of the surrounding land was cleared for cattle-raising. At Hacienda La Pacifica, however, an enlightened ranch owner chose to leave some strips of native trees growing. He used these as windbreaks to protect both cattle and their food crops from dry-season winds. In the process, the farmer unwittingly founded a unique laboratory for the study of monkeys.</p>
+                
+                <p><strong>B</strong> Ken Glander, a primatologist from Duke University in the USA, is studying La Pacifica's monkeys in an effort to understand the relationship between howlers and regenerating forests at the edges of grazing lands. Studying such disturbed woodlands is increasingly important because throughout much of the New World Tropics, these are the only forests left. In the 18th century, tropical dry forests once covered most of Central America, but by the 1980s less than two percent remained undisturbed, and less than one percent was protected.</p>
+                
+                <p><strong>C</strong> Howlers persist at La Pacifica, Glander explains, because they are leaf-eaters. They eat fruit when it is available but, unlike capuchin and spider monkeys, do not depend on large areas of fruiting trees. Glander is particularly interested in howlers' ability to thrive on leaves loaded with toxins—poisonous substances designed to protect the plants. For leaf-eaters, long-term exposure to a specific plant toxin can increase their ability to neutralise the poisonous substances and absorb the leaf nutrients. Watching generations of howlers at La Pacifica has shown Glander that the monkeys keep their systems primed by sampling a variety of plants and then focusing on a small number of the most nutritious food items. The leaves that grow in regenerating forests, like those at La Pacifica, are actually more howler-friendly than those produced by the centuries-old trees that survive farther south. In younger forests, trees put most of their limited energy into growing wood, leaves and fruit, so they produce much lower levels of toxin than do well-established, old-growth trees.</p>
+                
+                <p><strong>D</strong> The value of maturing forests to primates is also a subject of study at Santa Rosa National Park, about 35 miles northwest of La Pacifica. Large areas of Santa Rosa's forests had at one time been burnt to make space for cattle ranching and coffee farming, thereby devastating local monkey habitat. But in 1971 the government protected the area by designating it a national park, and species of indigenous trees which had been absent for decades began to invade the abandoned pastures. Capuchins were the first to begin using the reborn forests, followed by howlers. Eventually, even spider monkeys, fruit-eaters that need large areas of continuous forest, returned. In the first 28 years following protection of the area, the capuchin population doubled, while the number of howlers increased seven-fold.</p>
+                
+                <p><strong>E</strong> Some of the same traits that allow howlers to survive at La Pacifica also explain their population boom in Santa Rosa. Howler reproduction is faster than that of other native monkey species. They give birth for the first time at about 3.5 years of age, compared with seven years for capuchins, and eight or more for spider monkeys. Also, while a female spider monkey will have a baby about once every four years, well-fed howlers can produce an infant every two years. Another factor is diet. Howlers are very adaptable feeders and need only a comparatively small home range. Spider monkeys, on the other hand, need to occupy a huge home range. Also crucial is the fact that the leaves howlers eat hold plenty of water, so the monkeys can survive away from open streams and water-holes. This ability gives them a real advantage over capuchin and spider monkeys, which have suffered during the long, ongoing drought in the area.</p>
+                
+                <p><strong>F</strong> Alejandro Estrada, an ecologist at Estación de Biología Los Tuxtlas in Veracruz, Mexico, has been studying the ecology of a group of howler monkeys that thrive in a habitat totally altered by humans: a cacao plantation in Tabasco State, Mexico. Cacao plants need shade to grow, so 40 years ago the owners of Cholula Cacao Farm planted figs, monkey-pod and other tall trees to form a protective canopy over their crop. The howlers moved in about 25 years ago after nearby forests were cut. This strange habitat seems to support about as many monkeys as would a same-sized patch of wild forest. The howlers eat the leaves and fruit of the shade trees, leaving the valuable cacao pods alone.</p>
+                
+                <p><strong>G</strong> Estrada believes the monkeys bring under-appreciated benefits to such plantations, dispersing the seeds of fruits such as fig and other shade trees, and fertilising the soil. Spider monkeys also forage for fruit here, though they need nearby areas of forest to survive in the long term. He hopes that farmers will begin to see the advantages of associating with wild monkeys, which could include potential ecotourism projects. 'Conservation is usually viewed as a conflict between farming practices and the need to preserve nature,' Estrada says. 'We're moving away from that vision and beginning to consider ways in which commercial activities may become a tool for the conservation of primates in human-modified landscapes.'</p>
+            </div>
+            
+            <div class="tab-content" id="passage3">
+                <h2>The New Zealand writer Margaret Mahy</h2>
+                
+                <p><strong>A</strong> In a career spanning some fifty years, Margaret Mahy has come to occupy a unique place in New Zealand writing with innovative fiction and original characterisation. In our solidly realist tradition, the linguistic fireworks of Mahy's children's fiction and the explorations of human behaviour at the heart of her supernatural teenage fiction stand gloriously alone. Mahy's clearest heir, I have always thought, is Elizabeth Knox — and maybe the true inheritance there is sheer singularity. Just as there is no one else like Knox in New Zealand writing, Mahy, too, has ventured into imaginative territory unknown to other local writers. So it was with great pleasure that I visited Mahy recently at her Governor's Bay home to talk about her new book. As with all journalists, she is generous to a fault with her time and attention; and, as always — despite her careful consideration of questions and thoughtful answers — I'm reminded she isn't truly comfortable making herself or her life the heart of any conversation.</p>
+                
+                <p><strong>B</strong> Certainly, any consideration of the style of Mahy's novels and picture books throws up some irresistible theories. As a writer committed to supporting herself through her art, she has seldom had the time for formal research. Rather, it has been a matter of going out and finding inspiration from her immediate environment: the writing on the side of a bus; a spelling mistake in a note to herself; the similarity between a cat and a fur hat. But despite these sometimes mundane origins, the settings for her stories are delightfully varied, as these books celebrate the dramatic plot twists and unpredictability of adventures on the high seas or in Antarctica, and also in quite unassuming places like the library or even down the back of a chair at home. Mahy has a lifelong affection for characters who are agents of upheaval and disturbance. Her junior and picture books are peppered with pirates, robbers and lions, though they appear alongside librarians, mothers and children, working against comfortable stereotype. Her fictions often have at their heart a young adult burdened with special powers, such as the ability to cast spells in order to transform their world in supernatural and fantastical ways. Another common feature is that, while the conclusions of her tales are usually predictable, they leave the reader feeling absolutely complete, the moral questions resulting from our hero's powers having been resolved.</p>
+                
+                <p><strong>C</strong> Many of these themes can be found in her new novel, The Magician of Hoad. The book was begun more than 15 years ago and envisioned as an 'entire' fantasy — one set in a fully imagined world with detailed history and complex tribal inter-relationships, a classical hero quest at its heart. The story ballooned at one point to 800 pages and has been through at least two substantial rewrites. Now half its original size, it is a fascinating read — an adventure, a romance, and a gold mine of Mahy literary preoccupations.</p>
+                
+                <p><strong>D</strong> The other splendid Mahy publication this year is a re-issue of Bubble Trouble in a now-illustrated edition. This tongue-twister tale first appeared in 1991, was included in 100 New Zealand Poems (1993) and has been recited by Mahy at countless private and public functions. Perhaps more than any other work, Bubble Trouble is the Mahy that New Zealand children and their parents know so well, the rollicking story of a clown who serves up a joyous torrent of word-play and unexpected rhyme.</p>
+                
+                <p><strong>E</strong> Those connections are four or five deep now. I read The Lion in the Meadow in the School Journal in the late 1960s; my step-daughter listened to The Boy Who Was Followed Home over and over in the 1970s; my own children sat very still mouthing The Great White Man-Eating Shark in the 80s and 90s; now, in the 21st century, my grandchildren have heard Down the Dragon's Tongue, A Summery Saturday Morning and Dashing Dog many times.</p>
+                
+                <p><strong>F</strong> Of course, readers are important to any working writer, but Mahy's espousal of the act of reading goes beyond that: a book is not properly finished, she has often said, until it has been read, because a reader brings something important to the book. So, doubtless out of need to build a market — she's not ignorant of her popularity — but also out of genuine care for that other dynamic part of the author-reader relationship, Mahy has, until recently, kept up a punishing schedule of public appearances.</p>
+                
+                <p><strong>G</strong> Private conversation with Mahy has always been a wild ride — marvellous, in the true sense of the word, the product of a hungry head and an infinite capacity to be astonished. She races away at one stage to consult an encyclopaedia for L. M. Montgomery's date of death, and speculates about the 'real' Montgomery, creator of the ever-popular Anne of Green Gables. Although I'd come to talk about her new book, I couldn't help but be captivated by her infectious curiosity.</p>
+                
+                <p><strong>H</strong> A few years ago, the writer David Hill told a funny story. Though his writing was, he conceded, very different from Mahy's, he had been affected by her peculiarly alert way of looking at the world, particularly the mad, slippery life of language. Once, Hill said, in a motel room, a sign on a door caught his eye: 'This door is alarmed.' Mahy would like that, thought Hill. She would enjoy the comedy just below the surface of the formal warning; she would leap immediately to the possibilities for story and language play: 'Yes, and this window is concerned, this light fitting is irritated.' His story was a wonderful comment on Mahy's vision.</p>
+            </div>
+        </section>
+
+        <div id="divider" title="Drag to resize"></div>
+
+        <section class="pane" id="right">
+            <div class="tab-container">
+                <div class="tab active" data-tab="questions1" data-passage="passage1">Questions 1-13</div>
+                <div class="tab" data-tab="questions2" data-passage="passage2">Questions 14-26</div>
+                <div class="tab" data-tab="questions3" data-passage="passage3">Questions 27-40</div>
+            </div>
+            
+            <div class="tab-content active" id="questions1">
+                <h3>Questions 1–7</h3>
+                <p>Do the following statements agree with the information given in Reading Passage 1?</p>
+                <p>In boxes 1–7 on your answer sheet, write</p>
+                <ul>
+                    <li><strong>TRUE</strong> if the statement agrees with the information</li>
+                    <li><strong>FALSE</strong> if the statement contradicts the information</li>
+                    <li><strong>NOT GIVEN</strong> if there is no information on this</li>
+                </ul>
+                
+                <div class="group">
+                    <p>1 Early European settlers made detailed studies of the morepork.
+                        <div class="true-false-options">
+                            <label><input type="radio" name="q1" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q1" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q1" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>2 The Polynesian rat had a negative effect on the number of laughing owls.
+                        <div class="true-false-options">
+                            <label><input type="radio" name="q2" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q2" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q2" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>3 The laughing owl was larger than the morepork.
+                        <div class="true-false-options">
+                            <label><input type="radio" name="q3" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q3" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q3" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>4 Rats pose a risk to young moreporks.
+                        <div class="true-false-options">
+                            <label><input type="radio" name="q4" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q4" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q4" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>5 The New Zealand Department of Conservation is hoping to limit the population of moreporks.
+                        <div class="true-false-options">
+                            <label><input type="radio" name="q5" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q5" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q5" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>6 Other bird species are frightened away when they hear the morepork's cry.
+                        <div class="true-false-options">
+                            <label><input type="radio" name="q6" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q6" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q6" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>7 In Māori tradition, the low call of the morepork had negative associations.
+                        <div class="true-false-options">
+                            <label><input type="radio" name="q7" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q7" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q7" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 8–13</h3>
+                <p>Complete the notes below.</p>
+                <p>Choose <strong>ONE WORD AND/OR A NUMBER</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 8–13 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>The Morepork</strong></p>
+                    <p><strong>Appearance</strong></p>
+                    <p>- approximately <input type="text" id="q8" style="width: 120px;"> in length</p>
+                    <p>- feathers with fringes to enable quiet flight</p>
+                    
+                    <p><strong>Nesting</strong></p>
+                    <p>- nests in trees, plants or spaces in roots and <input type="text" id="q9" style="width: 120px;"></p>
+                    <p>- after about 35 days, baby moreporks are capable of leaving the nest</p>
+                    
+                    <p><strong>Hunting</strong></p>
+                    <p>- transports its prey using its <input type="text" id="q10" style="width: 120px;"></p>
+                    <p>- can be chased away by other birds during the <input type="text" id="q11" style="width: 120px;"></p>
+                    <p>- attacked <input type="text" id="q12" style="width: 120px;"> that had been introduced to Motuora Island</p>
+                    
+                    <p><strong>Threats</strong></p>
+                    <p>- may be exposed to <input type="text" id="q13" style="width: 120px;"> in their prey</p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions2">
+                <h3>Questions 14–17</h3>
+                <p>Reading Passage 2 has seven paragraphs, <strong>A–G</strong>.</p>
+                <p>Which paragraph contains the following information?</p>
+                <p>Write the correct letter <strong>A–G</strong> in boxes 14–17 on your answer sheet.</p>
+                <p><strong>NB</strong> You may use any letter more than once.</p>
+                
+                <div class="group">
+                    <p>14 a reason why newer forests provide howlers with better feeding opportunities than older forests
+                        <div class="dropzone" data-target="q14"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>15 a reference to a change in farmers' attitudes towards wildlife
+                        <div class="dropzone" data-target="q15"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>16 a description of the means by which howlers select the best available diet for themselves
+                        <div class="dropzone" data-target="q16"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>17 figures relating to the reduction of natural wildlife habitat over a period of time
+                        <div class="dropzone" data-target="q17"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                        <div class="card" draggable="true" data-value="F">F</div>
+                        <div class="card" draggable="true" data-value="G">G</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 18–21</h3>
+                <p>Complete the summary below.</p>
+                <p>Choose <strong>ONE WORD ONLY</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 18–21 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>Why do howlers have an advantage over other Central American monkeys?</strong></p>
+                    <p>Howler monkeys have a more rapid rate of <input type="text" id="q18" style="width: 120px;"> than either capuchin or spider monkeys. Unlike the other local monkey species, howlers can survive without eating <input type="text" id="q19" style="width: 120px;"> and so can live inside a relatively small habitat area. Their diet is more flexible, and they are able to tolerate leaves with high levels of <input type="text" id="q20" style="width: 120px;">. Howlers can also survive periods of <input type="text" id="q21" style="width: 120px;"> better than the other monkey species can.</p>
+                </div>
+                
+                <h3>Questions 22–26</h3>
+                <p>Look at the following features (Questions 22–26) and the list of locations below.</p>
+                <p>Match each feature with the correct location, <strong>A, B or C</strong>.</p>
+                <p>Write the correct letter, <strong>A, B or C</strong>, in boxes 22–26 on your answer sheet.</p>
+                <p><strong>NB</strong> You may use any letter more than once.</p>
+                
+                <div class="group">
+                    <p><strong>List of Locations</strong></p>
+                    <p><strong>A</strong> Hacienda La Pacifica</p>
+                    <p><strong>B</strong> Santa Rosa National Park</p>
+                    <p><strong>C</strong> Cholula Cacao Farm</p>
+                    
+                    <p>22 It has seen the return of native tree species.
+                        <div class="dropzone" data-target="q22"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>23 It supports only one species of native monkey.
+                        <div class="dropzone" data-target="q23"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>24 Its monkey population helps the agriculture of the area.
+                        <div class="dropzone" data-target="q24"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>25 It is home to populations of all three local monkey species.
+                        <div class="dropzone" data-target="q25"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>26 Its landscape was altered by the construction of a transport link.
+                        <div class="dropzone" data-target="q26"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions3">
+                <h3>Questions 27–31</h3>
+                <p>Do the following statements agree with the claims of the writer in Reading Passage 3?</p>
+                <p>In boxes 27–31 on your answer sheet, write</p>
+                <ul>
+                    <li><strong>YES</strong> if the statement agrees with the views of the writer</li>
+                    <li><strong>NO</strong> if the statement contradicts the views of the writer</li>
+                    <li><strong>NOT GIVEN</strong> if it is impossible to say what the writer thinks about this</li>
+                </ul>
+                
+                <div class="group">
+                    <p>27 Mahy explores the traditional themes of New Zealand literature.
+                        <div class="true-false-options">
+                            <label><input type="radio" name="q27" value="YES"> YES</label>
+                            <label><input type="radio" name="q27" value="NO"> NO</label>
+                            <label><input type="radio" name="q27" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>28 Mahy's children's books have been more popular than her teenage books.
+                        <div class="true-false-options">
+                            <label><input type="radio" name="q28" value="YES"> YES</label>
+                            <label><input type="radio" name="q28" value="NO"> NO</label>
+                            <label><input type="radio" name="q28" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>29 Mahy and Knox have sometimes criticised each other's work.
+                        <div class="true-false-options">
+                            <label><input type="radio" name="q29" value="YES"> YES</label>
+                            <label><input type="radio" name="q29" value="NO"> NO</label>
+                            <label><input type="radio" name="q29" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>30 Mahy is welcoming to interviewers.
+                        <div class="true-false-options">
+                            <label><input type="radio" name="q30" value="YES"> YES</label>
+                            <label><input type="radio" name="q30" value="NO"> NO</label>
+                            <label><input type="radio" name="q30" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>31 Mahy is at ease speaking about her experiences.
+                        <div class="true-false-options">
+                            <label><input type="radio" name="q31" value="YES"> YES</label>
+                            <label><input type="radio" name="q31" value="NO"> NO</label>
+                            <label><input type="radio" name="q31" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 32–35</h3>
+                <p>Complete the summary below using the list of words and phrases <strong>A–I</strong> below.</p>
+                <p>Write the correct letter <strong>A–I</strong> in boxes 32–35 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>Theories about Mahy's style</strong></p>
+                    <p>Mahy's determination to earn a living from writing has encouraged her to find the ideas for her work in <div class="dropzone" data-target="q32"><span class="droplabel">Drag answer here</span></div> places. The stories themselves are set in locations that are <div class="dropzone" data-target="q33"><span class="droplabel">Drag answer here</span></div>. In terms of characterisation, almost all of her books feature unruly people, and very often an adolescent who possesses <div class="dropzone" data-target="q34"><span class="droplabel">Drag answer here</span></div> abilities. Finally, the endings of the stories tend to be <div class="dropzone" data-target="q35"><span class="droplabel">Drag answer here</span></div>.</p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A disruptive and unpredictable</div>
+                        <div class="card" draggable="true" data-value="B">B everyday</div>
+                        <div class="card" draggable="true" data-value="C">C loveable</div>
+                        <div class="card" draggable="true" data-value="D">D controversial</div>
+                        <div class="card" draggable="true" data-value="E">E exotic and ordinary</div>
+                        <div class="card" draggable="true" data-value="F">F isolated</div>
+                        <div class="card" draggable="true" data-value="G">G unconfident</div>
+                        <div class="card" draggable="true" data-value="H">H unsurprising but satisfying</div>
+                        <div class="card" draggable="true" data-value="I">I magical</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 36–40</h3>
+                <p>Choose the correct letter, <strong>A, B, C or D</strong>.</p>
+                <p>Write the correct letter in boxes 36–40 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>36 What does the writer say about The Magician of Hoad?
+                        <div>
+                            <label><input type="radio" name="q36" value="A"> A It is partly based on true history.</label><br>
+                            <label><input type="radio" name="q36" value="B"> B It was restructured in the writing process.</label><br>
+                            <label><input type="radio" name="q36" value="C"> C It is quite different from conventional stories.</label><br>
+                            <label><input type="radio" name="q36" value="D"> D It does not reflect the usual themes of Mahy's work.</label>
+                        </div>
+                    </p>
+                    <p>37 According to the writer, Bubble Trouble
+                        <div>
+                            <label><input type="radio" name="q37" value="A"> A was first illustrated in 1991.</label><br>
+                            <label><input type="radio" name="q37" value="B"> B is written in plain language.</label><br>
+                            <label><input type="radio" name="q37" value="C"> C is an old favourite for many families.</label><br>
+                            <label><input type="radio" name="q37" value="D"> D has not been read aloud by Mahy before.</label>
+                        </div>
+                    </p>
+                    <p>38 The writer's purpose in the fifth paragraph is to
+                        <div>
+                            <label><input type="radio" name="q38" value="A"> A show how Mahy's style has changed through generations.</label><br>
+                            <label><input type="radio" name="q38" value="B"> B criticise Mahy's children's stories for being repetitive.</label><br>
+                            <label><input type="radio" name="q38" value="C"> C describe how new media have changed entertainment.</label><br>
+                            <label><input type="radio" name="q38" value="D"> D illustrate Mahy's popularity with generations of children.</label>
+                        </div>
+                    </p>
+                    <p>39 According to the sixth paragraph, which of the following is true?
+                        <div>
+                            <label><input type="radio" name="q39" value="A"> A Readers sometimes do not finish Mahy's books.</label><br>
+                            <label><input type="radio" name="q39" value="B"> B Mahy actively encourages feedback from readers.</label><br>
+                            <label><input type="radio" name="q39" value="C"> C Readers are necessary in order to complete a book.</label><br>
+                            <label><input type="radio" name="q39" value="D"> D Mahy does not realise how important she is to some readers.</label>
+                        </div>
+                    </p>
+                    <p>40 What is the writer doing in the final paragraph?
+                        <div>
+                            <label><input type="radio" name="q40" value="A"> A illustrating Mahy's view of the world</label><br>
+                            <label><input type="radio" name="q40" value="B"> B comparing Mahy with another writer</label><br>
+                            <label><input type="radio" name="q40" value="C"> C correcting a misconception about Mahy</label><br>
+                            <label><input type="radio" name="q40" value="D"> D suggesting reasons for Mahy's approach</label>
+                        </div>
+                    </p>
+                </div>
+            </div>
+            
+            <div style="display:flex;gap:8px;margin:20px 0;">
+                <button class="btn btn-primary" onclick="submitAnswers()">Submit Answers</button>
+                <button class="btn" onclick="resetAnswers()">Reset Answers</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="practice-nav">
+        <span class="section-title">Passage 1:</span>
+        <div class="q-item" onclick="scrollToQuestion('q1')">1</div>
+        <div class="q-item" onclick="scrollToQuestion('q2')">2</div>
+        <div class="q-item" onclick="scrollToQuestion('q3')">3</div>
+        <div class="q-item" onclick="scrollToQuestion('q4')">4</div>
+        <div class="q-item" onclick="scrollToQuestion('q5')">5</div>
+        <div class="q-item" onclick="scrollToQuestion('q6')">6</div>
+        <div class="q-item" onclick="scrollToQuestion('q7')">7</div>
+        <div class="q-item" onclick="scrollToQuestion('q8')">8</div>
+        <div class="q-item" onclick="scrollToQuestion('q9')">9</div>
+        <div class="q-item" onclick="scrollToQuestion('q10')">10</div>
+        <div class="q-item" onclick="scrollToQuestion('q11')">11</div>
+        <div class="q-item" onclick="scrollToQuestion('q12')">12</div>
+        <div class="q-item" onclick="scrollToQuestion('q13')">13</div>
+        
+        <span class="section-title">Passage 2:</span>
+        <div class="q-item" onclick="scrollToQuestion('q14')">14</div>
+        <div class="q-item" onclick="scrollToQuestion('q15')">15</div>
+        <div class="q-item" onclick="scrollToQuestion('q16')">16</div>
+        <div class="q-item" onclick="scrollToQuestion('q17')">17</div>
+        <div class="q-item" onclick="scrollToQuestion('q18')">18</div>
+        <div class="q-item" onclick="scrollToQuestion('q19')">19</div>
+        <div class="q-item" onclick="scrollToQuestion('q20')">20</div>
+        <div class="q-item" onclick="scrollToQuestion('q21')">21</div>
+        <div class="q-item" onclick="scrollToQuestion('q22')">22</div>
+        <div class="q-item" onclick="scrollToQuestion('q23')">23</div>
+        <div class="q-item" onclick="scrollToQuestion('q24')">24</div>
+        <div class="q-item" onclick="scrollToQuestion('q25')">25</div>
+        <div class="q-item" onclick="scrollToQuestion('q26')">26</div>
+        
+        <span class="section-title">Passage 3:</span>
+        <div class="q-item" onclick="scrollToQuestion('q27')">27</div>
+        <div class="q-item" onclick="scrollToQuestion('q28')">28</div>
+        <div class="q-item" onclick="scrollToQuestion('q29')">29</div>
+        <div class="q-item" onclick="scrollToQuestion('q30')">30</div>
+        <div class="q-item" onclick="scrollToQuestion('q31')">31</div>
+        <div class="q-item" onclick="scrollToQuestion('q32')">32</div>
+        <div class="q-item" onclick="scrollToQuestion('q33')">33</div>
+        <div class="q-item" onclick="scrollToQuestion('q34')">34</div>
+        <div class="q-item" onclick="scrollToQuestion('q35')">35</div>
+        <div class="q-item" onclick="scrollToQuestion('q36')">36</div>
+        <div class="q-item" onclick="scrollToQuestion('q37')">37</div>
+        <div class="q-item" onclick="scrollToQuestion('q38')">38</div>
+        <div class="q-item" onclick="scrollToQuestion('q39')">39</div>
+        <div class="q-item" onclick="scrollToQuestion('q40')">40</div>
+    </div>
+
+    <div id="selbar">
+        <button id="highlightBtn">高亮</button>
+        <button id="removeHighlightBtn">取消高亮</button>
+    </div>
+
+    <script>
+        // Timer functionality (60 minutes countdown)
+        let totalTime = 60 * 60; // 60 minutes in seconds
+        const timerEl = document.getElementById('timer');
+        
+        function updateTimer() {
+            if (totalTime <= 0) {
+                clearInterval(timerInterval);
+                alert("Time is up! Submitting your answers.");
+                submitAnswers();
+                return;
+            }
+            
+            const minutes = Math.floor(totalTime / 60);
+            const seconds = totalTime % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            totalTime--;
+        }
+        
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call
+        
+        // Tab switching functionality with synchronization
+        function switchTabs(clickedTab, isRightTab = false) {
+            const tabId = clickedTab.getAttribute('data-tab');
+            
+            if (isRightTab) {
+                // If right tab was clicked, also switch the left tab
+                const passageId = clickedTab.getAttribute('data-passage');
+                const leftTab = document.querySelector(`.tab[data-tab="${passageId}"]`);
+                if (leftTab) {
+                    // Remove active class from all left tabs and contents
+                    document.querySelectorAll('#left .tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('#left .tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to corresponding left tab and content
+                    leftTab.classList.add('active');
+                    document.getElementById(passageId).classList.add('active');
+                }
+            }
+            
+            // Remove active class from all tabs and contents in the current container
+            const container = clickedTab.closest('.tab-container');
+            container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            container.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            clickedTab.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Set up tab click events
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const isRightTab = this.closest('#right') !== null;
+                switchTabs(this, isRightTab);
+            });
+        });
+        
+        // Drag and drop functionality
+        const cards = document.querySelectorAll('.card');
+        const dropzones = document.querySelectorAll('.dropzone');
+        
+        cards.forEach(card => {
+            card.addEventListener('dragstart', () => {
+                card.classList.add('dragging');
+            });
+            
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+            });
+        });
+        
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                zone.classList.add('over');
+            });
+            
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('over');
+            });
+            
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('over');
+                
+                const card = document.querySelector('.card.dragging');
+                if (card) {
+                    // Clear existing content
+                    zone.innerHTML = '';
+                    
+                    // Create a clone of the card for the dropzone
+                    const clone = card.cloneNode(true);
+                    clone.setAttribute('draggable', 'false');
+                    clone.classList.remove('dragging');
+                    zone.appendChild(clone);
+                    
+                    // Mark the question as answered in the navigation
+                    const questionId = zone.getAttribute('data-target');
+                    const navItem = document.querySelector(`.q-item[onclick="scrollToQuestion('${questionId}')"]`);
+                    if (navItem) {
+                        navItem.classList.add('answered');
+                    }
+                }
+            });
+        });
+        
+        // Function to scroll to a specific question
+        function scrollToQuestion(questionId) {
+            let questionElement;
+            
+            // Check if it's a dropzone question
+            questionElement = document.querySelector(`[data-target="${questionId}"]`);
+            
+            // If not, check if it's a radio question
+            if (!questionElement) {
+                questionElement = document.querySelector(`input[name="${questionId}"]`);
+                if (questionElement) {
+                    questionElement = questionElement.closest('p');
+                }
+            }
+            
+            // If not, check if it's a text input question
+            if (!questionElement) {
+                questionElement = document.getElementById(questionId);
+            }
+            
+            if (questionElement) {
+                questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Highlight the question briefly
+                const originalBg = questionElement.style.backgroundColor;
+                questionElement.style.backgroundColor = '#fff3a3';
+                setTimeout(() => {
+                    questionElement.style.backgroundColor = originalBg;
+                }, 1000);
+            }
+        }
+        
+        // Function to submit answers
+        function submitAnswers() {
+            alert("Answers submitted! This would normally be sent to a server for grading.");
+            // In a real implementation, this would collect all answers and send them for evaluation
+        }
+        
+        // Function to reset answers
+        function resetAnswers() {
+            if (confirm("Are you sure you want to reset all answers?")) {
+                // Clear all dropzones
+                document.querySelectorAll('.dropzone').forEach(zone => {
+                    zone.innerHTML = '<span class="droplabel">Drag answer here</span>';
+                });
+                
+                // Clear all radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.checked = false;
+                });
+                
+                // Clear all text inputs
+                document.querySelectorAll('input[type="text"]').forEach(input => {
+                    input.value = '';
+                });
+                
+                // Remove answered status from navigation
+                document.querySelectorAll('.q-item.answered').forEach(item => {
+                    item.classList.remove('answered');
+                });
+            }
+        }
+        
+        // Divider dragging functionality
+        const divider = document.getElementById('divider');
+        const leftPane = document.getElementById('left');
+        const rightPane = document.getElementById('right');
+        let isResizing = false;
+        
+        divider.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            document.body.style.cursor = 'ew-resize';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const containerRect = document.querySelector('.shell').getBoundingClientRect();
+            const xPosition = e.clientX - containerRect.left;
+            
+            // Set minimum widths for both panes
+            const leftWidth = Math.max(280, Math.min(containerRect.width - 320, xPosition));
+            const rightWidth = containerRect.width - leftWidth - 8; // 8px for the divider
+            
+            leftPane.style.flex = `0 0 ${leftWidth}px`;
+            rightPane.style.flex = `1 1 ${rightWidth}px`;
+        });
+        
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+            document.body.style.cursor = '';
+        });
+
+        // Highlight functionality
+        const selbar = document.getElementById('selbar');
+        const highlightBtn = document.getElementById('highlightBtn');
+        const removeHighlightBtn = document.getElementById('removeHighlightBtn');
+        let currentSelection = null;
+
+        // Listen for text selection
+        document.addEventListener('mouseup', function(e) {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            
+            if (selectedText.length > 0 && !e.target.closest('#selbar')) {
+                currentSelection = selection;
+                
+                // Position the toolbar near the selection
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                selbar.style.display = 'flex';
+                selbar.style.top = (rect.top + window.scrollY - 40) + 'px';
+                selbar.style.left = (rect.left + window.scrollX) + 'px';
+            } else if (!e.target.closest('#selbar')) {
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Highlight button functionality
+        highlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                const selectedText = range.toString();
+                
+                // Create highlight span
+                const span = document.createElement('span');
+                span.className = 'hl';
+                span.textContent = selectedText;
+                
+                // Replace selected text with highlighted span
+                range.deleteContents();
+                range.insertNode(span);
+                
+                // Clear selection and hide toolbar
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Remove highlight button functionality
+        removeHighlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                
+                // Find if the selection contains highlighted text
+                let parent = range.startContainer.parentNode;
+                while (parent && parent !== document.body) {
+                    if (parent.classList && parent.classList.contains('hl')) {
+                        // Replace the highlighted span with just its text content
+                        const text = document.createTextNode(parent.textContent);
+                        parent.parentNode.replaceChild(text, parent);
+                        
+                        // Clear selection and hide toolbar
+                        window.getSelection().removeAllRanges();
+                        selbar.style.display = 'none';
+                        return;
+                    }
+                    parent = parent.parentNode;
+                }
+                
+                // If no highlight found, just clear selection
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Hide toolbar when clicking elsewhere
+        document.addEventListener('mousedown', function(e) {
+            if (!e.target.closest('#selbar') && selbar.style.display === 'flex') {
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Mark questions as answered when text inputs are filled
+        document.querySelectorAll('input[type="text"]').forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.value.trim() !== '') {
+                    const questionId = this.id;
+                    const navItem = document.querySelector(`.q-item[onclick="scrollToQuestion('${questionId}')"]`);
+                    if (navItem) {
+                        navItem.classList.add('answered');
+                    }
+                }
+            });
+        });
+
+        // Mark questions as answered when radio buttons are selected
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const questionName = this.name;
+                const navItem = document.querySelector(`.q-item[onclick="scrollToQuestion('${questionName}')"]`);
+                if (navItem) {
+                    navItem.classList.add('answered');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Mock Test</title>
+    <style>
+        :root {
+            --line: #e5e7eb;
+            --bg: #f6f7fb;
+            --panel: #fff;
+            --accent: #3b82f6;
+            --muted: #6b7280;
+            --shadow: 0 6px 20px rgba(0,0,0,.12);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .shell {
+            display: flex;
+            height: calc(100vh - 60px);
+            width: 100%;
+        }
+        .pane {
+            background: var(--panel);
+            overflow: auto;
+            padding: 20px;
+        }
+        #left {
+            flex: 0 0 50%;
+            min-width: 280px;
+        }
+        #right {
+            flex: 1 1 auto;
+            min-width: 320px;
+            background: #fbfbff;
+            border-left: 1px solid var(--line);
+        }
+        #divider {
+            flex: 0 0 8px;
+            background: linear-gradient(90deg, #e5e7eb, #d1d5db);
+            cursor: ew-resize;
+            position: relative;
+            z-index: 5;
+            user-select: none;
+        }
+        h2, h3, h4 {
+            margin: 0 0 10px;
+        }
+        p {
+            margin: 0 0 12px;
+            line-height: 1.6;
+        }
+        .group {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+        .timer-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-height: 40px;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: auto;
+            min-width: 120px;
+            max-width: 200px;
+            vertical-align: middle;
+            margin: 5px 0;
+        }
+        .droplabel {
+            color: #64748b;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cardpool {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            cursor: grab;
+            box-shadow: 0 1px 0 rgba(0,0,0,.03);
+            white-space: nowrap;
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        .btn {
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: #3b82f6;
+        }
+        .hl {
+            background: #fff3a3;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,.05);
+            cursor: pointer;
+        }
+        .hl:hover {
+            filter: brightness(0.98);
+        }
+        #selbar {
+            position: absolute;
+            display: none;
+            z-index: 2000;
+            background: #111;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: var(--shadow);
+            font-size: 13px;
+            gap: 6px;
+            align-items: center;
+        }
+        #selbar button {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.25);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #selbar button:hover {
+            border-color: #fff;
+        }
+        .practice-nav {
+            background: #fff;
+            border-top: 2px solid var(--line);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 4000;
+            height: 60px;
+            overflow-x: auto;
+        }
+        .practice-nav .q-item {
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 36px;
+            text-align: center;
+        }
+        .practice-nav .q-item:hover {
+            background: #f1f5f9;
+            border-color: var(--accent);
+        }
+        .practice-nav .q-item.answered {
+            background: #e0e7ff;
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .practice-nav .q-item.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .section-title {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        Time remaining: <span id="timer">60:00</span>
+    </div>
+
+    <div class="shell">
+        <section class="pane" id="left">
+            <div class="tab-container">
+                <div class="tab active" data-tab="passage1">Passage 1</div>
+                <div class="tab" data-tab="passage2">Passage 2</div>
+                <div class="tab" data-tab="passage3">Passage 3</div>
+            </div>
+            
+            <div class="tab-content active" id="passage1">
+                <h2>Ambergris</h2>
+                <p><em>What is it and where does it come from?</em></p>
+                
+                <p><strong>A</strong> In the ancient world, the waxy grey substance we now refer to as ambergris was highly prized for its medicinal properties, and was widely used as a spice, which was believed to be an aphrodisiac when added to food or wine. Ambergris itself is pleasantly aromatic, especially when warmed, and it was also highly valued as a fixing agent in the making of perfume, since it enabled a scent to retain its fragrance for much longer than might otherwise have been possible. Most ambergris was found in the form of lumps floating on the surface of the sea, or washed up on the shores of tropical and temperate oceans. At one time, ambergris was worth its weight in gold, but there was much confusion about its origins.</p>
+                
+                <p><strong>B</strong> Ambergris was known to the Arabs as 'ambar' and was originally called amber in the West in the Middle Ages. This eventually led to further confusion in the popular mind between ambergris and true amber, the mineral known to mineralogists as succinite, which is actually fossilised tree resin, and generally yellow in colour. Both substances were rare and costly, and both were associated with the sea, largely because for Europeans the most common source of amber was the shores of the Baltic. In Chapter 92 of Moby Dick, the American writer Herman Melville pours scorn on those who believed the two substances to be the same: 'Though the word ambergris is but the French compound for grey amber, yet the two substances are quite distinct. For amber, though at times found on the sea-coast, is also dug up in some far-inland soils, whereas ambergris is never found except upon the sea. Besides, amber is a hard, transparent, brittle, odourless substance, used for mouth-pieces to pipes, for beads and ornaments; but ambergris is soft, waxy, and so highly fragrant that it is largely used in perfumery.'</p>
+                
+                <p><strong>C</strong> Moby Dick was published in 1851, by which time the mystery of the origins of ambergris had been resolved by the scientific community. In 1783, the botanist Joseph Banks, who had accompanied Captain James Cook on his voyages of discovery in the Pacific, presented a paper to the Royal Society of London by the German physician Dr Franz Xavier Schwediawer in which it was conclusively proved that ambergris came from sperm whales. In this, he was confirming an observation made in the 13th century by the great Venetian traveller Marco Polo who, while on the island of Socotra in the Indian Ocean, had witnessed a sperm whale vomiting up ambergris. But whereas Marco Polo imagined that the whale had swallowed the lump in the depths of the sea, Schwediawer showed that the origin of the material was inside the whale itself.</p>
+                
+                <p><strong>D</strong> The sperm whale is the largest of the odontocetes, or toothed whales. Males can grow up to 20 metres in length. Melville described the sperm whale as 'the king of whales', and his novel Moby Dick is based on the pursuit of one such creature. Sperm whales are renowned for their ability to dive to great depths, possibly as far as 3 000 metres below the surface, and for remaining underwater for periods of two hours or more in pursuit of their favourite prey, the giant squid.</p>
+                
+                <p><strong>E</strong> It is from the problems the whales have in digesting the beaks of such creatures that ambergris has its origins. The beak is sharp and irritates the whale's lower intestine, which responds by producing a black, foul-smelling liquid. It is not clear to scientists whether this secretion should be considered a normal response by the whale's digestive system or a pathological one, but from time to time large quantities of the liquid are vomited up by the whale. Once outside the whale's body and exposed to air, the substance hardens, acquiring the waxy, greyish and pleasantly aromatic characteristics of ambergris. Often the beaks of squid are still found embedded in lumps of ambergris, some of which can weigh several hundred kilograms. Melville took some delight in contrasting the origins of ambergris with the high value placed upon it by refined society: 'Who would think, then, that such fine ladies and gentlemen should regale themselves with an essence found in the inglorious bowels of a sick whale!'</p>
+                
+                <p><strong>F</strong> Sperm whales were ruthlessly pursued by commercial whalers in the 19th and 20th centuries. In 1963-64 alone, almost 30 000 individuals were killed, and only the imposition of a ban on the hunting of sperm whales in 1984 saved the species from extinction. Ambergris was by far the most valuable product to be extracted during the processing of the whales' carcasses, and over 90 per cent of the annual worldwide total was acquired in this way, as a by-product of commercial whaling. However, even before the ban on hunting sperm whales was imposed, the 1972 Marine Mammal Protection Act had prohibited trade in ambergris. Just as petroleum and plastic products were replacing other natural products of whaling, so ambergris was supplanted in the making of perfume by other materials, some natural and some synthetic in origin. Nevertheless, it is possible that, as sperm-whale populations recover to their former numbers in the wild, so the sight of lumps of ambergris washed ashore along the tide-line will once again become a familiar one to beach-combers the world over.</p>
+            </div>
+            
+            <div class="tab-content" id="passage2">
+                <h2>The Tasmanian Tiger</h2>
+                
+                <p><strong>A</strong> The Tasmanian tiger, or thylacine, was a carnivorous marsupial (a meat-eating mammal which carries its young in a pouch). It was given the name 'tiger' because it had striped fur, and because it was ferocious. Between 24 million and 15 million years ago, many types of thylacine roamed across Australia, their powerful jaws playing a role in maintaining a balance in the ecosystems of their day. Some species were fox-sized, while others were barely the size of kittens.</p>
+                
+                <p><strong>B</strong> But when a period of climate change cooled Australia about 12 million years ago, the numbers of these ancient thylacines began to decline. By about 3 million years ago, only one species was left. About 4,000 years ago, these vanished completely from the Australian mainland, so that Tasmania, a large island to the south of Australia, became the last remaining place where thylacines existed. They ruled the island's animal life unchallenged until Europeans—with sheep, dogs and a great indifference to native flora and fauna—seem to have brought about their extinction. In 1936, the last captive Tasmanian tiger died in Hobart Zoo. Since then, many expeditions have searched for tigers in the Tasmanian bush, but no definitive evidence has been found. Despite this, there are many who keep searching.</p>
+                
+                <p><strong>C</strong> In 1981, Dutch-born zoologist Hans Naarding was in Tasmania conducting a survey of Latham's snipe, a species of endangered bird. One night, he saw an animal in the light from the searchlight mounted on his vehicle. He described it as about the size of a large dog, but with slightly sloping hindquarters and a fairly thick tail continuing straight on from its backbone. He said that it had 12 distinct stripes on its back, running down to the point where the tail began. He reported the sighting to the Director of Tasmania's National Parks. "When the news broke," said Naarding, "I was besieged by television crews, including four or five from Japan, and others from the United Kingdom, Germany, New Zealand and South America."</p>
+                
+                <p><strong>D</strong> Government and private search parties combed the region, but no further sightings were made. The tiger, as always, had escaped to its lair—a place that many insist exists only in the imagination. Others disagree: there have been more than 4,000 claimed sightings of the animal since it supposedly died out, and the average number of claims reported to the authorities each year is now 150. So is it out there? Even experts differ in opinion.</p>
+                
+                <p><strong>E</strong> Randolph Rose, Associate Professor of Zoology at the University of Tasmania, says that he once dreamed of seeing a thylacine, but is now convinced that his dream will go unfulfilled. The consensus among conservationists is that any animal with a population base of less than 1,000 is headed for extinction within 60 years. "Sixty years ago," he says, "there was only one thylacine that we know of, and that was in Hobart Zoo. Take it from me, the tiger is gone." But Dr David Pemberton, curator of zoology at the Tasmanian Museum, states that, despite scientific thinking that a relatively large population is required to sustain a species, "the Florida panther is down to a dozen or so animals, and, while it does have some inbreeding problems, it's still ticking along! After all, animals can be notoriously elusive. The strange fish known as the coelacanth, with its 'proto legs,' was thought to have died out with the dinosaurs 700 million years ago, until a specimen was dragged to the surface in a shark net off the coast of South Africa in 1938."</p>
+                
+                <p><strong>F</strong> Wildlife biologist Nick Mooney has the unenviable task of investigating all so-called sightings of the tiger. It was Mooney who was first consulted in late February 2005 about the authenticity of new digital photographic images of a thylacine allegedly taken by a tourist. "On face value," Mooney says, "this particular account of a sighting and the photographs submitted as proof amount to one of the most convincing cases for the species' survival that I have seen." Many other 'sightings' have been hoaxes, and many sincere seekers are victims of obsession. "It is a blind optimism that something is, rather than cynicism that something isn't," Mooney says. "If something crosses the road, it's not a case of 'I wonder what that was?' Rather, it is a case of 'That's a thylacine!'"</p>
+                
+                <p><strong>G</strong> However, Mooney treats all sightings at face value. "I never try to embarrass people," he says, "but the fact that I don't pack the car immediately after they telephone can often be taken as ridicule. Obsessive characters get angry that someone in my position is not out there when they think the thylacine is there."</p>
+                
+                <p><strong>H</strong> Hans Naarding, whose sighting of a striped animal two decades ago was the highlight of a lifetime of animal spotting, remains puzzled by the time and money people waste on tiger searches. He says resources would be better applied to saving another endangered animal, the Tasmanian devil, and helping declining migratory bird populations. Could the thylacine still be out there? "Sure," Naarding says. "I know the vast south-west wilderness of Tasmania well. They could survive ... [But] if this is the case, it will not be long before they do disappear completely." Naarding believes that any discovery of surviving thylacines would be "rather pointless." "How do you bring a species back from extinction?" he asks. "What could you do with it? If there are thylacines out there, they are better off right where they are."</p>
+            </div>
+            
+            <div class="tab-content" id="passage3">
+                <h2>The Pirahã people of Brazil</h2>
+                <p><em>The Pirahã language has stirred up debate among experts</em></p>
+                
+                <p><strong>A</strong> The Pirahā tribe live deep in Brazil's Amazon forest, and their language is hotly debated by linguists. Since 1977, the ethnologist Daniel Everett has spent a total of seven years living with the Pirahā and has committed his career to studying their puzzling speech. Indeed, he was uncertain for so long about what he was actually hearing while living among the Pirahā that he waited nearly three decades before publishing his findings.</p>
+                
+                <p><strong>B</strong> The debate over the Pirahā language goes right to the core of the riddle regarding how Homo sapiens managed to develop vocal communication. Although bees dance, birds sing and whales even sing with syntax, human language is unique, if only for the reason that it enables humans to piece together never-before-constructed thoughts, and be infinitely imaginative - think of Shakespeare's plays or Einstein's theory of relativity.</p>
+                
+                <p><strong>C</strong> Linguistics generally focuses on what features all human languages have in common, but the Pirahā language departs from what some academics have long maintained are essential and inalienable features of all human languages. Most of all, it may be unique for not employing subordinate clauses. Instead of saying, 'When I have finished eating, I will speak to you,' the Pirahā say, 'I finish eating, I speak with you.' Equally perplexing, the Pirahā appear not to use numbers. During the time he spent with them, Everett never heard words like 'all', 'every' and 'more'. There is one word, 'hoi', that comes close to the numeral 1, but it can also mean 'small'. And they were never observed to count without language, on their fingers for example, in order to determine important tasks in village life like how many pieces of meat to grill.</p>
+                
+                <p><strong>D</strong> Everett's findings among the Pirahā have brought new life to a controversial theory by the linguist Benjamin Whorf, who suggested that people are only capable of constructing thoughts for which they possess actual words. Or to put it another way, because they have no words for numbers, they cannot even begin to understand the concept of numbers or arithmetic.</p>
+                
+                <p><strong>E</strong> The Warlpiri language - spoken by a group of Australian Aborigines - like that of the Pirahā, features only the most rudimentary system of counting. However, the Warlpiri people had no difficulty counting farther than three in a foreign language, in this case English, but when Everett attempted to teach the Pirahā how to count in Portuguese, like other Brazilians, not a single person could count to 10.</p>
+                
+                <p><strong>F</strong> Everett is at pains to point out that the Pirahā are not unintelligent, for their thinking is not any slower than that of the average university student. And although they reside in a remote part of the forest, they do not live in complete genetic isolation, but mix with people from the surrounding populations and share similar intellectual capacities with their neighbours whose languages do contain numbers.</p>
+                
+                <p><strong>G</strong> Eventually, after some 30 years of research, Everett has come up with a surprising explanation for the peculiarities of the Pirahā language. Language, he believes, is created by a people's way of life, their belief system and values. In this way, variety in human language is almost limitless, a function of the human capacity to live in different ways, such as in the forest. What Everett's research has revealed is that the central tenet of the Pirahā culture is to live in the here and now. The only thing of importance that is worth communicating to others is what is being experienced at that very moment, though this can often be described with great care and detail. In consequence, the language has no means to conjugate verbs in order to describe 'yesterday' or 'last week' or 'when I was a child'. Their very literal view of the world curtails abstract thought, and many features taken for granted among other peoples are absent among the Pirahā, such as a creation myth, storytelling and painting. One manifestation of their beliefs is that by tradition the names they give their children are not particularly imaginative. Often they are named after other members of the tribe with whom they share similar character traits. Standing out or being different is not encouraged by the Pirahā, and this is reflected in their perhaps colourless choice of names.</p>
+                
+                <p><strong>H</strong> Everett anticipated that these findings would be controversial and the reaction came as expected. Until this point, many linguists had defended the theories of Noam Chomsky, according to which all human languages have a universal grammar. What exactly makes up this universal grammar is the subject of debate, but at its heart is the concept of 'recursion', which is defined as replication of a structure within its single parts. Without it, humans would not be able to view separate thoughts as subordinate parts of a complex whole. And, most pertinent to Everett's work, there would not be subordinate clauses, which are responsible for translating the concept of recursion into grammar. But if the Pirahā do not form subordinate clauses, then recursion cannot explain the uniqueness of human language, and this would negate Chomsky's theories.</p>
+                
+                <p><strong>I</strong> The logical way forward now would be to try to prove that the Pirahā can think in a recursive fashion. The only problem is, nobody can confirm or deny Everett's observations since no other researcher can speak Pirahā as well as he does. Despite this, several researchers - including two of Chomsky's colleagues - will soon travel to Brazil to check his claims. My concern is that soon the Pirahā will simply become one more scientific oddity with every aspect of their lives being exploited and analysed.</p>
+            </div>
+        </section>
+
+        <div id="divider" title="Drag to resize"></div>
+
+        <section class="pane" id="right">
+            <div class="tab-container">
+                <div class="tab active" data-tab="questions1" data-passage="passage1">Questions 1-13</div>
+                <div class="tab" data-tab="questions2" data-passage="passage2">Questions 14-26</div>
+                <div class="tab" data-tab="questions3" data-passage="passage3">Questions 27-40</div>
+            </div>
+            
+            <div class="tab-content active" id="questions1">
+                <h3>Questions 1–6</h3>
+                <p>Classify the following statements as referring to</p>
+                <p><strong>A</strong> ambergris only</p>
+                <p><strong>B</strong> amber only</p>
+                <p><strong>C</strong> both ambergris and amber</p>
+                <p><strong>D</strong> neither ambergris nor amber</p>
+                <p>Write the correct letter, <strong>A, B, C, or D</strong>, in boxes 1-6 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>1 very expensive
+                        <div class="dropzone" data-target="q1"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>2 a food flavouring
+                        <div class="dropzone" data-target="q2"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>3 used as currency
+                        <div class="dropzone" data-target="q3"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>4 sweet-smelling
+                        <div class="dropzone" data-target="q4"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>5 referred to by Herman Melville
+                        <div class="dropzone" data-target="q5"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>6 can be seen through
+                        <div class="dropzone" data-target="q6"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 7–9</h3>
+                <p>Complete the flow chart below.</p>
+                <p>Choose <strong>NO MORE THAN TWO WORDS</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 7–9 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>How ambergris is formed</strong></p>
+                    <p>Ambergris is formed in whales because of problems digesting the 
+                    <input type="text" id="q7" style="width: 120px;"> of giant squid.</p>
+                    <p>Black liquid is produced and is 
+                    <input type="text" id="q8" style="width: 120px;"> from time to time.</p>
+                    <p>The liquid 
+                    <input type="text" id="q9" style="width: 120px;"> on contact with the air.</p>
+                </div>
+                
+                <h3>Questions 10–13</h3>
+                <p>Do the following statements agree with the information given in Reading Passage 1?</p>
+                <p>In boxes 10–13 on your answer sheet, write</p>
+                <ul>
+                    <li><strong>TRUE</strong> if the statement agrees with the information</li>
+                    <li><strong>FALSE</strong> if the statement contradicts the information</li>
+                    <li><strong>NOT GIVEN</strong> if there is no information on this</li>
+                </ul>
+                
+                <div class="group">
+                    <p>10 In the 20th century, most of the world's ambergris came from processing dead whales.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q10" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q10" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q10" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>11 The value of ambergris has increased recently.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q11" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q11" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q11" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>12 Ambergris remains an important ingredient in perfume.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q12" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q12" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q12" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>13 New uses have recently been found for ambergris.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q13" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q13" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q13" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions2">
+                <h3>Questions 14–18</h3>
+                <p>Complete the summary below.</p>
+                <p>Choose <strong>NO MORE THAN TWO WORDS AND/OR A NUMBER</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 14–18 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>The thylacine was a dog-like animal which had a <input type="text" id="q14" style="width: 120px;"> coat and was carnivorous. It was originally spread widely throughout the mainland of <input type="text" id="q15" style="width: 120px;">. However, the number of thylacine decreased in that area around <input type="text" id="q16" style="width: 120px;"> ago because of climate change.</p>
+                    
+                    <p>In the end, thylacines were found only on the island of <input type="text" id="q17" style="width: 120px;">, until the arrival of <input type="text" id="q18" style="width: 120px;"> with their farming practices brought about a drastic reduction in thylacine numbers. The last one is thought to have died in Hobart Zoo in 1936.</p>
+                </div>
+                
+                <h3>Questions 19–24</h3>
+                <p>Look at the following statements (Questions 19–24) and the list of people below.</p>
+                <p>Match each statement with the correct person, <strong>A, B, C or D</strong>.</p>
+                <p>Write the correct letter, <strong>A–D</strong>, in boxes 19–24 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>List of People</strong></p>
+                    <p>A Hans Naarding</p>
+                    <p>B Randolph Rose</p>
+                    <p>C David Pemberton</p>
+                    <p>D Nick Mooney</p>
+                    
+                    <p>19 There is no longer any hope of finding a surviving Tasmanian tiger.
+                        <div class="dropzone" data-target="q19"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>20 It would be preferable not to disturb any surviving Tasmanian tigers.
+                        <div class="dropzone" data-target="q20"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>21 Many who claim to have seen Tasmanian tigers are not objective witnesses.
+                        <div class="dropzone" data-target="q21"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>22 Expert estimates of numbers needed to ensure species survival may be inaccurate.
+                        <div class="dropzone" data-target="q22"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>23 There is a great deal of international interest in Tasmanian tiger stories.
+                        <div class="dropzone" data-target="q23"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>24 Some fresh evidence provided by a visitor to Tasmania seems credible.
+                        <div class="dropzone" data-target="q24"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 25 and 26</h3>
+                <p>Choose the correct letter, <strong>A, B, C or D</strong>.</p>
+                <p>Write the correct letter in boxes 25 and 26 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>25 Has Naarding's sighting of a Tasmanian tiger resulted in
+                        <div>
+                            <label><input type="radio" name="q25" value="A"> A the capture of the tiger.</label><br>
+                            <label><input type="radio" name="q25" value="B"> B an extensive follow-up.</label><br>
+                            <label><input type="radio" name="q25" value="C"> C many other sightings.</label><br>
+                            <label><input type="radio" name="q25" value="D"> D the death of the tiger.</label>
+                        </div>
+                    </p>
+                    <p>26 The example of the coelacanth is used to show that
+                        <div>
+                            <label><input type="radio" name="q26" value="A"> A new animal species are still evolving.</label><br>
+                            <label><input type="radio" name="q26" value="B"> B animals can possess surprising physical characteristics.</label><br>
+                            <label><input type="radio" name="q26" value="C"> C species of sea animals can be saved from extinction.</label><br>
+                            <label><input type="radio" name="q26" value="D"> D opinions regarding the extinction of animal species can be mistaken.</label>
+                        </div>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions3">
+                <h3>Questions 27–32</h3>
+                <p>Choose the correct letter, <strong>A, B, C or D</strong>.</p>
+                <p>Write the correct letter in boxes 27–32 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>27 What are we told about Daniel Everett in the first paragraph?
+                        <div>
+                            <label><input type="radio" name="q27" value="A"> A He has lived among the Pirahā since 1977.</label><br>
+                            <label><input type="radio" name="q27" value="B"> B It took him seven years to learn the Pirahā language.</label><br>
+                            <label><input type="radio" name="q27" value="C"> C No one would publish his research for three decades.</label><br>
+                            <label><input type="radio" name="q27" value="D"> D Studying the Pirahā language is the focus of his work.</label>
+                        </div>
+                    </p>
+                    <p>28 Which of the following is the best summary of the second paragraph?
+                        <div>
+                            <label><input type="radio" name="q28" value="A"> A Humans are the only species to be linguistically creative.</label><br>
+                            <label><input type="radio" name="q28" value="B"> B Humans, bees, birds and whales share a characteristic.</label><br>
+                            <label><input type="radio" name="q28" value="C"> C Human language is not fully understood by scientists.</label><br>
+                            <label><input type="radio" name="q28" value="D"> D Humans are the only species to use syntax.</label>
+                        </div>
+                    </p>
+                    <p>29 Why does the writer refer to subordinate clauses?
+                        <div>
+                            <label><input type="radio" name="q29" value="A"> A to criticise the general approach of linguistics</label><br>
+                            <label><input type="radio" name="q29" value="B"> B to compare two features of the Pirahā language</label><br>
+                            <label><input type="radio" name="q29" value="C"> C to explain why the Pirahā language is difficult to learn</label><br>
+                            <label><input type="radio" name="q29" value="D"> D to exemplify an unusual feature of the Pirahā language</label>
+                        </div>
+                    </p>
+                    <p>30 What point does the writer make about the work of Whorf?
+                        <div>
+                            <label><input type="radio" name="q30" value="A"> A He thought that numbers were common to all human languages.</label><br>
+                            <label><input type="radio" name="q30" value="B"> B His theory might be supported by Everett's research.</label><br>
+                            <label><input type="radio" name="q30" value="C"> C His research enabled him to find a new life among the Pirahā.</label><br>
+                            <label><input type="radio" name="q30" value="D"> D He predicted that people like the Pirahā would never be found.</label>
+                        </div>
+                    </p>
+                    <p>31 The writer refers to the Warlpiri people in order to
+                        <div>
+                            <label><input type="radio" name="q31" value="A"> A suggest that the Pirahā be taught to count in English.</label><br>
+                            <label><input type="radio" name="q31" value="B"> B show how tribal peoples learn a foreign language.</label><br>
+                            <label><input type="radio" name="q31" value="C"> C compare counting in English and Portuguese.</label><br>
+                            <label><input type="radio" name="q31" value="D"> D illustrate the uniqueness of the Pirahā.</label>
+                        </div>
+                    </p>
+                    <p>32 What is Everett's point about the Pirahā's intellectual capacities?
+                        <div>
+                            <label><input type="radio" name="q32" value="A"> A Pirahā students have not graduated from universities.</label><br>
+                            <label><input type="radio" name="q32" value="B"> B He does not want people to criticise their intelligence.</label><br>
+                            <label><input type="radio" name="q32" value="C"> C Their isolation makes it difficult to evaluate their intelligence.</label><br>
+                            <label><input type="radio" name="q32" value="D"> D He believes their language is more complex than their neighbours'.</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 33–36</h3>
+                <p>Complete the summary using the list of words, <strong>A–I</strong>, below.</p>
+                <p>Write the correct letter, <strong>A–I</strong>, in boxes 33–36 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>Everett's explanation</strong></p>
+                    <p>Everett believes that a group's language is a product of their 
+                    <div class="dropzone" data-target="q33"><span class="droplabel">Drag answer here</span></div> and thus language is infinitely varied. During the time he spent living among them, he observed that the Pirahā only place value on the 
+                    <div class="dropzone" data-target="q34"><span class="droplabel">Drag answer here</span></div> and have no 
+                    <div class="dropzone" data-target="q35"><span class="droplabel">Drag answer here</span></div> to describe completed events. Similarly, the types of names they use reflect the fact that they do not celebrate 
+                    <div class="dropzone" data-target="q36"><span class="droplabel">Drag answer here</span></div>.</p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A present</div>
+                        <div class="card" draggable="true" data-value="B">B past</div>
+                        <div class="card" draggable="true" data-value="C">C time</div>
+                        <div class="card" draggable="true" data-value="D">D future</div>
+                        <div class="card" draggable="true" data-value="E">E culture</div>
+                        <div class="card" draggable="true" data-value="F">F grammar</div>
+                        <div class="card" draggable="true" data-value="G">G art</div>
+                        <div class="card" draggable="true" data-value="H">H individuality</div>
+                        <div class="card" draggable="true" data-value="I">I children</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 37–40</h3>
+                <p>Do the following statements agree with the views of the writer in Reading Passage 3?</p>
+                <p>In boxes 37–40 on your answer sheet, write</p>
+                <ul>
+                    <li><strong>YES</strong> if the statement agrees with the views of the writer</li>
+                    <li><strong>NO</strong> if the statement contradicts the views of the writer</li>
+                    <li><strong>NOT GIVEN</strong> if it is impossible to say what the writer thinks about this</li>
+                </ul>
+                
+                <div class="group">
+                    <p>37 Everett was surprised by the way his research was greeted.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q37" value="YES"> YES</label>
+                            <label><input type="radio" name="q37" value="NO"> NO</label>
+                            <label><input type="radio" name="q37" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>38 Chomsky has been critical of Everett's research methodology.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q38" value="YES"> YES</label>
+                            <label><input type="radio" name="q38" value="NO"> NO</label>
+                            <label><input type="radio" name="q38" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>39 If 'recursion' as a universal concept is disproved, Chomsky's ideas about language would be wrong.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q39" value="YES"> YES</label>
+                            <label><input type="radio" name="q39" value="NO"> NO</label>
+                            <label><input type="radio" name="q39" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>40 The Pirahā will benefit from their new-found status among academics.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q40" value="YES"> YES</label>
+                            <label><input type="radio" name="q40" value="NO"> NO</label>
+                            <label><input type="radio" name="q40" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+            </div>
+            
+            <div style="display:flex;gap:8px;margin:20px 0;">
+                <button class="btn btn-primary" onclick="submitAnswers()">Submit Answers</button>
+                <button class="btn" onclick="resetAnswers()">Reset Answers</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="practice-nav">
+        <span class="section-title">Passage 1:</span>
+        <div class="q-item" onclick="scrollToQuestion('q1')">1</div>
+        <div class="q-item" onclick="scrollToQuestion('q2')">2</div>
+        <div class="q-item" onclick="scrollToQuestion('q3')">3</div>
+        <div class="q-item" onclick="scrollToQuestion('q4')">4</div>
+        <div class="q-item" onclick="scrollToQuestion('q5')">5</div>
+        <div class="q-item" onclick="scrollToQuestion('q6')">6</div>
+        <div class="q-item" onclick="scrollToQuestion('q7')">7</div>
+        <div class="q-item" onclick="scrollToQuestion('q8')">8</div>
+        <div class="q-item" onclick="scrollToQuestion('q9')">9</div>
+        <div class="q-item" onclick="scrollToQuestion('q10')">10</div>
+        <div class="q-item" onclick="scrollToQuestion('q11')">11</div>
+        <div class="q-item" onclick="scrollToQuestion('q12')">12</div>
+        <div class="q-item" onclick="scrollToQuestion('q13')">13</div>
+        
+        <span class="section-title">Passage 2:</span>
+        <div class="q-item" onclick="scrollToQuestion('q14')">14</div>
+        <div class="q-item" onclick="scrollToQuestion('q15')">15</div>
+        <div class="q-item" onclick="scrollToQuestion('q16')">16</div>
+        <div class="q-item" onclick="scrollToQuestion('q17')">17</div>
+        <div class="q-item" onclick="scrollToQuestion('q18')">18</div>
+        <div class="q-item" onclick="scrollToQuestion('q19')">19</div>
+        <div class="q-item" onclick="scrollToQuestion('q20')">20</div>
+        <div class="q-item" onclick="scrollToQuestion('q21')">21</div>
+        <div class="q-item" onclick="scrollToQuestion('q22')">22</div>
+        <div class="q-item" onclick="scrollToQuestion('q23')">23</div>
+        <div class="q-item" onclick="scrollToQuestion('q24')">24</div>
+        <div class="q-item" onclick="scrollToQuestion('q25')">25</div>
+        <div class="q-item" onclick="scrollToQuestion('q26')">26</div>
+        
+        <span class="section-title">Passage 3:</span>
+        <div class="q-item" onclick="scrollToQuestion('q27')">27</div>
+        <div class="q-item" onclick="scrollToQuestion('q28')">28</div>
+        <div class="q-item" onclick="scrollToQuestion('q29')">29</div>
+        <div class="q-item" onclick="scrollToQuestion('q30')">30</div>
+        <div class="q-item" onclick="scrollToQuestion('q31')">31</div>
+        <div class="q-item" onclick="scrollToQuestion('q32')">32</div>
+        <div class="q-item" onclick="scrollToQuestion('q33')">33</div>
+        <div class="q-item" onclick="scrollToQuestion('q34')">34</div>
+        <div class="q-item" onclick="scrollToQuestion('q35')">35</div>
+        <div class="q-item" onclick="scrollToQuestion('q36')">36</div>
+        <div class="q-item" onclick="scrollToQuestion('q37')">37</div>
+        <div class="q-item" onclick="scrollToQuestion('q38')">38</div>
+        <div class="q-item" onclick="scrollToQuestion('q39')">39</div>
+        <div class="q-item" onclick="scrollToQuestion('q40')">40</div>
+    </div>
+
+    <div id="selbar">
+        <button id="highlightBtn">高亮</button>
+        <button id="removeHighlightBtn">取消高亮</button>
+    </div>
+
+    <script>
+        // Timer functionality (60 minutes countdown)
+        let totalTime = 60 * 60; // 60 minutes in seconds
+        const timerEl = document.getElementById('timer');
+        
+        function updateTimer() {
+            if (totalTime <= 0) {
+                clearInterval(timerInterval);
+                alert("Time is up! Submitting your answers.");
+                submitAnswers();
+                return;
+            }
+            
+            const minutes = Math.floor(totalTime / 60);
+            const seconds = totalTime % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            totalTime--;
+        }
+        
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call
+        
+        // Tab switching functionality with synchronization
+        function switchTabs(clickedTab, isRightTab = false) {
+            const tabId = clickedTab.getAttribute('data-tab');
+            
+            if (isRightTab) {
+                // If right tab was clicked, also switch the left tab
+                const passageId = clickedTab.getAttribute('data-passage');
+                const leftTab = document.querySelector(`.tab[data-tab="${passageId}"]`);
+                if (leftTab) {
+                    // Remove active class from all left tabs and contents
+                    document.querySelectorAll('#left .tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('#left .tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to corresponding left tab and content
+                    leftTab.classList.add('active');
+                    document.getElementById(passageId).classList.add('active');
+                }
+            }
+            
+            // Remove active class from all tabs and contents in the current container
+            const container = clickedTab.closest('.tab-container');
+            container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            container.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            clickedTab.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Set up tab click events
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const isRightTab = this.closest('#right') !== null;
+                switchTabs(this, isRightTab);
+            });
+        });
+        
+        // Drag and drop functionality
+        const cards = document.querySelectorAll('.card');
+        const dropzones = document.querySelectorAll('.dropzone');
+        
+        cards.forEach(card => {
+            card.addEventListener('dragstart', () => {
+                card.classList.add('dragging');
+            });
+            
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+            });
+        });
+        
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                zone.classList.add('over');
+            });
+            
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('over');
+            });
+            
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('over');
+                
+                const card = document.querySelector('.card.dragging');
+                if (card) {
+                    // Clear existing content
+                    zone.innerHTML = '';
+                    
+                    // Create a clone of the card for the dropzone
+                    const clone = card.cloneNode(true);
+                    clone.setAttribute('draggable', 'false');
+                    clone.classList.remove('dragging');
+                    zone.appendChild(clone);
+                    
+                    // Mark the question as answered in the navigation
+                    const questionId = zone.getAttribute('data-target');
+                    const navItem = document.querySelector(`.q-item[onclick="scrollToQuestion('${questionId}')"]`);
+                    if (navItem) {
+                        navItem.classList.add('answered');
+                    }
+                }
+            });
+        });
+        
+        // Function to scroll to a specific question
+        function scrollToQuestion(questionId) {
+            const questionElement = document.querySelector(`[data-target="${questionId}"]`);
+            if (questionElement) {
+                questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Highlight the question briefly
+                questionElement.style.backgroundColor = '#fff3a3';
+                setTimeout(() => {
+                    questionElement.style.backgroundColor = '';
+                }, 1000);
+            }
+        }
+        
+        // Function to submit answers
+        function submitAnswers() {
+            alert("Answers submitted! This would normally be sent to a server for grading.");
+            // In a real implementation, this would collect all answers and send them for evaluation
+        }
+        
+        // Function to reset answers
+        function resetAnswers() {
+            if (confirm("Are you sure you want to reset all answers?")) {
+                // Clear all dropzones
+                document.querySelectorAll('.dropzone').forEach(zone => {
+                    zone.innerHTML = '<span class="droplabel">Drag answer here</span>';
+                });
+                
+                // Clear all radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.checked = false;
+                });
+                
+                // Clear all text inputs
+                document.querySelectorAll('input[type="text"]').forEach(input => {
+                    input.value = '';
+                });
+                
+                // Remove answered status from navigation
+                document.querySelectorAll('.q-item.answered').forEach(item => {
+                    item.classList.remove('answered');
+                });
+            }
+        }
+        
+        // Divider dragging functionality
+        const divider = document.getElementById('divider');
+        const leftPane = document.getElementById('left');
+        const rightPane = document.getElementById('right');
+        let isResizing = false;
+        
+        divider.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            document.body.style.cursor = 'ew-resize';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const containerRect = document.querySelector('.shell').getBoundingClientRect();
+            const xPosition = e.clientX - containerRect.left;
+            
+            // Set minimum widths for both panes
+            const leftWidth = Math.max(280, Math.min(containerRect.width - 320, xPosition));
+            const rightWidth = containerRect.width - leftWidth - 8; // 8px for the divider
+            
+            leftPane.style.flex = `0 0 ${leftWidth}px`;
+            rightPane.style.flex = `1 1 ${rightWidth}px`;
+        });
+        
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+            document.body.style.cursor = '';
+        });
+
+        // Highlight functionality
+        const selbar = document.getElementById('selbar');
+        const highlightBtn = document.getElementById('highlightBtn');
+        const removeHighlightBtn = document.getElementById('removeHighlightBtn');
+        let currentSelection = null;
+
+        // Listen for text selection
+        document.addEventListener('mouseup', function(e) {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            
+            if (selectedText.length > 0 && !e.target.closest('#selbar')) {
+                currentSelection = selection;
+                
+                // Position the toolbar near the selection
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                selbar.style.display = 'flex';
+                selbar.style.top = (rect.top + window.scrollY - 40) + 'px';
+                selbar.style.left = (rect.left + window.scrollX) + 'px';
+            } else if (!e.target.closest('#selbar')) {
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Highlight button functionality
+        highlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                const selectedText = range.toString();
+                
+                // Create highlight span
+                const span = document.createElement('span');
+                span.className = 'hl';
+                span.textContent = selectedText;
+                
+                // Replace selected text with highlighted span
+                range.deleteContents();
+                range.insertNode(span);
+                
+                // Clear selection and hide toolbar
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Remove highlight button functionality
+        removeHighlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                
+                // Find if the selection contains highlighted text
+                let parent = range.startContainer.parentNode;
+                while (parent && parent !== document.body) {
+                    if (parent.classList && parent.classList.contains('hl')) {
+                        // Replace the highlighted span with just its text content
+                        const text = document.createTextNode(parent.textContent);
+                        parent.parentNode.replaceChild(text, parent);
+                        
+                        // Clear selection and hide toolbar
+                        window.getSelection().removeAllRanges();
+                        selbar.style.display = 'none';
+                        return;
+                    }
+                    parent = parent.parentNode;
+                }
+                
+                // If no highlight found, just clear selection
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Hide toolbar when clicking elsewhere
+        document.addEventListener('mousedown', function(e) {
+            if (!e.target.closest('#selbar') && selbar.style.display === 'flex') {
+                selbar.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

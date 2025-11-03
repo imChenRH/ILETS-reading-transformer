@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Mock Test</title>
+    <style>
+        :root {
+            --line: #e5e7eb;
+            --bg: #f6f7fb;
+            --panel: #fff;
+            --accent: #3b82f6;
+            --muted: #6b7280;
+            --shadow: 0 6px 20px rgba(0,0,0,.12);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .shell {
+            display: flex;
+            height: calc(100vh - 60px);
+            width: 100%;
+        }
+        .pane {
+            background: var(--panel);
+            overflow: auto;
+            padding: 20px;
+        }
+        #left {
+            flex: 0 0 50%;
+            min-width: 280px;
+        }
+        #right {
+            flex: 1 1 auto;
+            min-width: 320px;
+            background: #fbfbff;
+            border-left: 1px solid var(--line);
+        }
+        #divider {
+            flex: 0 0 8px;
+            background: linear-gradient(90deg, #e5e7eb, #d1d5db);
+            cursor: ew-resize;
+            position: relative;
+            z-index: 5;
+            user-select: none;
+        }
+        h2, h3, h4 {
+            margin: 0 0 10px;
+        }
+        p {
+            margin: 0 0 12px;
+            line-height: 1.6;
+        }
+        .group {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+        .timer-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-height: 40px;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: auto;
+            min-width: 120px;
+            max-width: 200px;
+            vertical-align: middle;
+            margin: 5px 0;
+        }
+        .droplabel {
+            color: #64748b;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cardpool {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            cursor: grab;
+            box-shadow: 0 1px 0 rgba(0,0,0,.03);
+            white-space: nowrap;
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        .btn {
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: #3b82f6;
+        }
+        .hl {
+            background: #fff3a3;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,.05);
+            cursor: pointer;
+        }
+        .hl:hover {
+            filter: brightness(0.98);
+        }
+        #selbar {
+            position: absolute;
+            display: none;
+            z-index: 2000;
+            background: #111;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: var(--shadow);
+            font-size: 13px;
+            gap: 6px;
+            align-items: center;
+        }
+        #selbar button {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.25);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #selbar button:hover {
+            border-color: #fff;
+        }
+        .practice-nav {
+            background: #fff;
+            border-top: 2px solid var(--line);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 4000;
+            height: 60px;
+            overflow-x: auto;
+        }
+        .practice-nav .q-item {
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 36px;
+            text-align: center;
+        }
+        .practice-nav .q-item:hover {
+            background: #f1f5f9;
+            border-color: var(--accent);
+        }
+        .practice-nav .q-item.answered {
+            background: #e0e7ff;
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .practice-nav .q-item.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .section-title {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+        .radio-group {
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .radio-group label {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        Time remaining: <span id="timer">60:00</span>
+    </div>
+
+    <div class="shell">
+        <section class="pane" id="left">
+            <div class="tab-container">
+                <div class="tab active" data-tab="passage1">Passage 1</div>
+                <div class="tab" data-tab="passage2">Passage 2</div>
+                <div class="tab" data-tab="passage3">Passage 3</div>
+            </div>
+            
+            <div class="tab-content active" id="passage1">
+                <h2>The Tuatara of New Zealand</h2>
+                <p><strong>A</strong> Tuatara are lizard-like reptiles found only in New Zealand. They are representative of ancient life forms. Tuatara are the sole surviving members of an ancient lineage of reptiles called Sphenodontia, which is over 250 million years old. Because tuatara still resemble fossils of reptiles that lived during the age of dinosaurs, they are often called "living fossils". Now only two species survive in New Zealand. One is the Brothers Island tuatara which, until recent re-introductions to sanctuaries (safe places for wildlife), survived only on North Brother Island. The other species is the common tuatara, which inhabits many other offshore islands. Although the two species appear similar, they have genetic differences. Tuatara bones have been found in many parts of New Zealand; where dated, they are usually a few hundred to 5,000 years old. It is not known whether these bones belong to the two living species or to others that are now extinct.</p>
+                
+                <p><strong>B</strong> Many anatomical features distinguish tuatara from other living reptiles—for example, they have a distinctive pattern of openings in the skull, a unique type of haemoglobin in the blood, and males have no external reproductive organ. Adults range from 30 to 75 centimetres in length and weigh between 250 and 1,200 grams. Males are larger than females and have more developed spines in the crest along the neck, back and tail.</p>
+                
+                <p><strong>C</strong> The male tuatara courts the female by approaching her with a proud walk. Tuatara mate in late summer, and the female usually lays 6–10 eggs the following spring in a shallow ground-level nest. She may guard the nest for a few nights, then return to her underground burrow. The eggs incubate for about a year, so hatchlings emerge just as new eggs are being laid the next season. Evidence indicates that the sex of hatchlings is determined by both genetic and environmental factors: warmer eggs are more likely to produce males, while cooler eggs tend to produce females. The hatchlings receive no parental care and must find their own food.</p>
+                
+                <p><strong>D</strong> Tuatara live a long time, reaching reproductive maturity at about 15 years and breeding for many decades. Their maximum lifespan is uncertain, but many individuals have lived to 80 years while still looking vigorous and healthy. Tuatara live in underground burrows and are more active at night, though they bask in the sun by day. Both sexes are territorial; males aggressively defend their range by posturing and, if necessary, fighting. Their teeth are their chief weapons, and a bite can cause serious injury. Tuatara are carnivorous, feeding on invertebrates, lizards and the baby seabirds with which they often share burrows.</p>
+                
+                <p><strong>E</strong> Tuatara were once widespread and abundant on the New Zealand mainland, but when Polynesian settlers arrived (about 1250–1300 AD) they brought Pacific rats, which killed tuatara. By the time of European settlement in the 1840s, tuatara were almost extinct on the mainland. Some islands provided temporary refuges, but these too were eventually invaded by rats and other mammalian predators.</p>
+                
+                <p><strong>F</strong> Gradually tuatara became confined to 32 near-shore islands. Many of these islands were tiny, some only one hectare in size. A few, such as the Poor Knights Islands off the north-eastern coast of New Zealand and some islands in Cook Strait, still support the common tuatara. The Brothers Island tuatara survived only on North Brother Island, but new populations have been created on Titi Island in the Marlborough Sounds and on Somes Island in Wellington Harbour.</p>
+                
+                <p><strong>G</strong> Tuatara can live in remarkably dense populations. Most tuatara islands support 50–100 individuals per hectare, so an island of just 10 hectares may hold hundreds. Larger islands rich in seabirds and invertebrates—key tuatara prey—may support even greater densities. The largest population is on Stephens Island, where numbers reach up to 2,500 per hectare in some areas, with a total of at least 30,000 individuals. Overall, the tuatara population across all islands is estimated at 50,000–100,000.</p>
+                
+                <p><strong>H</strong> Legal protection was granted to tuatara and their islands in 1895, yet the reptiles continued to decline. Since then, active conservation management has reversed the trend, and new populations have been established on predator-free islands. In the mid-1980s the New Zealand Wildlife Service (now the Department of Conservation) developed methods to eradicate rats from islands. Rats have since been removed from almost all tuatara islands, making these habitats safe for many threatened native species. Conservationists have also collected eggs for incubation, bred tuatara in captivity, and relocated them to rat-free islands off the Northland coast and to Stephens Island in Cook Strait—areas never invaded by rats and largely free of other mammalian predators. Two additional predator-free islands now host tuatara, raising the total to 37. Many more introductions are planned for islands and mainland reserves cleared of predators.</p>
+            </div>
+            
+            <div class="tab-content" id="passage2">
+                <h2>Investment in Shares vs. Investment in Other Assets</h2>
+                <p><strong>A</strong> It all began in 1958 with a phone call from Louis Engel, a banker at Merrill Lynch, a US-based financial management company, who wanted to know how investors in shares had performed relative to investors in other assets such as low-risk investments with guaranteed returns. 'I don't know, but if you gave me $50,000 I could find out,' replied Jim Lorie, a dean at the University of Chicago's business school. Louis Engel soon agreed to provide the funding, and more. The result, in 1960, was the launch of the University's Center for Research in Security Prices. Half a century later CRSP (pronounced 'crisp') data are everywhere. They provided the foundation of at least one-third of all empirical research in finance over the past 40 years, according to a presentation at a symposium held this month. They probably influenced much of the rest.</p>
+                
+                <p><strong>B</strong> Getting the CRSP data together was a tough process in what were then the early days of computers. Up to three million pieces of information on all the shares traded on the New York Stock Exchange between 1926 and 1960 were transferred from paper in the exchange's archive to magnetic tape. A lot of time was spent adjusting prices to take account of complexities in the market. Lorie and his co-researcher, Lawrence Fisher, chose January 1926 as the start date because they wanted the data to span at least one complete business cycle from boom to bust, or vice versa.</p>
+                
+                <p><strong>C</strong> When these two economists published the first study based on the CRSP data in 1964, they reported that the annual compound return on the shares over the entire 35-year period was (depending on the tax status of the investor) between 6.8% and 9%. Acknowledging that good data on the performance of other assets were not available, the study claimed that the rate of return on shares was 'substantially higher than for alternative investment media', providing the first empirical support for the still-popular idea that shares outperform other investments over the long run. Fisher and Lorie also observed that many people chose to invest in assets with lower returns because they were cautious by nature and were concerned about the risk of loss inherent in investing in the stock market. Economists today call the amount of extra return that investors need to compensate them for this additional risk the 'equity risk premium', although they differ greatly on how big investors should expect it to be.</p>
+                
+                <p><strong>D</strong> After Fisher and Lorie's 1964 report there was no stopping the love affair between financial economists and the data that studying these numbers produced. Myron Scholes, now a Nobel laureate, became director of CRSP in 1974, and ensured the database was both kept up to date and made readily available to academic economists everywhere. In turn, this resource became ever more useful as computing power became more affordable. The CRSP database has since been expanded to include a full range of different types of investments. It has been replicated across the world.</p>
+                
+                <p><strong>E</strong> One of the earliest uses of CRSP data was by Eugene Fama, an economist at the University of Chicago, to support his 'efficient-market hypothesis'. He found that over a lengthy period share prices tended to rise and fall randomly, without showing much of a pattern. Markets are efficient, he said, because all relevant information is reflected in share prices at any given moment, meaning there are no predictable movements in prices for smart investors to exploit. Fama did concede that there was some evidence of temporary short-term predictability in share prices, however. That stipulation has resulted in a vast number of papers based on discovering such 'variations' through data mining. In theory, such anomalies are potentially lucrative for investors, but as believers in efficient markets observe with satisfaction, it seems that no sooner are such anomalies discovered and reported in journals than they typically disappear.</p>
+                
+                <p><strong>F</strong> However, the sheer volume of material means that financial economists are becoming increasingly specialised, which may have costs as well as benefits. Some economists worry that much of this statistical analysis is creating some interference that drowns out serious thinking about the big questions, such as why the financial system nearly collapsed in 2008 and how a repeat can be avoided. Robert Shiller, an economist at Yale University and a long-time sceptic about the efficient-market hypothesis, feels that with the creation of the CRSP database economists suddenly believed that finance had become scientific. According to Shiller, conventional ideas about investing and financial markets – and about their vulnerabilities – seemed out of date to the new empiricists. He worries that academic departments are full of economists who are so specialised in data analysis that they fail to see and understand the whole. They get a sense of authority from work that contains lots of data. To have seen the 2008 global financial crisis coming, he argues, it would have been better to 'go back to old-fashioned readings of history, studying institutions and laws. We should have talked to grandpa.'</p>
+                
+                <p><strong>G</strong> Scholes responds to this criticism with the contention that the usefulness of this empirical analysis is proven by the fact that demand for it continues to grow. At CRSP's 50th-anniversary symposium, plans were unveiled to publish indicators on an expanding range of investments, as well as for growth and value stocks. These indicators, CRSP claims, will be more academically rigorous and cheaper than existing ones. For believers in the efficiency of markets, that should be enough to ensure CRSP's continuing success.</p>
+            </div>
+            
+            <div class="tab-content" id="passage3">
+                <h2>The Art of Deception</h2>
+                <p>Forty years ago, the research psychologist Dr Paul Ekman was addressing a group of young psychiatrists in training when he was asked a question, the answer to which has kept him busy ever since. Suppose the group wanted to know whether a particular patient who swears they are telling the truth really is. They look and sound sincere. So here is the question: is there any way you can be sure they are telling the truth? Ekman did not know the answer then, but he wanted to find out.</p>
+                
+                <p>As part of his research, he had already filmed a series of 12-minute interviews with psychiatric patients. In a subsequent conversation, one of the patients told him that she had lied to him. So Ekman sat and looked at the film but saw nothing noteworthy. Then he slowed it down and looked again. Then he slowed it down even further. And suddenly, there, across just two frames of the film, he saw it: an intense expression of extreme anguish. It lasted less than a fifteenth of a second, but once he had spotted the first expression, he soon found three more examples in that same interview. He termed his discovery "micro-expressions": very rapid, intense demonstrations of emotion that the subject intended to conceal.</p>
+                
+                <p>Over the course of the next four decades, Ekman successfully demonstrated a proposition first suggested by Charles Darwin: that the ways in which we express rage, disgust, contempt, fear, surprise, happiness and sadness are universal. The facial muscles triggered by those seven basic emotions are, he has shown, essentially standard, regardless of language and culture, from the US to Japan and Brazil to Papua New Guinea. What is more, expressions of emotion are impossible to suppress and, particularly when we are lying, micro-expressions of powerfully felt emotions will inevitably flit across our face before we get the chance to stop them.</p>
+                
+                <p>Fortunately for liars, most people will fail to spot these fleeting signals of inner torment. Of the 15 000 Ekman has tested, only 50 people, whom he calls "naturals", have been able to do it. But given a little more training, Ekman says, almost anyone can develop the skill. He should know: since these tests were completed in the mid-1980s and the first publication of his research, he has been called in by the FBI and CIA (among countless more law-enforcement and other agencies around the world), not just to solve cases, but to teach them how to use his technique for themselves. He has held workshops for defence and prosecution lawyers, health professionals, even jealous spouses, all of them wanting to know exactly when someone is not being 100 percent candid.</p>
+                
+                <p>Most recently, Ekman's research has resulted in a new television series about the exploits of the fictional Dr Cal Lightman, a scientist who studies involuntary body language to discover not only if you are lying, but why you might have been motivated to do so. According to the publicity blurb, Lightman is a human lie detector, even more accurate than a polygraph test. Ekman concedes he was sceptical when the producer first approached him with the idea of turning his life's work into a TV series, and initially would have stopped the project if he could. In particular, he was fearful that the show would exaggerate the effectiveness of his techniques and create the quite inaccurate impression among audiences that criminals could no longer hope to get away with lying. In the worst-case scenario, he was concerned about unfair convictions—that one day someone not properly trained in his techniques might be sitting on a jury and wrongly find someone guilty of a crime simply on the basis of a television programme.</p>
+                
+                <p>In the end, though, he was won over because the series is unusual in several respects. It is the first time, as far as Ekman is aware, that a commercial TV drama has been based on the work of just one scientist. That scientist is also deeply involved in the project, talking through plot ideas and checking five successive drafts of each script to ensure details are correct. He was also impressed with the producer's manifestly serious and well-intentioned reasons for making the programme. Now that the first series has been completed, he believes probably 80–90 per cent of the show is based on fact and that's good enough for what it is. After all, it is a drama, not a documentary.</p>
+                
+                <p>Ekman, incidentally, professes to have been a terrible liar ever since he was a small boy and observes that the ability to detect a lie and the ability to lie successfully are completely unrelated. He has been asked by people running for high office if he could teach them to become more credible with the public but has always refused to use his skills in that way on ethical grounds. He also insists that there are various kinds of lies. A "true" lie can be identified by having two essential characteristics: there must be a deliberate intent to mislead and there must be no notification that this is what is occurring. This means that an actor or a poker player isn't a true liar. They are supposed to deceive you—it's part of the game—and the same is true of flattery. He prefers to focus on the kinds of lies where the liar would be in grave trouble if they were found out, and where the target would feel properly aggrieved if they knew.</p>
+            </div>
+        </section>
+
+        <div id="divider" title="Drag to resize"></div>
+
+        <section class="pane" id="right">
+            <div class="tab-container">
+                <div class="tab active" data-tab="questions1" data-passage="passage1">Questions 1-13</div>
+                <div class="tab" data-tab="questions2" data-passage="passage2">Questions 14-26</div>
+                <div class="tab" data-tab="questions3" data-passage="passage3">Questions 27-40</div>
+            </div>
+            
+            <div class="tab-content active" id="questions1">
+                <h3>Questions 1–6</h3>
+                <p>Do the following statements agree with the information given in Reading Passage 1?</p>
+                <p>In boxes 1–6 on your answer sheet, write</p>
+                <ul>
+                    <li><strong>TRUE</strong> if the statement agrees with the information</li>
+                    <li><strong>FALSE</strong> if the statement contradicts the information</li>
+                    <li><strong>NOT GIVEN</strong> if there is no information on this</li>
+                </ul>
+                
+                <div class="group">
+                    <p><strong>1</strong> The two living species of tuatara look alike.
+                        <div class="radio-group">
+                            <label><input type="radio" name="q1" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q1" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q1" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p><strong>2</strong> Many tuatara bones that have been discovered are millions of years old.
+                        <div class="radio-group">
+                            <label><input type="radio" name="q2" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q2" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q2" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p><strong>3</strong> The tails of male tuatara are a different colour from those of female tuatara.
+                        <div class="radio-group">
+                            <label><input type="radio" name="q3" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q3" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q3" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p><strong>4</strong> The female tuatara lays her eggs in a burrow.
+                        <div class="radio-group">
+                            <label><input type="radio" name="q4" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q4" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q4" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p><strong>5</strong> There are more female hatchlings than male hatchlings.
+                        <div class="radio-group">
+                            <label><input type="radio" name="q5" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q5" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q5" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p><strong>6</strong> Once they have hatched, young tuatara have to look after themselves.
+                        <div class="radio-group">
+                            <label><input type="radio" name="q6" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q6" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q6" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 7–13</h3>
+                <p>Complete the notes below.</p>
+                <p>Choose <strong>ONE WORD AND/OR A NUMBER</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 7–13 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>The tuatara</strong></p>
+                    <p><strong>Lifespan</strong></p>
+                    <p>- maximum lifespan unknown</p>
+                    <p>- many live to at least <strong>7</strong> <input type="text" id="q7" style="width: 100px;"> years</p>
+                    
+                    <p><strong>Behaviour</strong></p>
+                    <p>- attack other creatures with their <strong>8</strong> <input type="text" id="q8" style="width: 100px;"></p>
+                    <p>- eat young <strong>9</strong> <input type="text" id="q9" style="width: 100px;"> that share the same burrows, as well as invertebrates and reptiles</p>
+                    
+                    <p><strong>Population</strong></p>
+                    <p>- abundant until rats were introduced by <strong>10</strong> <input type="text" id="q10" style="width: 100px;"> people</p>
+                    <p>- by the 1840s, hardly any tuatara were found on the <strong>11</strong> <input type="text" id="q11" style="width: 100px;"></p>
+                    <p>- islands off the north-eastern coast and in Cook Strait are now home to the <strong>12</strong> <input type="text" id="q12" style="width: 100px;"> tuatara</p>
+                    <p>- Brothers Island tuatara found only on North Brother Island</p>
+                    <p>- density of tuatara on Stephens Island is up to <strong>13</strong> <input type="text" id="q13" style="width: 100px;"> per hectare</p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions2">
+                <h3>Questions 14–20</h3>
+                <p>Reading Passage 2 has seven paragraphs, <strong>A–G</strong>.</p>
+                <p>Choose the correct heading for each paragraph from the list of headings below.</p>
+                <p>Write the correct number, <strong>i–viii</strong>, in boxes 14–20 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>List of Headings</strong></p>
+                    <p>i Technological developments improve CRSP data</p>
+                    <p>ii Initial findings of the CRSP project</p>
+                    <p>iii A request and a far-reaching result</p>
+                    <p>iv Difficulties in collecting CRSP data</p>
+                    <p>v What the future holds</p>
+                    <p>vi Too much data for people to have an overall understanding</p>
+                    <p>vii Other university departments which depend on CRSP</p>
+                    <p>viii CRSP data not always being a useful basis for investment</p>
+                    
+                    <p><strong>14</strong> Paragraph A
+                        <div class="dropzone" data-target="q14"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p><strong>15</strong> Paragraph B
+                        <div class="dropzone" data-target="q15"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p><strong>16</strong> Paragraph C
+                        <div class="dropzone" data-target="q16"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p><strong>17</strong> Paragraph D
+                        <div class="dropzone" data-target="q17"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p><strong>18</strong> Paragraph E
+                        <div class="dropzone" data-target="q18"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p><strong>19</strong> Paragraph F
+                        <div class="dropzone" data-target="q19"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p><strong>20</strong> Paragraph G
+                        <div class="dropzone" data-target="q20"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="i">i</div>
+                        <div class="card" draggable="true" data-value="ii">ii</div>
+                        <div class="card" draggable="true" data-value="iii">iii</div>
+                        <div class="card" draggable="true" data-value="iv">iv</div>
+                        <div class="card" draggable="true" data-value="v">v</div>
+                        <div class="card" draggable="true" data-value="vi">vi</div>
+                        <div class="card" draggable="true" data-value="vii">vii</div>
+                        <div class="card" draggable="true" data-value="viii">viii</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 21–23</h3>
+                <p>Look at the following statements (21–23) and the list of economists below.</p>
+                <p>Match each statement with the correct economist <strong>A, B, C or D</strong>.</p>
+                <p>Write the correct letter in boxes 21–23 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>21</strong> A traditional approach may have helped predict a financial downturn.
+                        <div class="dropzone" data-target="q21"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p><strong>22</strong> Some people invest conservatively and as a result make less money.
+                        <div class="dropzone" data-target="q22"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p><strong>23</strong> It may be possible to forecast share prices but not over the long term.
+                        <div class="dropzone" data-target="q23"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <p><strong>List of Economists</strong></p>
+                    <p>A Fisher and Lorie</p>
+                    <p>B Myron Scholes</p>
+                    <p>C Eugene Fama</p>
+                    <p>D Robert Shiller</p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 24–26</h3>
+                <p>Complete the summary below.</p>
+                <p>Choose <strong>ONE WORD ONLY</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 24–26 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>The beginnings of CRSP</strong></p>
+                    <p>In 1958 a <strong>24</strong> <input type="text" id="q24" style="width: 100px;"> working for a financial management company telephoned Jim Lorie to ask how well investments in shares performed in comparison to investments in low-risk assets. Lorie offered to find out and as a result the University of Chicago's Center for Research in Security Prices (CRSP) was launched. Compiling the CRSP data was difficult because <strong>25</strong> <input type="text" id="q25" style="width: 100px;"> were still being developed and information that had previously been on <strong>26</strong> <input type="text" id="q26" style="width: 100px;"> needed to be put onto magnetic tape.</p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions3">
+                <h3>Questions 27–31</h3>
+                <p>Choose the correct letter, <strong>A, B, C, or D</strong>.</p>
+                <p>Write the correct letter in boxes 27–31 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>27</strong> According to the writer, Ekman became interested in lying after a question from his
+                        <div>
+                            <label><input type="radio" name="q27" value="A"> A peers.</label><br>
+                            <label><input type="radio" name="q27" value="B"> B patients.</label><br>
+                            <label><input type="radio" name="q27" value="C"> C students.</label><br>
+                            <label><input type="radio" name="q27" value="D"> D teachers.</label>
+                        </div>
+                    </p>
+                    <p><strong>28</strong> The writer refers to the 12-minute interviews in order to
+                        <div>
+                            <label><input type="radio" name="q28" value="A"> A illustrate how frequently patients lie.</label><br>
+                            <label><input type="radio" name="q28" value="B"> B describe the origins of Ekman's theories.</label><br>
+                            <label><input type="radio" name="q28" value="C"> C compare Ekman's research to previous studies.</label><br>
+                            <label><input type="radio" name="q28" value="D"> D show how patients' behaviour is affected by filming.</label>
+                        </div>
+                    </p>
+                    <p><strong>29</strong> What is the writer's point in the third paragraph?
+                        <div>
+                            <label><input type="radio" name="q29" value="A"> A Micro-expressions are common to all people.</label><br>
+                            <label><input type="radio" name="q29" value="B"> B Recent research has refuted an old idea.</label><br>
+                            <label><input type="radio" name="q29" value="C"> C With practice we can learn to control our micro-expressions.</label><br>
+                            <label><input type="radio" name="q29" value="D"> D Human society is too complex to allow for generalisations.</label>
+                        </div>
+                    </p>
+                    <p><strong>30</strong> What are we told about Ekman's conclusions from his tests?
+                        <div>
+                            <label><input type="radio" name="q30" value="A"> A It's natural for people to lie.</label><br>
+                            <label><input type="radio" name="q30" value="B"> B Few untrained people can detect lying.</label><br>
+                            <label><input type="radio" name="q30" value="C"> C Most liars suffer from periods of depression.</label><br>
+                            <label><input type="radio" name="q30" value="D"> D All of his subjects were trained to identify micro-expressions.</label>
+                        </div>
+                    </p>
+                    <p><strong>31</strong> What point does the writer make about Ekman's techniques in the fourth paragraph?
+                        <div>
+                            <label><input type="radio" name="q31" value="A"> A They take a decade to teach.</label><br>
+                            <label><input type="radio" name="q31" value="B"> B They have been in great demand.</label><br>
+                            <label><input type="radio" name="q31" value="C"> C They have aroused the suspicions of some agencies.</label><br>
+                            <label><input type="radio" name="q31" value="D"> D They can be used by a limited range of occupations.</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 32–36</h3>
+                <p>Complete the summary using the list of words, <strong>A–I</strong>, below.</p>
+                <p>Write the correct letter, <strong>A–I</strong>, in boxes 32–36 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>The television series based on Ekman's work</strong></p>
+                    <p>A new TV series based on Ekman's work features a hero named Lightman, who detects lies. Initially, Ekman was unenthusiastic about the TV project because he feared the possibility of encouraging viewers' <strong>32</strong> 
+                        <div class="dropzone" data-target="q32"><span class="droplabel">Drag answer here</span></div>. For example, he was worried that one day the programme could result in <strong>33</strong> 
+                        <div class="dropzone" data-target="q33"><span class="droplabel">Drag answer here</span></div> not being carried out. Ultimately, though, he has given the show his blessing because he is not aware of any other comparable programme based on a single person's <strong>34</strong> 
+                        <div class="dropzone" data-target="q34"><span class="droplabel">Drag answer here</span></div>. The <strong>35</strong> 
+                        <div class="dropzone" data-target="q35"><span class="droplabel">Drag answer here</span></div> of the show's producer have been another pleasant surprise considering the genre of the programme. Ekman is happy with the show's overall <strong>36</strong> 
+                        <div class="dropzone" data-target="q36"><span class="droplabel">Drag answer here</span></div>.</p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A consequences</div>
+                        <div class="card" draggable="true" data-value="B">B crimes</div>
+                        <div class="card" draggable="true" data-value="C">C false beliefs</div>
+                        <div class="card" draggable="true" data-value="D">D motives</div>
+                        <div class="card" draggable="true" data-value="E">E justice</div>
+                        <div class="card" draggable="true" data-value="F">F accuracy</div>
+                        <div class="card" draggable="true" data-value="G">G acting</div>
+                        <div class="card" draggable="true" data-value="H">H research</div>
+                        <div class="card" draggable="true" data-value="I">I ratings</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 37–40</h3>
+                <p>Do the following statements agree with the claims of the writer in Reading Passage 3?</p>
+                <p>In boxes 37–40 on your answer sheet, write</p>
+                <ul>
+                    <li><strong>YES</strong> if the statement agrees with the claims of the writer</li>
+                    <li><strong>NO</strong> if the statement contradicts the claims of the writer</li>
+                    <li><strong>NOT GIVEN</strong> if it is impossible to say what the writer thinks about this</li>
+                </ul>
+                
+                <div class="group">
+                    <p><strong>37</strong> Ekman regrets the lies he told as a child.
+                        <div class="radio-group">
+                            <label><input type="radio" name="q37" value="YES"> YES</label>
+                            <label><input type="radio" name="q37" value="NO"> NO</label>
+                            <label><input type="radio" name="q37" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p><strong>38</strong> People who are good at lying tend to be good at detecting lies.
+                        <div class="radio-group">
+                            <label><input type="radio" name="q38" value="YES"> YES</label>
+                            <label><input type="radio" name="q38" value="NO"> NO</label>
+                            <label><input type="radio" name="q38" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p><strong>39</strong> Ekman has worked with poker players to help them lie more convincingly.
+                        <div class="radio-group">
+                            <label><input type="radio" name="q39" value="YES"> YES</label>
+                            <label><input type="radio" name="q39" value="NO"> NO</label>
+                            <label><input type="radio" name="q39" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p><strong>40</strong> Ekman is more interested in the types of lies with serious consequences.
+                        <div class="radio-group">
+                            <label><input type="radio" name="q40" value="YES"> YES</label>
+                            <label><input type="radio" name="q40" value="NO"> NO</label>
+                            <label><input type="radio" name="q40" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+            </div>
+            
+            <div style="display:flex;gap:8px;margin:20px 0;">
+                <button class="btn btn-primary" onclick="submitAnswers()">Submit Answers</button>
+                <button class="btn" onclick="resetAnswers()">Reset Answers</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="practice-nav">
+        <span class="section-title">Passage 1:</span>
+        <div class="q-item" onclick="scrollToQuestion('q1')">1</div>
+        <div class="q-item" onclick="scrollToQuestion('q2')">2</div>
+        <div class="q-item" onclick="scrollToQuestion('q3')">3</div>
+        <div class="q-item" onclick="scrollToQuestion('q4')">4</div>
+        <div class="q-item" onclick="scrollToQuestion('q5')">5</div>
+        <div class="q-item" onclick="scrollToQuestion('q6')">6</div>
+        <div class="q-item" onclick="scrollToQuestion('q7')">7</div>
+        <div class="q-item" onclick="scrollToQuestion('q8')">8</div>
+        <div class="q-item" onclick="scrollToQuestion('q9')">9</div>
+        <div class="q-item" onclick="scrollToQuestion('q10')">10</div>
+        <div class="q-item" onclick="scrollToQuestion('q11')">11</div>
+        <div class="q-item" onclick="scrollToQuestion('q12')">12</div>
+        <div class="q-item" onclick="scrollToQuestion('q13')">13</div>
+        
+        <span class="section-title">Passage 2:</span>
+        <div class="q-item" onclick="scrollToQuestion('q14')">14</div>
+        <div class="q-item" onclick="scrollToQuestion('q15')">15</div>
+        <div class="q-item" onclick="scrollToQuestion('q16')">16</div>
+        <div class="q-item" onclick="scrollToQuestion('q17')">17</div>
+        <div class="q-item" onclick="scrollToQuestion('q18')">18</div>
+        <div class="q-item" onclick="scrollToQuestion('q19')">19</div>
+        <div class="q-item" onclick="scrollToQuestion('q20')">20</div>
+        <div class="q-item" onclick="scrollToQuestion('q21')">21</div>
+        <div class="q-item" onclick="scrollToQuestion('q22')">22</div>
+        <div class="q-item" onclick="scrollToQuestion('q23')">23</div>
+        <div class="q-item" onclick="scrollToQuestion('q24')">24</div>
+        <div class="q-item" onclick="scrollToQuestion('q25')">25</div>
+        <div class="q-item" onclick="scrollToQuestion('q26')">26</div>
+        
+        <span class="section-title">Passage 3:</span>
+        <div class="q-item" onclick="scrollToQuestion('q27')">27</div>
+        <div class="q-item" onclick="scrollToQuestion('q28')">28</div>
+        <div class="q-item" onclick="scrollToQuestion('q29')">29</div>
+        <div class="q-item" onclick="scrollToQuestion('q30')">30</div>
+        <div class="q-item" onclick="scrollToQuestion('q31')">31</div>
+        <div class="q-item" onclick="scrollToQuestion('q32')">32</div>
+        <div class="q-item" onclick="scrollToQuestion('q33')">33</div>
+        <div class="q-item" onclick="scrollToQuestion('q34')">34</div>
+        <div class="q-item" onclick="scrollToQuestion('q35')">35</div>
+        <div class="q-item" onclick="scrollToQuestion('q36')">36</div>
+        <div class="q-item" onclick="scrollToQuestion('q37')">37</div>
+        <div class="q-item" onclick="scrollToQuestion('q38')">38</div>
+        <div class="q-item" onclick="scrollToQuestion('q39')">39</div>
+        <div class="q-item" onclick="scrollToQuestion('q40')">40</div>
+    </div>
+
+    <div id="selbar">
+        <button id="highlightBtn">Highlight</button>
+        <button id="removeHighlightBtn">Remove Highlight</button>
+    </div>
+
+    <script>
+        // Timer functionality (60 minutes countdown)
+        let totalTime = 60 * 60; // 60 minutes in seconds
+        const timerEl = document.getElementById('timer');
+        
+        function updateTimer() {
+            if (totalTime <= 0) {
+                clearInterval(timerInterval);
+                alert("Time is up! Submitting your answers.");
+                submitAnswers();
+                return;
+            }
+            
+            const minutes = Math.floor(totalTime / 60);
+            const seconds = totalTime % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            totalTime--;
+        }
+        
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call
+        
+        // Tab switching functionality with synchronization
+        function switchTabs(clickedTab, isRightTab = false) {
+            const tabId = clickedTab.getAttribute('data-tab');
+            
+            if (isRightTab) {
+                // If right tab was clicked, also switch the left tab
+                const passageId = clickedTab.getAttribute('data-passage');
+                const leftTab = document.querySelector(`.tab[data-tab="${passageId}"]`);
+                if (leftTab) {
+                    // Remove active class from all left tabs and contents
+                    document.querySelectorAll('#left .tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('#left .tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to corresponding left tab and content
+                    leftTab.classList.add('active');
+                    document.getElementById(passageId).classList.add('active');
+                }
+            }
+            
+            // Remove active class from all tabs and contents in the current container
+            const container = clickedTab.closest('.tab-container');
+            container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            container.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            clickedTab.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Set up tab click events
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const isRightTab = this.closest('#right') !== null;
+                switchTabs(this, isRightTab);
+            });
+        });
+        
+        // Drag and drop functionality
+        const cards = document.querySelectorAll('.card');
+        const dropzones = document.querySelectorAll('.dropzone');
+        
+        cards.forEach(card => {
+            card.addEventListener('dragstart', () => {
+                card.classList.add('dragging');
+            });
+            
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+            });
+        });
+        
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                zone.classList.add('over');
+            });
+            
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('over');
+            });
+            
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('over');
+                
+                const card = document.querySelector('.card.dragging');
+                if (card) {
+                    // Clear existing content
+                    zone.innerHTML = '';
+                    
+                    // Create a clone of the card for the dropzone
+                    const clone = card.cloneNode(true);
+                    clone.setAttribute('draggable', 'false');
+                    clone.classList.remove('dragging');
+                    zone.appendChild(clone);
+                    
+                    // Mark the question as answered in the navigation
+                    const questionId = zone.getAttribute('data-target');
+                    const navItem = document.querySelector(`.q-item[onclick="scrollToQuestion('${questionId}')"]`);
+                    if (navItem) {
+                        navItem.classList.add('answered');
+                    }
+                }
+            });
+        });
+        
+        // Function to scroll to a specific question
+        function scrollToQuestion(questionId) {
+            const questionElement = document.querySelector(`[data-target="${questionId}"]`);
+            if (questionElement) {
+                questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Highlight the question briefly
+                questionElement.style.backgroundColor = '#fff3a3';
+                setTimeout(() => {
+                    questionElement.style.backgroundColor = '';
+                }, 1000);
+            }
+        }
+        
+        // Function to submit answers
+        function submitAnswers() {
+            alert("Answers submitted! This would normally be sent to a server for grading.");
+            // In a real implementation, this would collect all answers and send them for evaluation
+        }
+        
+        // Function to reset answers
+        function resetAnswers() {
+            if (confirm("Are you sure you want to reset all answers?")) {
+                // Clear all dropzones
+                document.querySelectorAll('.dropzone').forEach(zone => {
+                    zone.innerHTML = '<span class="droplabel">Drag answer here</span>';
+                });
+                
+                // Clear all radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.checked = false;
+                });
+                
+                // Clear all text inputs
+                document.querySelectorAll('input[type="text"]').forEach(input => {
+                    input.value = '';
+                });
+                
+                // Remove answered status from navigation
+                document.querySelectorAll('.q-item.answered').forEach(item => {
+                    item.classList.remove('answered');
+                });
+            }
+        }
+        
+        // Divider dragging functionality
+        const divider = document.getElementById('divider');
+        const leftPane = document.getElementById('left');
+        const rightPane = document.getElementById('right');
+        let isResizing = false;
+        
+        divider.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            document.body.style.cursor = 'ew-resize';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const containerRect = document.querySelector('.shell').getBoundingClientRect();
+            const xPosition = e.clientX - containerRect.left;
+            
+            // Set minimum widths for both panes
+            const leftWidth = Math.max(280, Math.min(containerRect.width - 320, xPosition));
+            const rightWidth = containerRect.width - leftWidth - 8; // 8px for the divider
+            
+            leftPane.style.flex = `0 0 ${leftWidth}px`;
+            rightPane.style.flex = `1 1 ${rightWidth}px`;
+        });
+        
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+            document.body.style.cursor = '';
+        });
+
+        // Highlight functionality
+        const selbar = document.getElementById('selbar');
+        const highlightBtn = document.getElementById('highlightBtn');
+        const removeHighlightBtn = document.getElementById('removeHighlightBtn');
+        let currentSelection = null;
+
+        // Listen for text selection
+        document.addEventListener('mouseup', function(e) {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            
+            if (selectedText.length > 0 && !e.target.closest('#selbar')) {
+                currentSelection = selection;
+                
+                // Position the toolbar near the selection
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                selbar.style.display = 'flex';
+                selbar.style.top = (rect.top + window.scrollY - 40) + 'px';
+                selbar.style.left = (rect.left + window.scrollX) + 'px';
+            } else if (!e.target.closest('#selbar')) {
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Highlight button functionality
+        highlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                const selectedText = range.toString();
+                
+                // Create highlight span
+                const span = document.createElement('span');
+                span.className = 'hl';
+                span.textContent = selectedText;
+                
+                // Replace selected text with highlighted span
+                range.deleteContents();
+                range.insertNode(span);
+                
+                // Clear selection and hide toolbar
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Remove highlight button functionality
+        removeHighlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                
+                // Find if the selection contains highlighted text
+                let parent = range.startContainer.parentNode;
+                while (parent && parent !== document.body) {
+                    if (parent.classList && parent.classList.contains('hl')) {
+                        // Replace the highlighted span with just its text content
+                        const text = document.createTextNode(parent.textContent);
+                        parent.parentNode.replaceChild(text, parent);
+                        
+                        // Clear selection and hide toolbar
+                        window.getSelection().removeAllRanges();
+                        selbar.style.display = 'none';
+                        return;
+                    }
+                    parent = parent.parentNode;
+                }
+                
+                // If no highlight found, just clear selection
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Hide toolbar when clicking elsewhere
+        document.addEventListener('mousedown', function(e) {
+            if (!e.target.closest('#selbar') && selbar.style.display === 'flex') {
+                selbar.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

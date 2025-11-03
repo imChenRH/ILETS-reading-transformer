@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Mock Test</title>
+    <style>
+        :root {
+            --line: #e5e7eb;
+            --bg: #f6f7fb;
+            --panel: #fff;
+            --accent: #3b82f6;
+            --muted: #6b7280;
+            --shadow: 0 6px 20px rgba(0,0,0,.12);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .shell {
+            display: flex;
+            height: calc(100vh - 60px);
+            width: 100%;
+        }
+        .pane {
+            background: var(--panel);
+            overflow: auto;
+            padding: 20px;
+        }
+        #left {
+            flex: 0 0 50%;
+            min-width: 280px;
+        }
+        #right {
+            flex: 1 1 auto;
+            min-width: 320px;
+            background: #fbfbff;
+            border-left: 1px solid var(--line);
+        }
+        #divider {
+            flex: 0 0 8px;
+            background: linear-gradient(90deg, #e5e7eb, #d1d5db);
+            cursor: ew-resize;
+            position: relative;
+            z-index: 5;
+            user-select: none;
+        }
+        h2, h3, h4 {
+            margin: 0 0 10px;
+        }
+        p {
+            margin: 0 0 12px;
+            line-height: 1.6;
+        }
+        .group {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+        .timer-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-height: 40px;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: auto;
+            min-width: 120px;
+            max-width: 200px;
+            vertical-align: middle;
+            margin: 5px 0;
+        }
+        .droplabel {
+            color: #64748b;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cardpool {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            cursor: grab;
+            box-shadow: 0 1px 0 rgba(0,0,0,.03);
+            white-space: nowrap;
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        .btn {
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: #3b82f6;
+        }
+        .hl {
+            background: #fff3a3;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,.05);
+            cursor: pointer;
+        }
+        .hl:hover {
+            filter: brightness(0.98);
+        }
+        #selbar {
+            position: absolute;
+            display: none;
+            z-index: 2000;
+            background: #111;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: var(--shadow);
+            font-size: 13px;
+            gap: 6px;
+            align-items: center;
+        }
+        #selbar button {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.25);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #selbar button:hover {
+            border-color: #fff;
+        }
+        .practice-nav {
+            background: #fff;
+            border-top: 2px solid var(--line);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 4000;
+            height: 60px;
+            overflow-x: auto;
+        }
+        .practice-nav .q-item {
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 36px;
+            text-align: center;
+        }
+        .practice-nav .q-item:hover {
+            background: #f1f5f9;
+            border-color: var(--accent);
+        }
+        .practice-nav .q-item.answered {
+            background: #e0e7ff;
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .practice-nav .q-item.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .section-title {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        Time remaining: <span id="timer">60:00</span>
+    </div>
+
+    <div class="shell">
+        <section class="pane" id="left">
+            <div class="tab-container">
+                <div class="tab active" data-tab="passage1">Passage 1</div>
+                <div class="tab" data-tab="passage2">Passage 2</div>
+                <div class="tab" data-tab="passage3">Passage 3</div>
+            </div>
+            
+            <div class="tab-content active" id="passage1">
+                <h2>Sydney Opera House</h2>
+                <p>Sydney Opera House is an example of late modern architecture; it is admired internationally and treasured by the people of Australia.</p>
+                
+                <p><strong>A</strong> In 1956 the Premier of New South Wales, Australia, announced an international competition for the design of an opera house for Sydney. It attracted more than 200 entries from around the world and was won by Jørn Utzon, a relatively little-known architect from Denmark. The story goes that during the judging of the competition, one judge, American architect Eero Saarinen, arrived in Sydney after the other three judges had started assessing the entries. He looked through their rejected entries and stopped at the Utzon design, declaring it to be outstanding.</p>
+                
+                <p><strong>B</strong> It was Utzon's life and travels that had shaped his design for the Sydney Opera House. Though he had never visited the site, he used his maritime background to study naval charts of Sydney Harbour. His early exposure to shipbuilding provided the inspiration for the design of the roof, which is a series of curved 'shells' that look like the sails of a sailing ship billowing in the wind. From his travels to Mexico, he had the idea of placing his building on a wide horizontal platform.</p>
+                
+                <p><strong>C</strong> Construction of the platform began in 1959, and throughout the early 1960s Utzon amended his original designs in order to develop a way to build the large 'shells' that cover the two main halls. The construction of the roof brought together some of the world's best engineers and craftsmen, devising innovative techniques to create a major visual impact in accordance with Utzon's vision. The design was one of the first examples of the use of computer-aided design for complex shapes.</p>
+                
+                <p><strong>D</strong> Although Utzon had spectacular plans for the interior, he was unable to realise them. Cost overruns contributed to criticism of the project and, after a change of government, the Minister of Works began questioning Utzon's schedules and cost estimates. Payments to Utzon were stopped and he was forced to withdraw as chief architect in 1966. Following his resignation, there were protests through the streets led by prominent architect Harry Seidler and others, demanding that Utzon be reinstated as architect. However, Utzon was not reinstated and left Australia in 1966. He never returned, and new architects were appointed to complete the building in his absence. The original cost estimate for the Opera House was $7 million, with the completion date set for 26 January 1963. However, the Opera House was not formally completed until 1973, having cost $102 million.</p>
+                
+                <p><strong>E</strong> Since its opening in 1973, Sydney Opera House has earned a reputation as a world-class performing-arts centre and become a symbol of both Sydney and Australia. Situated at Bennelong Point on Sydney Harbour, it consists of a series of large precast 'shells' made of concrete, each composed of sections of a sphere of 75.2 metres radius, forming the roofs of the structure, set on a monumental platform. The building is 183 metres long and 120 metres wide at its widest point. It is supported on 588 concrete piers, which are sunk approximately 25 metres below sea level.</p>
+                
+                <p><strong>F</strong> Although the roof structures are commonly referred to as 'shells', they are precast concrete panels supported by concrete ribs. The 'shells' are covered with 1,056,006 white and cream-coloured tiles manufactured in a factory in Sweden that generally produced stoneware tiles for the paper-mill industry. The design solution and construction of the shell structure took eight years to complete, and the development of the special ceramic tiles took over three years. Apart from the tiles covering the 'shells', the building's exterior is mostly clad with granite quarried in Australia.</p>
+                
+                <p><strong>G</strong> Contrary to its name, Sydney Opera House includes multiple performance venues. It is among the busiest performing-arts centres in the world, holding over 1,500 performances each year. It hosts a large number of performing-arts companies, including the four resident companies: Opera Australia, the Australian Ballet, the Sydney Theatre Company and the Sydney Symphony Orchestra.</p>
+                
+                <p><strong>H</strong> With its grand setting and cathedral-like atmosphere, the Concert Hall is Sydney Opera House's most prestigious performance space. The largest of all interior venues, it delivers outstanding acoustics thanks to its high ceiling and wood panelling. There is a sizeable outdoor forecourt from which people ascend to the main entrance. The steps, which lead up from the forecourt to the main performance venues, are nearly 100 metres wide.</p>
+                
+                <p><strong>I</strong> In 1999 Utzon was re-engaged to develop a set of design principles to act as a guide for future changes to the building. All of this design work he did from his base in Europe. These principles help to ensure that the building's architectural integrity is maintained. The first alteration to the exterior was the addition of a new colonnade, which shades nine large glass openings in the previously solid exterior wall. This Utzon-led project, completed in 2006, enabled theatre patrons to see the harbour for the first time from the theatre foyers. The design also incorporates the first public lift and interior escalators to assist less-mobile patrons.</p>
+                
+                <p><strong>J</strong> Since 2007, the cultural, heritage and architectural importance of Sydney Opera House has been protected by its inclusion on the World Heritage List.</p>
+            </div>
+            
+            <div class="tab-content" id="passage2">
+                <h2>How are deserts formed</h2>
+                
+                <p><strong>A</strong> A desert refers to a barren section of land, mainly in arid and semi-arid areas, where there is almost no precipitation and the environment is hostile for any creature to inhabit. Deserts have been classified in a number of ways, generally combining total precipitation, how many days the rainfall occurs, temperature, humidity, and sometimes additional factors. In some places, deserts have clear boundaries marked by rivers, mountains or other landforms, while in other places there are no clear-cut borders between deserts and other landscape features.</p>
+                
+                <p><strong>B</strong> In arid areas where there is no covering of vegetation to protect the land, sand and dust storms frequently take place. This phenomenon often occurs along the desert margins rather than within the deserts, where there is already no finer material left. When a steady wind starts to blow, fine particles on the open ground begin vibrating. As the wind picks up, some of the particles are lifted into the air. When they fall onto the ground, they hit other particles, which are then jerked into the air in their turn, initiating a chain reaction.</p>
+                
+                <p><strong>C</strong> There has been a great deal of publicity about how severe desertification can be, but the academic circle has never agreed on its causes. A common misunderstanding is that a shortage of precipitation causes desertification—yet land in some barren areas will soon recover after rain falls. In fact, more often than not, human activities are responsible. It is widely accepted that the explosion in world population, especially in developing countries, is the primary cause of soil degradation and desertification. As populations become denser, the cultivation of crops has expanded into progressively drier areas. These regions are especially likely to go through periods of severe drought, which explains why crop failures are common. The raising of most crops requires the natural vegetation cover to be removed first; when crop failures occur, extensive tracts of land are left devoid of plant cover and thus susceptible to wind and water erosion. Throughout the 1990s, dry-land areas experienced a population growth of 18.5 per cent, mostly in severely impoverished developing countries.</p>
+                
+                <p><strong>D</strong> Livestock farming in semi-arid areas accelerates soil erosion and becomes one of the reasons for advancing desertification. In such areas, where the vegetation is dominated by grasses, the breeding of livestock is a major economic activity. Grasses are necessary for anchoring barren topsoil in a dry-land area. When a specific field is used to graze an excessive herd, it loses vegetation cover, and the soil is trampled as well as pulverised, leaving the topsoil exposed to destructive forces such as wind and unexpected thunderstorms. For centuries, nomads have grazed their flocks and herds wherever pasture could be found, and oases have offered opportunities for a more settled way of living. For some nomads, wherever they move, the desert follows.</p>
+                
+                <p><strong>E</strong> Trees are of great importance when it comes to maintaining topsoil and slowing down wind speed. In many Asian countries, firewood is the chief fuel used for cooking and heating, which has caused uncontrolled clear-cutting of forests in dry-land ecosystems. When too many trees are cut down, windstorms and dust storms tend to occur.</p>
+                
+                <p><strong>F</strong> What is worse, political conflicts and wars can also contribute to desertification. To escape invading enemies, refugees often move into some of the most vulnerable ecosystems on the planet. They bring along their traditional cultivation practices, which may not be suitable for their new settlements.</p>
+                
+                <p><strong>G</strong> In the 20th century, one state in the United States had a large section of farmland that turned into desert. Since then, measures have been enforced so that such a phenomenon will not happen again. To avoid the recurrence of desertification, people must find livelihoods that do not rely on traditional land uses, are less demanding on local natural resources, yet can still generate viable income. Such livelihoods include, but are not limited to, dry-land aquaculture for the raising of fish, crustaceans and industrial compounds derived from micro-algae, greenhouse agriculture, and activities related to tourism. Another way to prevent desertification is to create economic prospects in the city centres of dry-lands and in areas outside them. Changing the wider economic and institutional structures so that people have new ways to support themselves would help alleviate the pressures that drive desertification.</p>
+                
+                <p><strong>H</strong> In today's society, new technologies are being used to address the problems brought about by desertification. Satellites, for example, have been utilised to investigate the influence that people and livestock have on our planet. However, this does not mean that alternative technologies are not needed to help tackle the processes of desertification.</p>
+            </div>
+            
+            <div class="tab-content" id="passage3">
+                <h2>Jean Piaget (1896–1980)</h2>
+                <p><em>Seymour Papert looks at the work of the pioneering Swiss philosopher and psychologist</em></p>
+                
+                <p>Jean Piaget spent much of his professional life listening to children, watching children and poring over reports of researchers around the world who were doing the same. He found, to put it most succinctly, that children don't think like grown-ups. After thousands of interactions with young people often barely old enough to talk, Piaget began to suspect that behind their cute and seemingly irrational utterances were thought processes that had their own kind of order and their own special logic. Einstein called it "a discovery so simple that only a genius could have thought of it."</p>
+                
+                <p>Although not an educational reformer, Piaget championed a way of thinking about children that provided the foundation for today's education-reform movements. It was a shift comparable to the way modern anthropology displaced stories of primitive tribes being 'noble savages' and 'cannibals'. One might say that Piaget was the first to take children's thinking seriously.</p>
+                
+                <p>He has been revered by generations of teachers inspired by the belief that children are not empty vessels to be filled with knowledge (as traditional pedagogical theory had it) but active builders of knowledge—little scientists who are constantly creating and testing their own hypotheses about the world. And though he may not be as famous as Sigmund Freud or even B. F. Skinner, his influence on psychology may be longer lasting.</p>
+                
+                <p>In 1920, while doing research in a child-psychology laboratory in Paris, Piaget noticed that children of the same age made similar errors on intelligence tests. Fascinated by their reasoning processes, he began to suspect that the key to human knowledge might be discovered by observing how the child's mind develops. On his return to Switzerland he began watching children play, scrupulously recording their words and actions as their minds raced to find reasons for why things are the way they are. In one of his most famous experiments, Piaget asked children, 'What makes the wind?' A typical dialogue would be:</p>
+                
+                <p><strong>Piaget</strong> <em>What makes the wind?</em></p>
+                <p><strong>Julia</strong> <em>The trees.</em></p>
+                <p><strong>Piaget</strong> <em>How do you know?</em></p>
+                <p><strong>Julia</strong> <em>I saw them waving their arms.</em></p>
+                <p><strong>Piaget</strong> <em>How does that make the wind?</em></p>
+                <p><strong>Julia</strong> <em>(waving her hand in front of his face) Like this. Only they are bigger. And there are lots of trees.</em></p>
+                
+                <p>Piaget recognised that five-year-old Julia's beliefs, while not correct by any adult criterion, are not 'incorrect' either. They are entirely sensible and coherent within the framework of the child's way of knowing. Classifying them as 'true' or 'false' misses the point and shows a lack of respect for the child. What Piaget was after was a theory that the wind dialogue demonstrated coherence, ingenuity and the practice of a kind of explanatory principle (in this case by referring to body actions) that stands young children in very good stead when they don't know enough or don't have enough skill to handle the kind of explanation that grown-ups prefer.</p>
+                
+                <p>Piaget was not an educator and never laid down rules about how to intervene in such situations. But his work strongly suggests that the automatic reaction of putting the child right may well be counter-productive. If their theories are always greeted by 'Nice try, but this is how it really is…' they might give up after a while on making theories. As Piaget put it, 'children have real understanding only of that which they invent themselves, and each time that we try to teach them something too quickly, we keep them from inventing it themselves.'</p>
+                
+                <p>Disciples of Piaget have a tolerance for—indeed a fascination with—children's primitive laws of physics: that things disappear when they are out of sight; that the moon and the sun follow you around; that big things float and small things sink. Einstein was intrigued by Piaget's findings, especially by the idea that seven-year-olds insist that going faster can take more time—perhaps because this, like Einstein's own theories of relativity, runs so contrary to common sense.</p>
+                
+                <p>Although every teacher in training still memorises Piaget's successive stages of childhood development, the greater part of Piaget's work is less well known, perhaps because schools of education regard it as 'too deep' for teachers. Piaget never thought of himself as a child psychologist. His real interest was epistemology—the theory of knowledge—which, like physics, was considered a branch of philosophy until Piaget came along and made it a science.</p>
+                
+                <p>Through epistemology, Piaget explored multiple ways of knowing. He acknowledged them and examined them non-judgementally, yet with a philosopher's analytic rigour. Since Piaget, the territory has been widely colonised by those who write about women's ways of knowing, Afrocentric ways of knowing, even the computer's ways of knowing. Indeed, artificial intelligence and the information-processing model of the mind owe more to Piaget than its proponents may realise.</p>
+                
+                <p>The core of Piaget is his belief that looking carefully at how knowledge develops in children will elucidate the nature of knowledge in general. Whether this has in fact led to deeper understanding remains, like everything about Piaget, controversial. In the past decade, Piaget has been vigorously challenged by the current fashion of viewing knowledge as an intrinsic property of the brain. Ingenious experiments have demonstrated that newborn infants already have some of the knowledge that Piaget believed children constructed. But for those, like me, who still see Piaget as the giant in the field of cognitive theory, the difference between what the baby brings and what the adult has is so immense that the new discoveries do not significantly reduce the gap, but only increase the mystery.</p>
+            </div>
+        </section>
+
+        <div id="divider" title="Drag to resize"></div>
+
+        <section class="pane" id="right">
+            <div class="tab-container">
+                <div class="tab active" data-tab="questions1" data-passage="passage1">Questions 1-13</div>
+                <div class="tab" data-tab="questions2" data-passage="passage2">Questions 14-26</div>
+                <div class="tab" data-tab="questions3" data-passage="passage3">Questions 27-40</div>
+            </div>
+            
+            <div class="tab-content active" id="questions1">
+                <h3>Questions 1–7</h3>
+                <p>Do the following statements agree with the information given in Reading Passage 1?</p>
+                <p>In boxes 1–7 on your answer sheet, write</p>
+                <p><strong>TRUE</strong> if the statement agrees with the information<br>
+                <strong>FALSE</strong> if the statement contradicts the information<br>
+                <strong>NOT GIVEN</strong> if there is no information on this</p>
+                
+                <div class="group">
+                    <p>1 Utzon was famous for his work before he designed the Opera House.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q1" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q1" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q1" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>2 Utzon's design was favoured by the four judges of the competition from the beginning.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q2" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q2" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q2" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>3 Utzon's knowledge of boats gave him the idea for parts of the Opera House.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q3" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q3" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q3" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>4 Utzon was impressed by the opera houses he had seen in Mexico.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q4" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q4" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q4" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>5 Utzon changed his designs in the 1960s after construction began.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q5" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q5" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q5" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>6 Seidler defended Utzon's role as architect.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q6" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q6" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q6" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>7 Utzon went back to Australia in 1973 for the opening of the Opera House.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q7" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q7" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q7" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 8–13</h3>
+                <p>Complete the notes below.</p>
+                <p>Choose <strong>ONE WORD AND/OR A NUMBER</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 8–13 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>Sydney Opera House</strong></p>
+                    <p><strong>Final cost</strong></p>
+                    <p>8 $ <input type="text" id="q8" style="width: 100px;"></p>
+                    
+                    <p><strong>Construction</strong></p>
+                    <p>- A large platform acting as a base for the building</p>
+                    <p>- Concrete panels used to make 'shells', which are covered in tiles</p>
+                    <p>- Over a million tiles from 9 <input type="text" id="q9" style="width: 100px;"></p>
+                    <p>- 10 <input type="text" id="q10" style="width: 100px;"> from Australia covering the outside walls</p>
+                    
+                    <p><strong>Use</strong></p>
+                    <p>- More than 1,500 performances annually</p>
+                    <p>- 11 <input type="text" id="q11" style="width: 100px;"> performing-arts companies have their home base at the Opera House</p>
+                    
+                    <p><strong>Outside</strong></p>
+                    <p>- A large 12 <input type="text" id="q12" style="width: 100px;"> at the foot of a wide staircase</p>
+                    
+                    <p><strong>Alterations</strong></p>
+                    <p>- A colonnade was added in 2006</p>
+                    <p>- Openings made the 13 <input type="text" id="q13" style="width: 100px;"> visible from foyers</p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions2">
+                <h3>Questions 14–20</h3>
+                <p>Reading Passage 2 has eight paragraphs, <strong>A–H</strong>.</p>
+                <p>Which paragraph contains the following information?</p>
+                <p>Write the correct letter, <strong>A–H</strong>, in boxes 14–20 on your answer sheet.</p>
+                <p><strong>NB</strong> You may use any letter more than once.</p>
+                
+                <div class="group">
+                    <p>14 a reference to the irregular movement of particles
+                        <div class="dropzone" data-target="q14"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>15 mention of productive land turning into desert in the 20th century
+                        <div class="dropzone" data-target="q15"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>16 types of deserts
+                        <div class="dropzone" data-target="q16"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>17 mention of technical methods used to tackle the problems of deserts
+                        <div class="dropzone" data-target="q17"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>18 the influence of migration on desertification
+                        <div class="dropzone" data-target="q18"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>19 lack of agreement among scientists about the causes of desertification
+                        <div class="dropzone" data-target="q19"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>20 a description of the harmful effects of farming practices
+                        <div class="dropzone" data-target="q20"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                        <div class="card" draggable="true" data-value="F">F</div>
+                        <div class="card" draggable="true" data-value="G">G</div>
+                        <div class="card" draggable="true" data-value="H">H</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 21–26</h3>
+                <p>Do the following statements agree with the information given in Reading Passage 2?</p>
+                <p>In boxes 21–26 on your answer sheet, write</p>
+                <p><strong>TRUE</strong> if the statement agrees with the information<br>
+                <strong>FALSE</strong> if the statement contradicts the information<br>
+                <strong>NOT GIVEN</strong> if there is no information on this</p>
+                
+                <div class="group">
+                    <p>21 It is difficult to ascertain where deserts end in some areas.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q21" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q21" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q21" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>22 The media is uninterested in the problems of desertification.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q22" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q22" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q22" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>23 The most common cause of desertification is a lack of rainfall.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q23" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q23" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q23" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>24 Farming animals in semi-arid areas will increase soil erosion.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q24" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q24" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q24" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>25 People in Asian countries no longer use firewood as their chief fuel.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q25" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q25" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q25" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>26 Technology for studying the relationship between people, livestock and desertification has not yet been invented.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q26" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q26" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q26" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions3">
+                <h3>Questions 27–31</h3>
+                <p>Choose the correct letter, <strong>A, B, C or D</strong>.</p>
+                <p>Write the correct letter in boxes 27–31 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>27 In the second paragraph, the writer mentions the example of modern anthropology to illustrate
+                        <div>
+                            <label><input type="radio" name="q27" value="A"> A the universality of Piaget's insights into the workings of the mind.</label><br>
+                            <label><input type="radio" name="q27" value="B"> B the similarity between children's thought-processing in different cultures.</label><br>
+                            <label><input type="radio" name="q27" value="C"> C how Piaget's work represents a crucial turning-point in our approach to education.</label><br>
+                            <label><input type="radio" name="q27" value="D"> D how Piaget's work has aided our understanding of humankind's evolution from primitive origins.</label>
+                        </div>
+                    </p>
+                    <p>28 According to the writer, what point is illustrated by the dialogue about the wind?
+                        <div>
+                            <label><input type="radio" name="q28" value="A"> A The factual accuracy of what children say is of minor significance.</label><br>
+                            <label><input type="radio" name="q28" value="B"> B Children want to learn about scientific principles.</label><br>
+                            <label><input type="radio" name="q28" value="C"> C Children's reasoning processes can be amusing to adults.</label><br>
+                            <label><input type="radio" name="q28" value="D"> D Children often pretend that they know the answers to questions.</label>
+                        </div>
+                    </p>
+                    <p>29 Piaget believed in the importance of
+                        <div>
+                            <label><input type="radio" name="q29" value="A"> A preventing children from making false assumptions.</label><br>
+                            <label><input type="radio" name="q29" value="B"> B giving children honest feedback on their hypotheses.</label><br>
+                            <label><input type="radio" name="q29" value="C"> C showing children how to formulate their own ideas about the world.</label><br>
+                            <label><input type="radio" name="q29" value="D"> D maintaining children's confidence in their ability to interpret the world.</label>
+                        </div>
+                    </p>
+                    <p>30 What does the writer suggest in the seventh paragraph?
+                        <div>
+                            <label><input type="radio" name="q30" value="A"> A Children's sense of their surroundings changes as they get older.</label><br>
+                            <label><input type="radio" name="q30" value="B"> B Children are able to grasp certain complex ideas as well as adults are.</label><br>
+                            <label><input type="radio" name="q30" value="C"> C Even apparently irrational ideas can be worthy of interest.</label><br>
+                            <label><input type="radio" name="q30" value="D"> D Sometimes the simplest explanations are the best.</label>
+                        </div>
+                    </p>
+                    <p>31 The writer's main purpose is to
+                        <div>
+                            <label><input type="radio" name="q31" value="A"> A outline Piaget's contribution to a range of scientific fields.</label><br>
+                            <label><input type="radio" name="q31" value="B"> B summarise how education has benefited from Piaget's findings.</label><br>
+                            <label><input type="radio" name="q31" value="C"> C discuss Piaget's role in the development of 20th-century psychology.</label><br>
+                            <label><input type="radio" name="q31" value="D"> D express doubts about a number of Piaget's theories.</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 32–36</h3>
+                <p>Complete the summary using the list of words, <strong>A–I</strong>, below.</p>
+                <p>Write the correct letter, <strong>A–I</strong>, in boxes 32–36 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>Piaget maintained that children's mental processes were far more 32 <div class="dropzone" data-target="q32"><span class="droplabel">Drag answer here</span></div> than they might appear. He encouraged the view that a child was not a 'blank slate' waiting to be filled with information, but rather a systematic builder of knowledge who regularly tries out his or her own 33 <div class="dropzone" data-target="q33"><span class="droplabel">Drag answer here</span></div> about the world.</p>
+                    
+                    <p>Piaget's impact on the area of 34 <div class="dropzone" data-target="q34"><span class="droplabel">Drag answer here</span></div> could well outlast that of more celebrated pioneers of this discipline. Despite doubts cast over his ideas by the current view associating knowledge exclusively with the 35 <div class="dropzone" data-target="q35"><span class="droplabel">Drag answer here</span></div>, the effects of his work are still strong today. His principles are still widely used in the professional development of 36 <div class="dropzone" data-target="q36"><span class="droplabel">Drag answer here</span></div>.</p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A correct</div>
+                        <div class="card" draggable="true" data-value="B">B theories</div>
+                        <div class="card" draggable="true" data-value="C">C brain</div>
+                        <div class="card" draggable="true" data-value="D">D simple</div>
+                        <div class="card" draggable="true" data-value="E">E teachers</div>
+                        <div class="card" draggable="true" data-value="F">F psychology</div>
+                        <div class="card" draggable="true" data-value="G">G logical</div>
+                        <div class="card" draggable="true" data-value="H">H thought</div>
+                        <div class="card" draggable="true" data-value="I">I philosophers</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 37–40</h3>
+                <p>Do the following statements agree with the claims of the writer in Reading Passage 3?</p>
+                <p>In boxes 37–40 on your answer sheet, write</p>
+                <p><strong>YES</strong> if the statement agrees with the claims of the writer<br>
+                <strong>NO</strong> if the statement contradicts the claims of the writer<br>
+                <strong>NOT GIVEN</strong> if it is impossible to say what the writer thinks about this</p>
+                
+                <div class="group">
+                    <p>37 Piaget's early work in Paris involved innovative research techniques.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q37" value="YES"> YES</label>
+                            <label><input type="radio" name="q37" value="NO"> NO</label>
+                            <label><input type="radio" name="q37" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>38 Piaget gave clear guidelines as to how adults should give information to children.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q38" value="YES"> YES</label>
+                            <label><input type="radio" name="q38" value="NO"> NO</label>
+                            <label><input type="radio" name="q38" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>39 Piaget made a significant contribution to the field of epistemology.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q39" value="YES"> YES</label>
+                            <label><input type="radio" name="q39" value="NO"> NO</label>
+                            <label><input type="radio" name="q39" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>40 We still have much to learn about the nature of knowledge.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q40" value="YES"> YES</label>
+                            <label><input type="radio" name="q40" value="NO"> NO</label>
+                            <label><input type="radio" name="q40" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+            </div>
+            
+            <div style="display:flex;gap:8px;margin:20px 0;">
+                <button class="btn btn-primary" onclick="submitAnswers()">Submit Answers</button>
+                <button class="btn" onclick="resetAnswers()">Reset Answers</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="practice-nav">
+        <span class="section-title">Passage 1:</span>
+        <div class="q-item" onclick="scrollToQuestion('q1')">1</div>
+        <div class="q-item" onclick="scrollToQuestion('q2')">2</div>
+        <div class="q-item" onclick="scrollToQuestion('q3')">3</div>
+        <div class="q-item" onclick="scrollToQuestion('q4')">4</div>
+        <div class="q-item" onclick="scrollToQuestion('q5')">5</div>
+        <div class="q-item" onclick="scrollToQuestion('q6')">6</div>
+        <div class="q-item" onclick="scrollToQuestion('q7')">7</div>
+        <div class="q-item" onclick="scrollToQuestion('q8')">8</div>
+        <div class="q-item" onclick="scrollToQuestion('q9')">9</div>
+        <div class="q-item" onclick="scrollToQuestion('q10')">10</div>
+        <div class="q-item" onclick="scrollToQuestion('q11')">11</div>
+        <div class="q-item" onclick="scrollToQuestion('q12')">12</div>
+        <div class="q-item" onclick="scrollToQuestion('q13')">13</div>
+        
+        <span class="section-title">Passage 2:</span>
+        <div class="q-item" onclick="scrollToQuestion('q14')">14</div>
+        <div class="q-item" onclick="scrollToQuestion('q15')">15</div>
+        <div class="q-item" onclick="scrollToQuestion('q16')">16</div>
+        <div class="q-item" onclick="scrollToQuestion('q17')">17</div>
+        <div class="q-item" onclick="scrollToQuestion('q18')">18</div>
+        <div class="q-item" onclick="scrollToQuestion('q19')">19</div>
+        <div class="q-item" onclick="scrollToQuestion('q20')">20</div>
+        <div class="q-item" onclick="scrollToQuestion('q21')">21</div>
+        <div class="q-item" onclick="scrollToQuestion('q22')">22</div>
+        <div class="q-item" onclick="scrollToQuestion('q23')">23</div>
+        <div class="q-item" onclick="scrollToQuestion('q24')">24</div>
+        <div class="q-item" onclick="scrollToQuestion('q25')">25</div>
+        <div class="q-item" onclick="scrollToQuestion('q26')">26</div>
+        
+        <span class="section-title">Passage 3:</span>
+        <div class="q-item" onclick="scrollToQuestion('q27')">27</div>
+        <div class="q-item" onclick="scrollToQuestion('q28')">28</div>
+        <div class="q-item" onclick="scrollToQuestion('q29')">29</div>
+        <div class="q-item" onclick="scrollToQuestion('q30')">30</div>
+        <div class="q-item" onclick="scrollToQuestion('q31')">31</div>
+        <div class="q-item" onclick="scrollToQuestion('q32')">32</div>
+        <div class="q-item" onclick="scrollToQuestion('q33')">33</div>
+        <div class="q-item" onclick="scrollToQuestion('q34')">34</div>
+        <div class="q-item" onclick="scrollToQuestion('q35')">35</div>
+        <div class="q-item" onclick="scrollToQuestion('q36')">36</div>
+        <div class="q-item" onclick="scrollToQuestion('q37')">37</div>
+        <div class="q-item" onclick="scrollToQuestion('q38')">38</div>
+        <div class="q-item" onclick="scrollToQuestion('q39')">39</div>
+        <div class="q-item" onclick="scrollToQuestion('q40')">40</div>
+    </div>
+
+    <div id="selbar">
+        <button id="highlightBtn">高亮</button>
+        <button id="removeHighlightBtn">取消高亮</button>
+    </div>
+
+    <script>
+        // Timer functionality (60 minutes countdown)
+        let totalTime = 60 * 60; // 60 minutes in seconds
+        const timerEl = document.getElementById('timer');
+        
+        function updateTimer() {
+            if (totalTime <= 0) {
+                clearInterval(timerInterval);
+                alert("Time is up! Submitting your answers.");
+                submitAnswers();
+                return;
+            }
+            
+            const minutes = Math.floor(totalTime / 60);
+            const seconds = totalTime % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            totalTime--;
+        }
+        
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call
+        
+        // Tab switching functionality with synchronization
+        function switchTabs(clickedTab, isRightTab = false) {
+            const tabId = clickedTab.getAttribute('data-tab');
+            
+            if (isRightTab) {
+                // If right tab was clicked, also switch the left tab
+                const passageId = clickedTab.getAttribute('data-passage');
+                const leftTab = document.querySelector(`.tab[data-tab="${passageId}"]`);
+                if (leftTab) {
+                    // Remove active class from all left tabs and contents
+                    document.querySelectorAll('#left .tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('#left .tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to corresponding left tab and content
+                    leftTab.classList.add('active');
+                    document.getElementById(passageId).classList.add('active');
+                }
+            }
+            
+            // Remove active class from all tabs and contents in the current container
+            const container = clickedTab.closest('.tab-container');
+            container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            container.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            clickedTab.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Set up tab click events
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const isRightTab = this.closest('#right') !== null;
+                switchTabs(this, isRightTab);
+            });
+        });
+        
+        // Drag and drop functionality
+        const cards = document.querySelectorAll('.card');
+        const dropzones = document.querySelectorAll('.dropzone');
+        
+        cards.forEach(card => {
+            card.addEventListener('dragstart', () => {
+                card.classList.add('dragging');
+            });
+            
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+            });
+        });
+        
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                zone.classList.add('over');
+            });
+            
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('over');
+            });
+            
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('over');
+                
+                const card = document.querySelector('.card.dragging');
+                if (card) {
+                    // Clear existing content
+                    zone.innerHTML = '';
+                    
+                    // Create a clone of the card for the dropzone
+                    const clone = card.cloneNode(true);
+                    clone.setAttribute('draggable', 'false');
+                    clone.classList.remove('dragging');
+                    zone.appendChild(clone);
+                    
+                    // Mark the question as answered in the navigation
+                    const questionId = zone.getAttribute('data-target');
+                    const navItem = document.querySelector(`.q-item[onclick*="${questionId}"]`);
+                    if (navItem) {
+                        navItem.classList.add('answered');
+                    }
+                }
+            });
+        });
+        
+        // Function to scroll to a specific question
+        function scrollToQuestion(questionId) {
+            const questionElement = document.querySelector(`[data-target="${questionId}"]`);
+            if (questionElement) {
+                questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Highlight the question briefly
+                questionElement.style.backgroundColor = '#fff3a3';
+                setTimeout(() => {
+                    questionElement.style.backgroundColor = '';
+                }, 1000);
+            }
+        }
+        
+        // Function to submit answers
+        function submitAnswers() {
+            alert("Answers submitted! This would normally be sent to a server for grading.");
+            // In a real implementation, this would collect all answers and send them for evaluation
+        }
+        
+        // Function to reset answers
+        function resetAnswers() {
+            if (confirm("Are you sure you want to reset all answers?")) {
+                // Clear all dropzones
+                document.querySelectorAll('.dropzone').forEach(zone => {
+                    zone.innerHTML = '<span class="droplabel">Drag answer here</span>';
+                });
+                
+                // Clear all radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.checked = false;
+                });
+                
+                // Clear all text inputs
+                document.querySelectorAll('input[type="text"]').forEach(input => {
+                    input.value = '';
+                });
+                
+                // Remove answered status from navigation
+                document.querySelectorAll('.q-item.answered').forEach(item => {
+                    item.classList.remove('answered');
+                });
+            }
+        }
+        
+        // Divider dragging functionality
+        const divider = document.getElementById('divider');
+        const leftPane = document.getElementById('left');
+        const rightPane = document.getElementById('right');
+        let isResizing = false;
+        
+        divider.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            document.body.style.cursor = 'ew-resize';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const containerRect = document.querySelector('.shell').getBoundingClientRect();
+            const xPosition = e.clientX - containerRect.left;
+            
+            // Set minimum widths for both panes
+            const leftWidth = Math.max(280, Math.min(containerRect.width - 320, xPosition));
+            const rightWidth = containerRect.width - leftWidth - 8; // 8px for the divider
+            
+            leftPane.style.flex = `0 0 ${leftWidth}px`;
+            rightPane.style.flex = `1 1 ${rightWidth}px`;
+        });
+        
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+            document.body.style.cursor = '';
+        });
+
+        // Highlight functionality
+        const selbar = document.getElementById('selbar');
+        const highlightBtn = document.getElementById('highlightBtn');
+        const removeHighlightBtn = document.getElementById('removeHighlightBtn');
+        let currentSelection = null;
+
+        // Listen for text selection
+        document.addEventListener('mouseup', function(e) {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            
+            if (selectedText.length > 0 && !e.target.closest('#selbar')) {
+                currentSelection = selection;
+                
+                // Position the toolbar near the selection
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                selbar.style.display = 'flex';
+                selbar.style.top = (rect.top + window.scrollY - 40) + 'px';
+                selbar.style.left = (rect.left + window.scrollX) + 'px';
+            } else if (!e.target.closest('#selbar')) {
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Highlight button functionality
+        highlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                const selectedText = range.toString();
+                
+                // Create highlight span
+                const span = document.createElement('span');
+                span.className = 'hl';
+                span.textContent = selectedText;
+                
+                // Replace selected text with highlighted span
+                range.deleteContents();
+                range.insertNode(span);
+                
+                // Clear selection and hide toolbar
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Remove highlight button functionality
+        removeHighlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                
+                // Find if the selection contains highlighted text
+                let parent = range.startContainer.parentNode;
+                while (parent && parent !== document.body) {
+                    if (parent.classList && parent.classList.contains('hl')) {
+                        // Replace the highlighted span with just its text content
+                        const text = document.createTextNode(parent.textContent);
+                        parent.parentNode.replaceChild(text, parent);
+                        
+                        // Clear selection and hide toolbar
+                        window.getSelection().removeAllRanges();
+                        selbar.style.display = 'none';
+                        return;
+                    }
+                    parent = parent.parentNode;
+                }
+                
+                // If no highlight found, just clear selection
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Hide toolbar when clicking elsewhere
+        document.addEventListener('mousedown', function(e) {
+            if (!e.target.closest('#selbar') && selbar.style.display === 'flex') {
+                selbar.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

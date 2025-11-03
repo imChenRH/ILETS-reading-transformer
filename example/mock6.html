@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Mock Test</title>
+    <style>
+        :root {
+            --line: #e5e7eb;
+            --bg: #f6f7fb;
+            --panel: #fff;
+            --accent: #3b82f6;
+            --muted: #6b7280;
+            --shadow: 0 6px 20px rgba(0,0,0,.12);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .shell {
+            display: flex;
+            height: calc(100vh - 60px);
+            width: 100%;
+        }
+        .pane {
+            background: var(--panel);
+            overflow: auto;
+            padding: 20px;
+        }
+        #left {
+            flex: 0 0 50%;
+            min-width: 280px;
+        }
+        #right {
+            flex: 1 1 auto;
+            min-width: 320px;
+            background: #fbfbff;
+            border-left: 1px solid var(--line);
+        }
+        #divider {
+            flex: 0 0 8px;
+            background: linear-gradient(90deg, #e5e7eb, #d1d5db);
+            cursor: ew-resize;
+            position: relative;
+            z-index: 5;
+            user-select: none;
+        }
+        h2, h3, h4 {
+            margin: 0 0 10px;
+        }
+        p {
+            margin: 0 0 12px;
+            line-height: 1.6;
+        }
+        .group {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+        .timer-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-height: 40px;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: auto;
+            min-width: 120px;
+            max-width: 200px;
+            vertical-align: middle;
+            margin: 5px 0;
+        }
+        .droplabel {
+            color: #64748b;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cardpool {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            cursor: grab;
+            box-shadow: 0 1px 0 rgba(0,0,0,.03);
+            white-space: nowrap;
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        .btn {
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: #3b82f6;
+        }
+        .hl {
+            background: #fff3a3;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,.05);
+            cursor: pointer;
+        }
+        .hl:hover {
+            filter: brightness(0.98);
+        }
+        #selbar {
+            position: absolute;
+            display: none;
+            z-index: 2000;
+            background: #111;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: var(--shadow);
+            font-size: 13px;
+            gap: 6px;
+            align-items: center;
+        }
+        #selbar button {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.25);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #selbar button:hover {
+            border-color: #fff;
+        }
+        .practice-nav {
+            background: #fff;
+            border-top: 2px solid var(--line);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 4000;
+            height: 60px;
+            overflow-x: auto;
+        }
+        .practice-nav .q-item {
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 36px;
+            text-align: center;
+        }
+        .practice-nav .q-item:hover {
+            background: #f1f5f9;
+            border-color: var(--accent);
+        }
+        .practice-nav .q-item.answered {
+            background: #e0e7ff;
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .practice-nav .q-item.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .section-title {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+        select {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        Time remaining: <span id="timer">60:00</span>
+    </div>
+
+    <div class="shell">
+        <section class="pane" id="left">
+            <div class="tab-container">
+                <div class="tab active" data-tab="passage1">Passage 1</div>
+                <div class="tab" data-tab="passage2">Passage 2</div>
+                <div class="tab" data-tab="passage3">Passage 3</div>
+            </div>
+            
+            <div class="tab-content active" id="passage1">
+                <h2>The Blockbuster Phenomenon: A New Museum Trend</h2>
+                <p>Museums in Australia, like other pleasure-giving public organizations, are adapting their activities so that they more closely reflect the marketplace.</p>
+                
+                <p><strong>A</strong> Since the 1980s, the term 'blockbuster' has become the fashionable word for spectacular, high-profile museum exhibitions that have the ability to attract large crowds. A blockbuster is a 'large-scale loan exhibition that people who normally don't go to museums will stand in line for hours to see' (Eisen 1984). Once the museum that created the exhibition has shown it to its local market, it can be offered to other organizations for a fee. This means that you can boost your own door takings and make money from boosting someone else's door takings.</p>
+                
+                <p><strong>B</strong> While partaking of the excitement of the blockbuster, visitors thus lured are likely to stay longer at the museum. Betty Churcher, when Director of the Australian National Gallery, summed up the new blockbuster creed as follows: 'The bonus of the blockbuster exhibitions is that people come to see the blockbuster and they stay to look at the permanent collection, so you are getting broader exposure for your collection.'</p>
+                
+                <p><strong>C</strong> Museums across the UK, USA, Canada and Australia currently operate under a system of plural funding: revenue raised through contributions by federal, state and/or local governments, combined with revenue raised through admission charges and other activities. Maintaining and increasing visitor levels is thus paramount and involves not only creating or hiring blockbuster exhibitions, but providing regular exhibition changes and innovations. In addition, the visiting public have become known as customers rather than visitors, and the skills that are valued in museums to keep the new customers coming through the door have changed. Curators are now administrators, and being a museum director no longer requires an Arts degree—but public relations skills are essential if the museum is going to compete with other museums to stage travelling exhibitions which draw huge crowds.</p>
+                
+                <p><strong>D</strong> The convergence of museums, the heritage industry, tourism, profit-making and pleasure-giving has resulted in the new 'museology'. This has given rise to much debate about whether it is appropriate to see museums primarily as tourist attractions. In literature from both the UK and USA, the words that are starting to appear in some descriptions of blockbusters are 'less scholarly', 'non-elitist' and 'popularist', while others extol the virtues of encouraging scholars to co-operate on projects, and to provide exhibitions that cater for a broad selection of the community rather than an elite sector. Whatever commentators may think, managers of museums worldwide are looking for artful ways to blend culture and commerce, and blockbuster exhibitions are at the top of the list.</p>
+                
+                <p><strong>E</strong> But do blockbusters held in public institutions really create a surplus to fund other activities? If the bottom line is profit, then according to the records of many major museums blockbusters do make money. For museums in some countries, it may be the money that they require to replace parts of their collections or to fix buildings that are in need of attention. For some museums in Australia, it may be the opportunity to illustrate that they are attempting to pay their way by recovering part of their operating costs. Also, creating or hiring a blockbuster has many positive spin-offs: blockbusters mean crowds, and crowds are good for the local economy, providing increased trade for shops, hotels, restaurants, the transport industry and retailers. The argument that the arts provide sustained economic benefits has been well illustrated in impact studies in the USA and UK.</p>
+                
+                <p><strong>F</strong> However, blockbusters require large capital expenditure and draw on resources across all branches of an organization, and the costs don't end there. There is a Human Resource Management cost in addition to a measurable 'real' dollar cost. Receiving a touring exhibition draws resources from across functional management structures in a project-management style. Everyone—from general labourers to building services, front-of-house, technical, promotional, educational and administrative staff—is required to perform additional tasks. Furthermore, as an increasing number of institutions try their hand at increasing visitor numbers and memberships (and therefore revenue) by staging blockbuster exhibitions, it may be less likely that blockbusters will continue to provide a surplus to subsidize other activities due to the competitive nature of the market.</p>
+                
+                <p><strong>G</strong> It has been illustrated in both the UK and USA that the blockbuster ideology has resulted in the false expectation that the momentum required to stage blockbusters can be maintained continually. Creating, mounting or hiring blockbusters is exhausting, with the real costs throughout an institution difficult to calculate. Secondly, as some analysts have argued, the 'shopkeeping' mentality and cost-benefit analysis, and a pure concentration on the bottom line, can squeeze substance out of an exhibition. Taking out substance can be a recipe for blockbuster failure and therefore financial failure.</p>
+                
+                <p><strong>H</strong> Perhaps the best pathway to take is one that balances both blockbusters and regular exhibitions. However, this easy middle ground may only work if you have enough space, and have alternative sources of funding to continue to support the regular, less exciting fare. Perhaps the advice should be to make sure that you find out what your local community wants from you and make sure that your regular activities and exhibitions are more enduring.</p>
+            </div>
+            
+            <div class="tab-content" id="passage2">
+                <h2>How Well Do We Concentrate?</h2>
+                
+                <p><strong>A</strong> Do you read while listening to music? Do you like to watch TV while finishing your homework? People who have these kinds of habits are called multitaskers. Multitaskers are able to complete two tasks at the same time by dividing their focus. However, Thomas Lehman, a researcher in psychology, believes people never really do multiple things simultaneously. Maybe a person is reading while listening to music, but in reality the brain can only focus on one task. Reading the words in a book will cause you to ignore some of the words of the music. When people think they are accomplishing two different tasks efficiently, what they are really doing is dividing their focus. While listening to music, people become less able to focus on their surroundings. For example, we all have experienced times when we talk with friends and they are not responding properly. Maybe they are listening to someone else talk, or maybe they are reading a text on their smartphone and don't hear what you are saying. Lehman called this phenomenon "email voice."</p>
+                
+                <p><strong>B</strong> The world has been changed by computers and their spin-offs such as smartphones or cellphones. Now that most individuals have a personal device, like a smartphone or a laptop, they are frequently reading, watching or listening to virtual information. This increases the occurrence of multitasking in our day-to-day life. Nowadays, when you work, you may use your typewriter, your cellphone, and speak with colleagues who may drop by at any time. In professional meetings, when one would normally focus on and listen to one another, people are more likely to have a cellphone in their lap, reading or communicating silently with more people than ever. Even inventions such as the cordless phone have increased multitasking. In the old days, a traditional wall phone would ring, and the housewife would have to stop her activities to answer it. When it rang, the housewife would sit down with her legs up and chat, with no laundry, sweeping or answering the door. In the modern era, our technology is convenient enough not to interrupt our daily tasks.</p>
+                
+                <p><strong>C</strong> Earl Miller, an expert at the Massachusetts Institute of Technology, studied the prefrontal cortex, which guides the brain while a person is multitasking. According to his studies, the size of this cortex varies between species. He found that for humans, it constitutes one-third of the brain, whereas it is only 4 – 5 percent in dogs and about 15 percent in monkeys. Because this cortex is larger in humans, it allows a person to be more flexible and accurate in multitasking. However, Miller wanted to know whether the cortex was truly processing information about two different tasks simultaneously. He designed an experiment in which he presented visual stimuli to his subjects in a way that mimicked multitasking. Miller then attached sensors to the patients' heads to pick up the electrical patterns of the brain. These sensors would show whether the neurons were truly processing two different tasks. What he found was that the brain neurons lit up in singular areas one at a time—never simultaneously.</p>
+                
+                <p><strong>D</strong> David Meyer, a professor at the University of Michigan, studied young adults in a similar experiment. He instructed them to solve math problems while simultaneously classifying simple words into different categories. Meyer found that when you think you are doing several jobs at the same time, you are actually switching between jobs. Even though the participants tried to do the tasks at the same time and both tasks were eventually accomplished, overall the task took more time than if the person had focused on a single task.</p>
+                
+                <p><strong>E</strong> People sacrifice efficiency when multitasking. Gloria Mark used office workers as her subjects. She found that they were constantly multitasking. She observed that nearly every 11 minutes people at work were disrupted. She found that doing different jobs at the same time may actually save time. However, despite the fact that they are faster, it does not mean they are more efficient. We are equally likely to self-interrupt as to be interrupted by outside sources. She found that in the office nearly every 12 minutes an employee would stop and, with no reason at all, check a website on their computer, call someone or write an email. If they concentrated for more than 20 minutes, they would feel distressed. She suggested that the average person may suffer from a short concentration span. This short attention span might be natural, but others suggest that new technology may be the problem. With cellphones and computers at our sides at all times, people will never run out of distractions. The format of media—such as advertisements, music, news articles and TV shows—is also shortening, so people are used to paying attention to information for a very short time.</p>
+                
+                <p><strong>F</strong> Even though focusing on a single task is the most efficient way for our brains to work, it is not always practical in real life. According to human nature, people feel more comfortable and efficient in environments with a variety of tasks. Edward Hallowell said that people are losing a lot of efficiency in the workplace due to multitasking, outside distractions and self-distractions. In fact, the changes made to the workplace do not have to be dramatic. No one is suggesting we ban e-mail or make employees focus on only one task. However, certain common workplace situations—such as group meetings—would be more efficient if we banned cellphones, a common distraction. A person can also apply these tips to prevent self-distraction. Instead of arriving at the office and checking all of your e-mails for new tasks—a common ritual—you could dedicate an hour to a single task first thing in the morning. Self-timing is a great way to reduce distraction and finish tasks one by one, instead of slowing ourselves down with multitasking.</p>
+            </div>
+            
+            <div class="tab-content" id="passage3">
+                <h2>Music: Language We All Speak</h2>
+                
+                <p><strong>A</strong> Music is one of the human species' relatively few universal abilities. Without formal training, any individual, from Stone Age tribesman to suburban teenager, has the ability to recognise music and, in some fashion, to make it. Why this should be so is a mystery. After all, music isn't necessary for getting through the day, and if it aids in reproduction, it does so only in highly indirect ways. Language, by contrast, is also everywhere — but for reasons that are more obvious. With language, you and the members of your tribe can organise a migration across Africa, build reed boats and cross the seas, and communicate at night even when you can't see each other. Modern culture, in all its technological extravagance, springs directly from the human talent for manipulating symbols and syntax.</p>
+                
+                <p>Scientists have always been intrigued by the connection between music and language. Yet over the years, words and melody have acquired a vastly different status in the lab and the seminar room. While language has long been considered essential to unlocking the mechanisms of human intelligence, music is generally treated as an evolutionary frippery — mere "auditory cheesecake", as the Harvard cognitive scientist Steven Pinker puts it.</p>
+                
+                <p><strong>B</strong> But thanks to a decade-long wave of neuroscience research, that tune is changing. A flurry of recent publications suggests that language and music may equally be able to tell us who we are and where we're from — not just emotionally, but biologically. In July, the journal Nature Neuroscience devoted a special issue to the topic. And in an article in the 6 August issue of the Journal of Neuroscience, David Schwartz, Catherine Howe and Dale Purves of Duke University argued that the sounds of music and the sounds of language are intricately connected.</p>
+                
+                <p>To grasp the originality of this idea, it's necessary to realise two things about how music has traditionally been understood. First, musicologists have long emphasised that while each culture stamps a special identity onto its music, music itself has some universal qualities. For example, in virtually all cultures, sound is divided into some or all of the 12 intervals that make up the chromatic scale — that is, the scale represented by the keys on a piano. For centuries, observers have attributed this preference for certain combinations of tones to the mathematical properties of sound itself.</p>
+                
+                <p>Some 2,500 years ago, Pythagoras was the first to note a direct relationship between the harmoniousness of a tone combination and the physical dimensions of the object that produced it. For example, a plucked string will always play an octave lower than a similar string half its size, and a fifth lower than a similar string two-thirds its length. This link between simple ratios and harmony has influenced music theory ever since.</p>
+                
+                <p><strong>C</strong> This music-is-math idea is often accompanied by the notion that music, formally speaking at least, exists apart from the world in which it was created. Writing recently in The New York Review of Books, pianist and critic Charles Rosen discussed the long-standing notion that while painting and sculpture reproduce at least some aspects of the natural world, and writing describes thoughts and feelings we are all familiar with, music is entirely abstracted from the world in which we live. Neither idea is right, according to David Schwartz and his colleagues. Human musical preferences are fundamentally shaped not by elegant algorithms or ratios but by the messy sounds of real life, and of speech in particular – which in turn is shaped by our evolutionary heritage. "The explanation of music, like the explanation of any product of the mind, must be rooted in biology, not in numbers per se," says Schwartz.</p>
+                
+                <p>Schwartz, Howe and Purves analysed a vast selection of speech sounds from a variety of languages to reveal the underlying patterns common to all utterances. In order to focus only on the raw sounds, they discarded all theories about speech and meaning, and sliced sentences into random bites. Using a database of over 100,000 brief segments of speech, they noted which frequency had the greatest emphasis in each sound. The resulting set of frequencies, they discovered, corresponded closely to the chromatic scale. In short, the building blocks of music are to be found in speech.</p>
+                
+                <p>Far from being abstract, music presents a strange analogue to the patterns created by the sounds of speech. "Music, like visual arts, is rooted in our experience of the natural world," says Schwartz. "It emulates our sound environment in the way that visual arts emulate the visual environment." In music we hear the echo of our basic sound-making instrument — the vocal tract. The explanation for human music is simpler still than Pythagoras's mathematical equations: we like the sounds that are familiar to us — specifically, we like the sounds that remind us of us.</p>
+                
+                <p>This brings up some chicken-or-egg evolutionary questions. It may be that music imitates speech directly, the researchers say, in which case it would seem that language evolved first. It's also conceivable that music came first and language is in effect an imitation of song — that in everyday speech we hit the musical notes we especially like. Alternatively, it may be that music imitates the general products of the human sound-making system, which just happens to be mostly speech. "We can't know this," says Schwartz. "What we do know is that they both come from the same system, and it is this that shapes our preferences."</p>
+                
+                <p><strong>D</strong> Schwartz's study also casts light on the long-running question of whether animals understand or appreciate music. Despite the apparent abundance of "music" in the natural world — birdsong, whale song, wolf howls, synchronised chimpanzee hooting — previous studies have found that many laboratory animals don't show a great affinity for the human variety of music making.</p>
+                
+                <p>Marc Hauser and Josh McDermott of Harvard argued in the July issue of Nature Neuroscience that animals don't create or perceive music the way we do. The fact that laboratory monkeys can show recognition of human tunes is evidence, they say, of shared general features of the auditory system, not any specific chimpanzee musical ability. As for birds, those most musical beasts, they generally recognise their own tunes — a narrow repertoire — but don't generate novel melodies like we do. There are no avian Mozarts.</p>
+                
+                <p>But what's been played to animals, Schwartz notes, is human music. If animals evolve preferences for sound as we do — based upon the soundscape in which they live — then their "music" would be fundamentally different from ours. In the same way our scales derive from human utterances, a cat's idea of a good tune would derive from yowls and meows. To demonstrate that animals don't appreciate sound the way we do, we'd need evidence that they don't respond to "music" constructed from their own sound environment.</p>
+                
+                <p><strong>E</strong> No matter how the connection between language and music is parsed, what is apparent is that our sense of music, even our love for it, is as deeply rooted in our biology and in our brains as language is. This is most obvious with babies, says Sandra Trehub at the University of Toronto, who also published a paper in the Nature Neuroscience special issue.</p>
+                
+                <p>For babies, music and speech are on a continuum. Mothers use musical speech to "regulate infants' emotional states", Trehub says. Regardless of what language they speak, the voice all mothers use with babies is the same: "something between speech and song". This kind of communication "puts the baby in a trance-like state, which may proceed to sleep or extended periods of rapture". So if the babies of the world could understand the latest research on language and music, they probably wouldn't be very surprised. The upshot, says Trehub, is that music may be even more of a necessity than we realise.</p>
+            </div>
+        </section>
+
+        <div id="divider" title="Drag to resize"></div>
+
+        <section class="pane" id="right">
+            <div class="tab-container">
+                <div class="tab active" data-tab="questions1" data-passage="passage1">Questions 1-13</div>
+                <div class="tab" data-tab="questions2" data-passage="passage2">Questions 14-26</div>
+                <div class="tab" data-tab="questions3" data-passage="passage3">Questions 27-40</div>
+            </div>
+            
+            <div class="tab-content active" id="questions1">
+                <h3>Questions 1–4</h3>
+                <p>Reading Passage 1 has eight paragraphs, <strong>A–H</strong>.</p>
+                <p>Which paragraph contains the following information?</p>
+                <p>Write the correct letter, <strong>A–H</strong>, in boxes 1-4 on your answer sheet.</p>
+                <p><strong>NB</strong> You may use any letter more than once.</p>
+                
+                <div class="group">
+                    <p>1 the reason why museum directors need to constantly alter and update their exhibits
+                        <select id="q1">
+                            <option value="">Select paragraph</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                            <option value="F">F</option>
+                            <option value="G">G</option>
+                            <option value="H">H</option>
+                        </select>
+                    </p>
+                    <p>2 mention of the length of time people will queue to see a blockbuster
+                        <select id="q2">
+                            <option value="">Select paragraph</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                            <option value="F">F</option>
+                            <option value="G">G</option>
+                            <option value="H">H</option>
+                        </select>
+                    </p>
+                    <p>3 terms that people have used when referring to blockbusters
+                        <select id="q3">
+                            <option value="">Select paragraph</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                            <option value="F">F</option>
+                            <option value="G">G</option>
+                            <option value="H">H</option>
+                        </select>
+                    </p>
+                    <p>4 the various ways that institutions like museums get financial support
+                        <select id="q4">
+                            <option value="">Select paragraph</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                            <option value="F">F</option>
+                            <option value="G">G</option>
+                            <option value="H">H</option>
+                        </select>
+                    </p>
+                </div>
+                
+                <h3>Questions 5–8</h3>
+                <p>Complete the sentences below.</p>
+                <p>Choose <strong>NO MORE THAN THREE WORDS</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 5–8 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>5 These days, museum visitors tend to be referred to as <input type="text" id="q5" style="width: 150px;">.</p>
+                    <p>6 Museum curators now need <input type="text" id="q6" style="width: 150px;"> rather than academic qualifications.</p>
+                    <p>7 The linking of a range of public institutions that entertain the public is known as <input type="text" id="q7" style="width: 150px;">.</p>
+                    <p>8 There is discussion about whether museums can be regarded in the same way as other <input type="text" id="q8" style="width: 150px;">.</p>
+                </div>
+                
+                <h3>Questions 9–10</h3>
+                <p>Choose <strong>TWO</strong> letters, <strong>A–E</strong>.</p>
+                <p>Write the correct letters in boxes 9 and 10 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>Which <strong>TWO</strong> of the following are mentioned by the writer as advantages of blockbusters?</p>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" name="q9-10" value="A"> A Some of the money they raise can be used for structural repairs.</label>
+                        <label><input type="checkbox" name="q9-10" value="B"> B They can provide funds to help support amateur artists.</label>
+                        <label><input type="checkbox" name="q9-10" value="C"> C Local services benefit from the extra business they bring about.</label>
+                        <label><input type="checkbox" name="q9-10" value="D"> D They encourage overseas workers into the local area.</label>
+                        <label><input type="checkbox" name="q9-10" value="E"> E They raise employee performance levels.</label>
+                    </div>
+                </div>
+                
+                <h3>Questions 11–13</h3>
+                <p>Choose <strong>THREE</strong> letters, <strong>A–G</strong>.</p>
+                <p>Write the correct letters in boxes 11–13 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>Which <strong>THREE</strong> of the following are mentioned by the writer as disadvantages of blockbusters?</p>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" name="q11-13" value="A"> A They do not suit museum management styles.</label>
+                        <label><input type="checkbox" name="q11-13" value="B"> B Specialist business advice has to be paid for.</label>
+                        <label><input type="checkbox" name="q11-13" value="C"> C They involve an increased workload for personnel.</label>
+                        <label><input type="checkbox" name="q11-13" value="D"> D They do not increase overall annual visitor numbers.</label>
+                        <label><input type="checkbox" name="q11-13" value="E"> E They are very tiring to put on.</label>
+                        <label><input type="checkbox" name="q11-13" value="F"> F What is popular in one country may not be popular in another.</label>
+                        <label><input type="checkbox" name="q11-13" value="G"> G The content can be weakened through financial pressure.</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions2">
+                <h3>Questions 14–18</h3>
+                <p>Reading Passage 2 has six paragraphs, <strong>A–F</strong>.</p>
+                <p>Which paragraph contains the following information?</p>
+                <p>Write the correct letter, <strong>A–F</strong>, in boxes 14-18 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>14 a reference to a domestic situation that does not require multitasking
+                        <select id="q14">
+                            <option value="">Select paragraph</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                            <option value="F">F</option>
+                        </select>
+                    </p>
+                    <p>15 a possible explanation of why we always multitask
+                        <select id="q15">
+                            <option value="">Select paragraph</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                            <option value="F">F</option>
+                        </select>
+                    </p>
+                    <p>16 a practical solution to multitasking in the work environment
+                        <select id="q16">
+                            <option value="">Select paragraph</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                            <option value="F">F</option>
+                        </select>
+                    </p>
+                    <p>17 relating multitasking to the size of the prefrontal cortex
+                        <select id="q17">
+                            <option value="">Select paragraph</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                            <option value="F">F</option>
+                        </select>
+                    </p>
+                    <p>18 more time spent doing two tasks at the same time than doing one task at a time
+                        <select id="q18">
+                            <option value="">Select paragraph</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                            <option value="F">F</option>
+                        </select>
+                    </p>
+                </div>
+                
+                <h3>Questions 19–23</h3>
+                <p>Look at the following statements (Questions 19-23) and the list of scientists below.</p>
+                <p>Match each statement with the correct scientist, <strong>A–E</strong>.</p>
+                <p>Write the correct letter, <strong>A–E</strong>, in boxes 19-23 on your answer sheet.</p>
+                <p><strong>NB</strong> You may use any letter more than once.</p>
+                
+                <div class="group">
+                    <p><strong>List of Scientists</strong></p>
+                    <p>A Thomas Lehman</p>
+                    <p>B Earl Miller</p>
+                    <p>C David Meyer</p>
+                    <p>D Gloria Mark</p>
+                    <p>E Edward Hallowell</p>
+                    
+                    <p>19 When faced with multiple visual stimuli, one can only concentrate on one of them.
+                        <select id="q19">
+                            <option value="">Select scientist</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                        </select>
+                    </p>
+                    <p>20 Doing two things together may be faster but not better.
+                        <select id="q20">
+                            <option value="">Select scientist</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                        </select>
+                    </p>
+                    <p>21 People never really do two things together even if you think you do.
+                        <select id="q21">
+                            <option value="">Select scientist</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                        </select>
+                    </p>
+                    <p>22 The causes of multitasking lie in the environment.
+                        <select id="q22">
+                            <option value="">Select scientist</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                        </select>
+                    </p>
+                    <p>23 Even minor changes in the workplace will improve work efficiency.
+                        <select id="q23">
+                            <option value="">Select scientist</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                        </select>
+                    </p>
+                </div>
+                
+                <h3>Questions 24–26</h3>
+                <p>Complete the sentences below.</p>
+                <p>Choose <strong>NO MORE THAN TWO WORDS</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 24-26 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>24 A term used to refer to a situation when you are reading a text and cannot focus on your surroundings is <input type="text" id="q24" style="width: 150px;">.</p>
+                    <p>25 The <input type="text" id="q25" style="width: 150px;"> part of the brain controls multitasking.</p>
+                    <p>26 The practical solution to multitasking at work is not to allow the use of cellphones in <input type="text" id="q26" style="width: 150px;">.</p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions3">
+                <h3>Questions 27–32</h3>
+                <p>Complete the summary using the list of words and phrases, <strong>A–H</strong>, below.</p>
+                <p>Write the correct letter, <strong>A–H</strong>, in boxes 27–32 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>Music and Language Research</strong></p>
+                    <p>Scientists have long been interested in the connection between music and language. For years, language was considered essential to understanding human intelligence, while music was often dismissed as evolutionary 27 <div class="dropzone" data-target="q27"><span class="droplabel">Drag answer here</span></div>. However, recent neuroscience research suggests that both music and language can tell us about our 28 <div class="dropzone" data-target="q28"><span class="droplabel">Drag answer here</span></div> origins.</p>
+                    
+                    <p>Traditional music theory emphasized the 29 <div class="dropzone" data-target="q29"><span class="droplabel">Drag answer here</span></div> basis of music, with Pythagoras noting the relationship between harmony and physical dimensions. In contrast, Schwartz and his colleagues argue that musical preferences are shaped by the sounds of real life, especially 30 <div class="dropzone" data-target="q30"><span class="droplabel">Drag answer here</span></div>, and are rooted in 31 <div class="dropzone" data-target="q31"><span class="droplabel">Drag answer here</span></div> rather than mathematics.</p>
+                    
+                    <p>When it comes to animals' appreciation of music, Schwartz notes that previous studies may be flawed because they used 32 <div class="dropzone" data-target="q32"><span class="droplabel">Drag answer here</span></div> rather than music based on animals' own sound environments.</p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A human music</div>
+                        <div class="card" draggable="true" data-value="B">B biological</div>
+                        <div class="card" draggable="true" data-value="C">C mathematical</div>
+                        <div class="card" draggable="true" data-value="D">D speech</div>
+                        <div class="card" draggable="true" data-value="E">E emotional</div>
+                        <div class="card" draggable="true" data-value="F">F frippery</div>
+                        <div class="card" draggable="true" data-value="G">G universal</div>
+                        <div class="card" draggable="true" data-value="H">H cultural</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 33–37</h3>
+                <p>Do the following statements agree with the information given in Reading Passage 3?</p>
+                <p>In boxes 33–37 on your answer sheet, write</p>
+                <ul>
+                    <li><strong>TRUE</strong> if the statement agrees with the information</li>
+                    <li><strong>FALSE</strong> if the statement contradicts the information</li>
+                    <li><strong>NOT GIVEN</strong> if there is no information on this</li>
+                </ul>
+                
+                <div class="group">
+                    <p>33 Music is a universal human ability that requires formal training to appreciate.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q33" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q33" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q33" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>34 Steven Pinker believes music is as important as language for human evolution.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q34" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q34" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q34" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>35 The chromatic scale is represented by the keys on a piano and is found in virtually all cultures.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q35" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q35" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q35" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>36 Schwartz's research analyzed over 100,000 segments of speech from a single language.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q36" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q36" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q36" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>37 According to Schwartz, music imitates the general products of the human sound-making system.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q37" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q37" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q37" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 38–40</h3>
+                <p>Choose the correct letter, <strong>A, B, C or D</strong>.</p>
+                <p>Write the correct letter in boxes 38–40 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>38 According to the passage, what did Marc Hauser and Josh McDermott argue about animals and music?
+                        <div>
+                            <label><input type="radio" name="q38" value="A"> A Animals create and perceive music in the same way as humans.</label><br>
+                            <label><input type="radio" name="q38" value="B"> B Animals don't create or perceive music the way humans do.</label><br>
+                            <label><input type="radio" name="q38" value="C"> C Only birds have the ability to appreciate human music.</label><br>
+                            <label><input type="radio" name="q38" value="D"> D All animals have their own forms of music similar to humans.</label>
+                        </div>
+                    </p>
+                    <p>39 What point does Sandra Trehub make about babies and music?
+                        <div>
+                            <label><input type="radio" name="q39" value="A"> A Babies cannot distinguish between music and speech.</label><br>
+                            <label><input type="radio" name="q39" value="B"> B Mothers use different musical speech depending on their language.</label><br>
+                            <label><input type="radio" name="q39" value="C"> C Music and speech exist on a continuum for babies.</label><br>
+                            <label><input type="radio" name="q39" value="D"> D Babies prefer pure music over musical speech.</label>
+                        </div>
+                    </p>
+                    <p>40 What is the main conclusion of the passage about music?
+                        <div>
+                            <label><input type="radio" name="q40" value="A"> A Music is less important than language for human development.</label><br>
+                            <label><input type="radio" name="q40" value="B"> B Music is a purely mathematical phenomenon.</label><br>
+                            <label><input type="radio" name="q40" value="C"> C Music is rooted in human biology and is more necessary than we realize.</label><br>
+                            <label><input type="radio" name="q40" value="D"> D Animals appreciate music in the same way as humans.</label>
+                        </div>
+                    </p>
+                </div>
+            </div>
+            
+            <div style="display:flex;gap:8px;margin:20px 0;">
+                <button class="btn btn-primary" onclick="submitAnswers()">Submit Answers</button>
+                <button class="btn" onclick="resetAnswers()">Reset Answers</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="practice-nav">
+        <span class="section-title">Passage 1:</span>
+        <div class="q-item" onclick="scrollToQuestion('q1')">1</div>
+        <div class="q-item" onclick="scrollToQuestion('q2')">2</div>
+        <div class="q-item" onclick="scrollToQuestion('q3')">3</div>
+        <div class="q-item" onclick="scrollToQuestion('q4')">4</div>
+        <div class="q-item" onclick="scrollToQuestion('q5')">5</div>
+        <div class="q-item" onclick="scrollToQuestion('q6')">6</div>
+        <div class="q-item" onclick="scrollToQuestion('q7')">7</div>
+        <div class="q-item" onclick="scrollToQuestion('q8')">8</div>
+        <div class="q-item" onclick="scrollToQuestion('q9-10')">9-10</div>
+        <div class="q-item" onclick="scrollToQuestion('q11-13')">11-13</div>
+        
+        <span class="section-title">Passage 2:</span>
+        <div class="q-item" onclick="scrollToQuestion('q14')">14</div>
+        <div class="q-item" onclick="scrollToQuestion('q15')">15</div>
+        <div class="q-item" onclick="scrollToQuestion('q16')">16</div>
+        <div class="q-item" onclick="scrollToQuestion('q17')">17</div>
+        <div class="q-item" onclick="scrollToQuestion('q18')">18</div>
+        <div class="q-item" onclick="scrollToQuestion('q19')">19</div>
+        <div class="q-item" onclick="scrollToQuestion('q20')">20</div>
+        <div class="q-item" onclick="scrollToQuestion('q21')">21</div>
+        <div class="q-item" onclick="scrollToQuestion('q22')">22</div>
+        <div class="q-item" onclick="scrollToQuestion('q23')">23</div>
+        <div class="q-item" onclick="scrollToQuestion('q24')">24</div>
+        <div class="q-item" onclick="scrollToQuestion('q25')">25</div>
+        <div class="q-item" onclick="scrollToQuestion('q26')">26</div>
+        
+        <span class="section-title">Passage 3:</span>
+        <div class="q-item" onclick="scrollToQuestion('q27')">27</div>
+        <div class="q-item" onclick="scrollToQuestion('q28')">28</div>
+        <div class="q-item" onclick="scrollToQuestion('q29')">29</div>
+        <div class="q-item" onclick="scrollToQuestion('q30')">30</div>
+        <div class="q-item" onclick="scrollToQuestion('q31')">31</div>
+        <div class="q-item" onclick="scrollToQuestion('q32')">32</div>
+        <div class="q-item" onclick="scrollToQuestion('q33')">33</div>
+        <div class="q-item" onclick="scrollToQuestion('q34')">34</div>
+        <div class="q-item" onclick="scrollToQuestion('q35')">35</div>
+        <div class="q-item" onclick="scrollToQuestion('q36')">36</div>
+        <div class="q-item" onclick="scrollToQuestion('q37')">37</div>
+        <div class="q-item" onclick="scrollToQuestion('q38')">38</div>
+        <div class="q-item" onclick="scrollToQuestion('q39')">39</div>
+        <div class="q-item" onclick="scrollToQuestion('q40')">40</div>
+    </div>
+
+    <div id="selbar">
+        <button id="highlightBtn">高亮</button>
+        <button id="removeHighlightBtn">取消高亮</button>
+    </div>
+
+    <script>
+        // Timer functionality (60 minutes countdown)
+        let totalTime = 60 * 60; // 60 minutes in seconds
+        const timerEl = document.getElementById('timer');
+        
+        function updateTimer() {
+            if (totalTime <= 0) {
+                clearInterval(timerInterval);
+                alert("Time is up! Submitting your answers.");
+                submitAnswers();
+                return;
+            }
+            
+            const minutes = Math.floor(totalTime / 60);
+            const seconds = totalTime % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            totalTime--;
+        }
+        
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call
+        
+        // Tab switching functionality with synchronization
+        function switchTabs(clickedTab, isRightTab = false) {
+            const tabId = clickedTab.getAttribute('data-tab');
+            
+            if (isRightTab) {
+                // If right tab was clicked, also switch the left tab
+                const passageId = clickedTab.getAttribute('data-passage');
+                const leftTab = document.querySelector(`.tab[data-tab="${passageId}"]`);
+                if (leftTab) {
+                    // Remove active class from all left tabs and contents
+                    document.querySelectorAll('#left .tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('#left .tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to corresponding left tab and content
+                    leftTab.classList.add('active');
+                    document.getElementById(passageId).classList.add('active');
+                }
+            }
+            
+            // Remove active class from all tabs and contents in the current container
+            const container = clickedTab.closest('.tab-container');
+            container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            container.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            clickedTab.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Set up tab click events
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const isRightTab = this.closest('#right') !== null;
+                switchTabs(this, isRightTab);
+            });
+        });
+        
+        // Drag and drop functionality
+        const cards = document.querySelectorAll('.card');
+        const dropzones = document.querySelectorAll('.dropzone');
+        
+        cards.forEach(card => {
+            card.addEventListener('dragstart', () => {
+                card.classList.add('dragging');
+            });
+            
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+            });
+        });
+        
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                zone.classList.add('over');
+            });
+            
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('over');
+            });
+            
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('over');
+                
+                const card = document.querySelector('.card.dragging');
+                if (card) {
+                    // Clear existing content
+                    zone.innerHTML = '';
+                    
+                    // Create a clone of the card for the dropzone
+                    const clone = card.cloneNode(true);
+                    clone.setAttribute('draggable', 'false');
+                    clone.classList.remove('dragging');
+                    zone.appendChild(clone);
+                    
+                    // Mark the question as answered in the navigation
+                    const questionId = zone.getAttribute('data-target');
+                    const navItem = document.querySelector(`.q-item[onclick="scrollToQuestion('${questionId}')"]`);
+                    if (navItem) {
+                        navItem.classList.add('answered');
+                    }
+                }
+            });
+        });
+        
+        // Function to scroll to a specific question
+        function scrollToQuestion(questionId) {
+            const questionElement = document.getElementById(questionId);
+            if (questionElement) {
+                questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Highlight the question briefly
+                questionElement.style.backgroundColor = '#fff3a3';
+                setTimeout(() => {
+                    questionElement.style.backgroundColor = '';
+                }, 1000);
+            }
+        }
+        
+        // Function to submit answers
+        function submitAnswers() {
+            alert("Answers submitted! This would normally be sent to a server for grading.");
+            // In a real implementation, this would collect all answers and send them for evaluation
+        }
+        
+        // Function to reset answers
+        function resetAnswers() {
+            if (confirm("Are you sure you want to reset all answers?")) {
+                // Clear all dropzones
+                document.querySelectorAll('.dropzone').forEach(zone => {
+                    zone.innerHTML = '<span class="droplabel">Drag answer here</span>';
+                });
+                
+                // Clear all radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.checked = false;
+                });
+                
+                // Clear all text inputs
+                document.querySelectorAll('input[type="text"]').forEach(input => {
+                    input.value = '';
+                });
+                
+                // Clear all select inputs
+                document.querySelectorAll('select').forEach(select => {
+                    select.selectedIndex = 0;
+                });
+                
+                // Clear all checkboxes
+                document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                
+                // Remove answered status from navigation
+                document.querySelectorAll('.q-item.answered').forEach(item => {
+                    item.classList.remove('answered');
+                });
+            }
+        }
+        
+        // Divider dragging functionality
+        const divider = document.getElementById('divider');
+        const leftPane = document.getElementById('left');
+        const rightPane = document.getElementById('right');
+        let isResizing = false;
+        
+        divider.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            document.body.style.cursor = 'ew-resize';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const containerRect = document.querySelector('.shell').getBoundingClientRect();
+            const xPosition = e.clientX - containerRect.left;
+            
+            // Set minimum widths for both panes
+            const leftWidth = Math.max(280, Math.min(containerRect.width - 320, xPosition));
+            const rightWidth = containerRect.width - leftWidth - 8; // 8px for the divider
+            
+            leftPane.style.flex = `0 0 ${leftWidth}px`;
+            rightPane.style.flex = `1 1 ${rightWidth}px`;
+        });
+        
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+            document.body.style.cursor = '';
+        });
+
+        // Highlight functionality
+        const selbar = document.getElementById('selbar');
+        const highlightBtn = document.getElementById('highlightBtn');
+        const removeHighlightBtn = document.getElementById('removeHighlightBtn');
+        let currentSelection = null;
+
+        // Listen for text selection
+        document.addEventListener('mouseup', function(e) {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            
+            if (selectedText.length > 0 && !e.target.closest('#selbar')) {
+                currentSelection = selection;
+                
+                // Position the toolbar near the selection
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                selbar.style.display = 'flex';
+                selbar.style.top = (rect.top + window.scrollY - 40) + 'px';
+                selbar.style.left = (rect.left + window.scrollX) + 'px';
+            } else if (!e.target.closest('#selbar')) {
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Highlight button functionality
+        highlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                const selectedText = range.toString();
+                
+                // Create highlight span
+                const span = document.createElement('span');
+                span.className = 'hl';
+                span.textContent = selectedText;
+                
+                // Replace selected text with highlighted span
+                range.deleteContents();
+                range.insertNode(span);
+                
+                // Clear selection and hide toolbar
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Remove highlight button functionality
+        removeHighlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                
+                // Find if the selection contains highlighted text
+                let parent = range.startContainer.parentNode;
+                while (parent && parent !== document.body) {
+                    if (parent.classList && parent.classList.contains('hl')) {
+                        // Replace the highlighted span with just its text content
+                        const text = document.createTextNode(parent.textContent);
+                        parent.parentNode.replaceChild(text, parent);
+                        
+                        // Clear selection and hide toolbar
+                        window.getSelection().removeAllRanges();
+                        selbar.style.display = 'none';
+                        return;
+                    }
+                    parent = parent.parentNode;
+                }
+                
+                // If no highlight found, just clear selection
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Hide toolbar when clicking elsewhere
+        document.addEventListener('mousedown', function(e) {
+            if (!e.target.closest('#selbar') && selbar.style.display === 'flex') {
+                selbar.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

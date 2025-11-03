@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Mock Test</title>
+    <style>
+        :root {
+            --line: #e5e7eb;
+            --bg: #f6f7fb;
+            --panel: #fff;
+            --accent: #3b82f6;
+            --muted: #6b7280;
+            --shadow: 0 6px 20px rgba(0,0,0,.12);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .shell {
+            display: flex;
+            height: calc(100vh - 60px);
+            width: 100%;
+        }
+        .pane {
+            background: var(--panel);
+            overflow: auto;
+            padding: 20px;
+        }
+        #left {
+            flex: 0 0 50%;
+            min-width: 280px;
+        }
+        #right {
+            flex: 1 1 auto;
+            min-width: 320px;
+            background: #fbfbff;
+            border-left: 1px solid var(--line);
+        }
+        #divider {
+            flex: 0 0 8px;
+            background: linear-gradient(90deg, #e5e7eb, #d1d5db);
+            cursor: ew-resize;
+            position: relative;
+            z-index: 5;
+            user-select: none;
+        }
+        h2, h3, h4 {
+            margin: 0 0 10px;
+        }
+        p {
+            margin: 0 0 12px;
+            line-height: 1.6;
+        }
+        .group {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+        .timer-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-height: 40px;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: auto;
+            min-width: 120px;
+            max-width: 200px;
+            vertical-align: middle;
+            margin: 5px 0;
+        }
+        .droplabel {
+            color: #64748b;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cardpool {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            cursor: grab;
+            box-shadow: 0 1px 0 rgba(0,0,0,.03);
+            white-space: nowrap;
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        .btn {
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: #3b82f6;
+        }
+        .hl {
+            background: #fff3a3;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,.05);
+            cursor: pointer;
+        }
+        .hl:hover {
+            filter: brightness(0.98);
+        }
+        #selbar {
+            position: absolute;
+            display: none;
+            z-index: 2000;
+            background: #111;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: var(--shadow);
+            font-size: 13px;
+            gap: 6px;
+            align-items: center;
+        }
+        #selbar button {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.25);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #selbar button:hover {
+            border-color: #fff;
+        }
+        .practice-nav {
+            background: #fff;
+            border-top: 2px solid var(--line);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 4000;
+            height: 60px;
+            overflow-x: auto;
+        }
+        .practice-nav .q-item {
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 36px;
+            text-align: center;
+        }
+        .practice-nav .q-item:hover {
+            background: #f1f5f9;
+            border-color: var(--accent);
+        }
+        .practice-nav .q-item.answered {
+            background: #e0e7ff;
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .practice-nav .q-item.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .section-title {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        Time remaining: <span id="timer">60:00</span>
+    </div>
+
+    <div class="shell">
+        <section class="pane" id="left">
+            <div class="tab-container">
+                <div class="tab active" data-tab="passage1">Passage 1</div>
+                <div class="tab" data-tab="passage2">Passage 2</div>
+                <div class="tab" data-tab="passage3">Passage 3</div>
+            </div>
+            
+            <div class="tab-content active" id="passage1">
+                <h2>A Brief History of Tea</h2>
+                <p><strong>A</strong> The story of tea began in ancient China over 5,000 years ago. According to legend, the Emperor Shen Nung was a skilled ruler, creative scientist and patron of the arts. His far-sighted edicts required, among other things, that all drinking water be boiled as a hygienic precaution. One summer day, while visiting a distant region of his realm, he and the court stopped to rest. In accordance with his ruling, the servants began to boil water for the court to drink. Dried leaves from a nearby bush fell into the boiling water, and as the leaves infused the water turned brown. As a scientist, the Emperor was intrigued by the new liquid, drank some, and found it very refreshing. And so, according to legend, tea was created.</p>
+                
+                <p><strong>B</strong> Tea consumption spread throughout Chinese culture, reaching into every aspect of society. The first definitive book was written on tea – a book clearly reflecting Zen Buddhist philosophy – 1,200 years ago. The first tea seeds were brought to Japan by a returning Buddhist priest, who had seen the value of tea in enhancing meditation in China. As a result, he is known as the "Father of Tea" in Japan. Because of this early association, tea in Japan has always been linked with Zen Buddhism. Tea received the Japanese Emperor's support almost instantly and spread rapidly from the royal court and monasteries to other sections of society.</p>
+                
+                <p><strong>C</strong> Tea was elevated to an art form in the Japanese tea ceremony, in which supreme importance is given to making tea in the most perfect, most polite, most graceful, most charming manner possible. Such a purity of expression prompted the creation of a particular form of architecture for tea houses, duplicating the simplicity of a forest cottage. The cultural/artistic hostesses of Japan, the geishas, began to specialise in the presentation of the tea ceremony. However, as more and more people became involved in the excitement surrounding tea, the purity of the original concept was lost, and for a period the tea ceremony became corrupted, boisterous and highly embellished. Efforts were then made to return to the earlier simplicity, with the result that, in the 15th and 16th centuries, tea was viewed as the ultimate gift. Even warlords paused for tea before battles.</p>
+                
+                <p><strong>D</strong> While tea was at this high level of development in parts of Asia, information concerning the then-unknown beverage began to filter back to Europe. Earlier traders had mentioned it, but were unclear as to whether tea should be eaten or drunk. The first European to personally encounter tea and write about it was Portuguese – Portugal, with her technologically advanced navy, had been successful in gaining the first right of trade with China.</p>
+                
+                <p><strong>E</strong> Tea finally arrived in Europe in the 16th century, brought to Holland by the country's navy, and became very fashionable in the Dutch capital, The Hague. This was due in part to tea being very expensive (over $100 per pound), which immediately made it the domain of the wealthy. Slowly, as the amount of tea imported increased, the price fell, and by 1675 it was available in common food shops throughout Holland.</p>
+                
+                <p><strong>F</strong> As the consumption of tea increased dramatically in Dutch society, doctors and university authorities in Holland argued as to its benefits or drawbacks. The public largely ignored the scholarly debate and continued to enjoy their new beverage, though the controversy lasted from 1635 to roughly 1657. Throughout this period, France and Holland led Europe in the use of tea.</p>
+                
+                <p><strong>G</strong> As the craze for all things oriental swept through Europe, tea became part of everyday life. Adding milk to the drink was first mentioned in 1680. Around that time, Dutch inns provided the first restaurant service of tea. Innkeepers would furnish guests with a portable tea set complete with a heating unit. The Dutchman would then prepare tea for himself and his friends outside in the inn garden. Tea remained popular in France for only about fifty years, being replaced by a preference for wine, chocolate and exotic coffees. Tea was introduced into England in 1660 by King Charles II and his Portuguese queen, who were both confirmed tea drinkers. Tea mania swept across England as it had earlier spread throughout France and Holland. By 1708, tea importation had risen to thirteen times the 1699 level. Tea was drunk by all levels of society.</p>
+                
+                <p><strong>H</strong> Russian interest in tea began as early as 1618, when the Chinese embassy in Moscow presented several chests of tea to the Emperor, Czar Alexis. Later in the century, a trade treaty between Russia and China allowed caravans to cross back and forth freely between the two countries. Still, the journey was not easy. The average caravan consisted of 200 to 300 camels, and the 18,000-kilometre trip took over 16 months to complete. Eventually, however, tea became – as it still is – one of the most popular drinks in the country.</p>
+            </div>
+            
+            <div class="tab-content" id="passage2">
+                <h2>A new look for Talbot Park</h2>
+                <p><em>Talbot Park, a housing project in Auckland, New Zealand, was once described as a ghetto, troubled by high rates of crime and vandalism. However, it has just been rebuilt at a cost of $48 m and the project reflects some new thinking about urban design.</em></p>
+                
+                <p><strong>A</strong> The new Talbot Park is immediately eye-catching because the buildings look quite different to other state-housing projects in Auckland. 'There is no reason why state housing should look cheap in my view,' says architect Neil Cotton, one of the design team. 'In fact, I was anticipating a backlash by those who objected to the quality of what is provided with government money.' The tidy brick and wood apartments and townhouses would not look out of place in some of the city's most affluent suburbs, and this is a central theme of the Talbot Park philosophy.</p>
+                
+                <p><strong>B</strong> Talbot Park is a triangle of government-owned land, which in the early 1960s was developed for state housing built around a linear garden that ran through the middle. Initially, there was a strong sense of neighbourhoods. Former residents recall how the garden played a big part in their childhoods — a place where kids came together to play softball, cricket and bullrush. 'We had respect for our neighbours and addressed them by title — Mr and Mrs so-and-so,' recalls Georgie Thompson, who grew up there in the 1960s.</p>
+                
+                <p><strong>C</strong> Exactly what went wrong with Talbot Park is unclear. The community began to change in the late 1970s as more immigrants moved in. The new arrivals didn't always integrate with the community and a 'them and us' mentality developed. In the process, standards dropped and the neighbourhood began to look shabbier. The buildings themselves were also deteriorating and becoming run-down, petty crime was on the rise and the garden was considered unsafe. In 2002, Housing New Zealand decided the properties needed upgrading. The question was, how to avoid repeating the mistakes of the past?</p>
+                
+                <p><strong>D</strong> One controversial aspect of the upgrade is that the new development has actually made the density of housing in Talbot Park greater, putting 52 more homes on the same site. Doing this required a fresh approach that can be summed up as 'mix and match'. The first priority was to mix up the housing by employing a variety of plans by different architects: some of the accommodation is free-standing houses, some semi-detached, some low-level, multi-apartment blocks. By doing this, the development avoids the uniform appearance of so many state-housing projects, which residents complain denies them any sense of individual identity. The next goal was to prevent overspending by using efficient designs to maximise the sense of space from minimum room sizes. There was also a no-frills, industrial approach to kitchens, bathrooms and flooring, to optimise durability and ensure the project did not go over budget. Architecturally, the buildings are relatively conservative: fairly plain houses standing in a small garden. There's a slight reflection of the traditional Pacific beach house (a fale) but it's not over-played. 'It seems to us that low-cost housing is about getting as much amenity as you can for the money,' says architect Michael Thompson. Another key aspect of the 'mix and match' approach is openness: one that not only lets residents see what is going on but also lets them know they are seen. The plan ensures there are no cul-de-sacs or properties hidden from view, that the gardens are not enclosed by trees and that most boundary fences are see-through — a community contained but without walls.</p>
+                
+                <p><strong>E</strong> The population today is cosmopolitan: 50% Pacific Islanders, 20% Māori, 15% Asian, 10% New Zealand European and the rest composed of immigrants from Russia, Ukraine and Iran. 'It was important that the buildings were sufficiently flexible to cater for the needs of people from a wide variety of cultural backgrounds,' explains designer James Lundy.</p>
+                
+                <p><strong>F</strong> Despite the quality of the buildings, however, there should be no doubt that Talbot Park and its surrounding suburb of Tāmaki are low socio-economic areas. Of the 5,000 houses there, 55% are state houses, 28% privately owned (compared to about 65% nationally) and 17% private rental. The area has a high density of households with incomes in the $5,000 to $15,000 range and very few with an income over $70,000. That's in sharp contrast to the more affluent suburbs in Auckland.</p>
+                
+                <p><strong>G</strong> Another important part of the new development is what Housing New Zealand calls 'intensive tenancy management'. Opponents of the project call it social control. 'The focus is on frequent inspections and setting clear guidelines and boundaries regarding the sort of behaviour we expect from tenants,' says Graham Bodman, Housing New Zealand's regional manager. The result is a code of sometimes strict rules: no loud parties after 10 pm; no washing hung over balcony rails; and a requirement to mow lawns and keep the property tidy. The Tenancy Manager walks the site every day, knows everyone by name and deals with problems quickly. 'It's all based on the intensification,' says project manager Stuart Bracey. 'We acknowledge that if you are going to ask people to live in these quite tightly-packed communities, you have to actually help them to get to know each other by organising morning teas and street barbecues.' So far it seems to be working and many involved in the project believe Talbot Park represents the way forward for state housing.</p>
+            </div>
+            
+            <div class="tab-content" id="passage3">
+                <h2>A closer examination of a study on verbal and non-verbal messages</h2>
+                <p><em>A study of non-verbal communication carried out in 1967 continues to be widely quoted today. David Lapakko looks at limitations in the original study.</em></p>
+                
+                <h3>Description of the Study</h3>
+                <p>The findings of a study on verbal and non-verbal messages in communication by Albert Mehrabian and his colleagues at UCLA in 1967 have been quoted so frequently that they are now often regarded as a self-evident truth.</p>
+                <p>In the first experiment, subjects were asked to listen to a recording of a female saying the word "maybe" in three tones of voice to convey liking, neutrality, and disliking. The subjects were then shown photos of female faces expressing the same three emotions and were asked to guess the emotions in the recorded voice and the photos. It was found that the photos received more accurate responses than the voices. In the second experiment, subjects listened to nine recorded words spoken in different tones of voice. Three words had positive meanings (e.g. honey), three were neutral (e.g. oh), and three were negative (e.g. terrible). Again, the subjects had to guess the speaker's emotions. It was found that tone of voice carried more meaning than the individual words. From these experiments the researchers concluded that 7% of our feeling towards a speaker is based on the actual words they use, 38% on their tone of voice, and 55% on their body language (e.g. facial expression).</p>
+                
+                <h3>Methodological Issues</h3>
+                <p>However, a closer look at the study reveals several limitations. The first is that the entire study involved only 62 subjects. Of these, 25 were used to select the word for the first experiment, while the key issue – comparing verbal and non-verbal communication – was determined by only the 37 remaining subjects. All were female undergraduates who participated as part of their introductory psychology course, and their ages and academic qualifications seem remarkably uniform. Thus, the findings may simply be a product of the nature of the sample.</p>
+                <p>Critics have also pointed out that the 7–38–55 formula is flawed since it was pieced together from two different experiments, neither of which involved all three channels (verbal, vocal, and facial). In addition, in the first experiment the single word "maybe" was used throughout so it was impossible for the effects of changes in verbal input to be assessed. The researchers intentionally used a "neutral" word so naturally the subjects found little meaning there. Clearly, such a methodology lacks validity. In the real world, people communicate in a particular context and speak in phrases and full-blown sentences, making extensive use of the multi-faceted vehicle of language.</p>
+                <p>My concern is that interpretations of this study have gained such prominence in our pedagogical literature. This 7–38–55 formula appears in many basic texts, used for training in public speaking, interpersonal communication, and organizational communication.</p>
+                
+                <h3>Lessons to Consider</h3>
+                <p>Clearly, one appealing aspect of the Mehrabian study is its numerical precision. Communication is a complex phenomenon, but it seems less so when we can rely on these three magical numbers. In contrast to the ambiguities of language, numbers seem to possess exactness. And the popular appeal of the study has given the 7–38–55 formula enormous credibility. There is a certain mystique about non-verbal communication, and the continued references to this research sustain it, encouraging people to believe in the overwhelming importance of the non-verbal message compared with the verbal one. Yet we know that even one ill-chosen word to a colleague or friend can make or break a communicative effort. Words do matter. Bradley (1991), one of the few textbook writers to criticize the Mehrabian study, makes the same point when he observes, "If we could communicate 93% of information and attitudes with vocal and facial cues, it would be wasteful to spend time learning a language."</p>
+                
+                <p>Mehrabian himself believes his research should not be interpreted to devalue the role of language in communication, saying:</p>
+                <p>"Please remember that all my findings… dealt with communications of feelings and attitudes… it is absurd to imply or suggest that the verbal portion of all communication constitutes only 7% of the message… anytime we communicate abstract relationships (e.g., x = y – the square of z) clearly 100% of the entire communication is verbal." (Mehrabian, 1995)</p>
+                <p>To be fair, many textbook writers attempt to be faithful to the context of Mehrabian's research. For example, Stewart and D'Angelo (1988) write: "Mehrabian argues that when we're uncertain about what someone's feeling, or about how much we like him or her, we rely… only 7% on the words that are spoken." Others try to play down the specific percentages, saying that an understanding of the general importance of non-verbal cues is more important. Nonetheless, other textbook authors simply use the numbers without placing any limits on their meaning.</p>
+                
+                <h3>Conclusion</h3>
+                <p>Since this relatively small study was first published it has achieved an influence far beyond its intended scope. We need to put it into its proper perspective and learn some important lessons from it regarding social science research, communication pedagogy, and the forces which have created widespread misunderstanding about communication.</p>
+            </div>
+        </section>
+
+        <div id="divider" title="Drag to resize"></div>
+
+        <section class="pane" id="right">
+            <div class="tab-container">
+                <div class="tab active" data-tab="questions1" data-passage="passage1">Questions 1-13</div>
+                <div class="tab" data-tab="questions2" data-passage="passage2">Questions 14-26</div>
+                <div class="tab" data-tab="questions3" data-passage="passage3">Questions 27-40</div>
+            </div>
+            
+            <div class="tab-content active" id="questions1">
+                <h3>Questions 1–8</h3>
+                <p>Reading Passage 1 has eight paragraphs <strong>A–H</strong>.</p>
+                <p>Choose the correct heading for each paragraph from the list of headings below.</p>
+                <p>Write the correct number, <strong>i-x</strong>, in boxes 1-8 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>List of Headings</strong></p>
+                    <p>i &nbsp; &nbsp; Not enough tea to meet demand</p>
+                    <p>ii &nbsp; Religious objections</p>
+                    <p>iii &nbsp; In – and sometimes out – of fashion</p>
+                    <p>iv &nbsp; A connection between tea and religion</p>
+                    <p>v &nbsp; A luxury item</p>
+                    <p>vi &nbsp; News of tea reaches another continent</p>
+                    <p>vii &nbsp; Is tea a good or a bad thing?</p>
+                    <p>viii &nbsp; A chance discovery</p>
+                    <p>ix &nbsp; Tea-making as a ritual</p>
+                    <p>x &nbsp; Difficulties in importing tea</p>
+                    
+                    <p>1 Paragraph <strong>A</strong> 
+                        <div class="dropzone" data-target="q1"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>2 Paragraph <strong>B</strong> 
+                        <div class="dropzone" data-target="q2"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>3 Paragraph <strong>C</strong> 
+                        <div class="dropzone" data-target="q3"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>4 Paragraph <strong>D</strong> 
+                        <div class="dropzone" data-target="q4"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>5 Paragraph <strong>E</strong> 
+                        <div class="dropzone" data-target="q5"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>6 Paragraph <strong>F</strong> 
+                        <div class="dropzone" data-target="q6"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>7 Paragraph <strong>G</strong> 
+                        <div class="dropzone" data-target="q7"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>8 Paragraph <strong>H</strong> 
+                        <div class="dropzone" data-target="q8"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="i">i</div>
+                        <div class="card" draggable="true" data-value="ii">ii</div>
+                        <div class="card" draggable="true" data-value="iii">iii</div>
+                        <div class="card" draggable="true" data-value="iv">iv</div>
+                        <div class="card" draggable="true" data-value="v">v</div>
+                        <div class="card" draggable="true" data-value="vi">vi</div>
+                        <div class="card" draggable="true" data-value="vii">vii</div>
+                        <div class="card" draggable="true" data-value="viii">viii</div>
+                        <div class="card" draggable="true" data-value="ix">ix</div>
+                        <div class="card" draggable="true" data-value="x">x</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 9–13</h3>
+                <p>Look at the following statements (Questions 9–13) and the list of countries below.</p>
+                <p>Match each statement with the correct country, <strong>A–G</strong>.</p>
+                <p>Write the correct letter, <strong>A–G</strong>, in boxes 9–13 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>List of Countries</strong></p>
+                    <p>A China</p>
+                    <p>B Japan</p>
+                    <p>C Portugal</p>
+                    <p>D Holland</p>
+                    <p>E France</p>
+                    <p>F England</p>
+                    <p>G Russia</p>
+                    
+                    <p>9 Claims that tea might be harmful failed to affect its popularity.
+                        <div class="dropzone" data-target="q9"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>10 Tea lost favour to other drinks.
+                        <div class="dropzone" data-target="q10"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>11 Special buildings were constructed in which to drink tea.
+                        <div class="dropzone" data-target="q11"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>12 Animals were involved in importing tea.
+                        <div class="dropzone" data-target="q12"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>13 A ruler's specialist knowledge led to an interest in tea.
+                        <div class="dropzone" data-target="q13"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                        <div class="card" draggable="true" data-value="F">F</div>
+                        <div class="card" draggable="true" data-value="G">G</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions2">
+                <h3>Questions 14–20</h3>
+                <p>Reading Passage 2 has seven paragraphs, <strong>A–G</strong>.</p>
+                <p>Choose the correct heading for each paragraph from the list of headings below.</p>
+                <p>Write the correct number, <strong>i–x</strong>, in boxes 14–20 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>List of Headings</strong></p>
+                    <p>i &nbsp; &nbsp; Some of the problems that developed at Talbot Park</p>
+                    <p>ii &nbsp; Where the residents lived while the work was being completed</p>
+                    <p>iii &nbsp; The ethnic makeup of the new Talbot Park</p>
+                    <p>iv &nbsp; The unexpectedly high standard of the housing</p>
+                    <p>v &nbsp; Financial hardship in Talbot Park and a neighbouring community</p>
+                    <p>vi &nbsp; The experiences of one family living at Talbot Park today</p>
+                    <p>vii &nbsp; How to co-ordinate and assist the people who live at Talbot Park</p>
+                    <p>viii &nbsp; Raising the money to pay for the makeover</p>
+                    <p>ix &nbsp; A close community in the original Talbot Park development</p>
+                    <p>x &nbsp; Details of the style of buildings used in the makeover</p>
+                    
+                    <p>14 Paragraph <strong>A</strong> 
+                        <div class="dropzone" data-target="q14"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>15 Paragraph <strong>B</strong> 
+                        <div class="dropzone" data-target="q15"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>16 Paragraph <strong>C</strong> 
+                        <div class="dropzone" data-target="q16"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>17 Paragraph <strong>D</strong> 
+                        <div class="dropzone" data-target="q17"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>18 Paragraph <strong>E</strong> 
+                        <div class="dropzone" data-target="q18"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>19 Paragraph <strong>F</strong> 
+                        <div class="dropzone" data-target="q19"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>20 Paragraph <strong>G</strong> 
+                        <div class="dropzone" data-target="q20"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="i">i</div>
+                        <div class="card" draggable="true" data-value="ii">ii</div>
+                       极简
+                        <div class="card" draggable="true" data-value="iii">iii</div>
+                        <div class="card" draggable="true" data-value="iv">iv</div>
+                        <div class="card" draggable="true" data-value="v">v</div>
+                        <div class="card" draggable="true" data-value="vi">极简</div>
+                        <div class="card" draggable="true" data极简="vii">vii</div>
+                        <div class="card" draggable="true" data-value="viii">viii</div>
+                        <div class="card" draggable="true" data-value="ix">ix</div>
+                        <div class="card" draggable="true" data-value="x">x</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 21–23</h3>
+                <p>Look at the following people (Questions 21–23) and the list of ideas below.</p>
+                <p>极简 each person with the correct idea, <strong>A–F</strong>.</p>
+                <p>Write the correct letter, <strong>A–F</strong>, in boxes 21–23 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>List of Ideas</strong></p>
+                    <p>A Good tenant management involves supervision and regulation.</p>
+                    <p>B State housing must be built at minimum expense to the public.</p>
+                    <p>C Organising social events helps tenants to live close together.</p>
+                    <p>D Mixed-race communities require adaptable and responsive designs.</p>
+                    <p>E Complaints were expected about the high standard of the development.</p>
+                    <p>F Too many rules and regulations will cause resentment from tenants.</p>
+                    
+                    <p>21 James Lundy
+                        <div class="dropzone" data-target="q21"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>22 Graham Bodman
+                        <div class="dropzone" data-target="极简"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>23 Stuart Bracey
+                        <div class="dropzone" data-target="q23"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class极简="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                        <div class="card" draggable="true" data-value="F">F</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 24–26</h3>
+                <p>Complete the summary below.</p>
+                <p>Choose <strong>ONE WORD ONLY</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 24–26 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>The 'mix and match' strategy</极简>
+                    <p>One aspect of the Talbot Park project that some critics are concerned about is that the higher 
+                    <input type="text" id="q24" style="width: 100px;"> of accommodation would lead to the old social problems returning. To prevent this, a team of various 
+                    <input type="text" id="q25" style="width: 100px;"> worked on the project to ensure the buildings were not uniform. Further, they created pleasant, functional interiors that could still be built within their 
+                    <input type="text" id="q26" style="width: 100px;">. Finally, the absence of walls means Talbot Park is characterised by openness, making it easier to regulate behaviour within the community.</p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions3">
+                <h3>Questions 27–30</h3>
+                <p>Complete the summary using the list of words and phrases, <strong>A–H</strong>, below.</p>
+                <p>Write the correct letter, <strong>A–H</极简, in boxes 27–30 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>Mehrabian's 1967 study</strong></p>
+                    <p>Albert Mehrabian and his colleagues carried out an influential study comparing the 
+                    <div class="dropzone" data-target="q27"><span class="droplabel">Drag answer here</span></div> of verbal and non-verbal communication. This involved two experiments. In both experiments, subjects had to identify the 
+                    <div class="dropzone" data-target="q28"><span class="droplabel">Drag answer here</span></div> being communicated by other people. The two main areas focused on in the first experiment were voice tones and 
+                    <div class="dropzone" data-target="q29"><span class="droplabel">Drag answer here</span></div>, while the second focused mainly on voice tones and 
+                    <div class="dropzone" data-target="q30"><span class="droplabel">Drag answer here</span></div>.</p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A facial expressions</div>
+                        <div class="card" draggable="true" data-value="B">B purposes</div>
+                        <div class="card" draggable="true" data-value="C">C printed words</极简
+                        <div class="card" draggable="true" data-value="D">D effects</div>
+                        <div class="card" draggable="true" data-value="极简">E word meanings</div>
+                        <div class="card" draggable="true" data-value="F">F gender differences</div>
+                        <div class="card" draggable="true" data-value="G">G feelings</div>
+                        <div class="card" draggable="true" data-value="H">H characteristics</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 31–35</h3>
+                <p>Do the following statements agree with the views of the writer in Reading Passage 3?</p>
+                <p>In boxes 31–35 on your answer sheet, write</p>
+                <ul>
+                    <li><strong>YES</strong> if the statement agrees with the views of the writer</li>
+                    <li><strong>NO</strong> if the statement contradicts the views of the writer</li>
+                    <li><strong>NOT GIVEN</strong> if it is impossible to say what the writer thinks about this</li>
+                </ul>
+                
+                <div class="group">
+                    <p>31 One limitation of the study was that there were too few subjects involved.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q31" value="YES"> YES</label>
+                            <label><input type="radio" name="q31" value="NO"> NO</label>
+                            <label><input type="radio" name="q31" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>32 The fact that the subjects in the study came from a similar background was an advantage.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q32" value="YES"> YES</label>
+                            <label><input type="radio" name="q32" value="NO"> NO</label>
+                            <label><input type极简="radio" name="q32" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>33 The two experiments should have been carried out in a different order.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q33" value="YES"> YES</label>
+                            <label><input type="radio" name="q33" value="NO"> NO</label>
+                            <label><input type="radio" name="q33" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </极简
+                    <p>34 The researchers' choice of a neutral word was helpful in the context of the study.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q34" value="YES"> YES</label>
+                            <label><input type="radio" name="q34" value="NO"> NO</label>
+                            <label><input type="radio" name="q34" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>35 The study would have been more valid if it had included a range of languages.
+                        <div style="display: inline-block; margin-left: 10px;">
+                            <label><input type="radio" name="q35" value="YES"> YES</label>
+                            <label><input type="radio" name="q35" value="NO"> NO</label>
+                            <label><input type="radio" name="q35" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 36–40</h3>
+                <p>Choose the correct letter, <strong>A, B, C or D</strong>.</p>
+                <p>Write the correct letter in boxes 36–40 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>36 What does the writer say about the "numerical precision" of Mehrabian's study?
+                        <div>
+                            <label><input type="radio" name="q36" value="A"> A It makes the claims more attractive.</label><br>
+                            <label><input type="radio" name="q36" value="B"> B It is the strongest point of the study.</label><br>
+                            <label><input type="radio" name="q36" value="C"> C It will appeal to superstitious people.</label><br>
+                            <label><input type="radio" name="q36" value="D"> D It allows comparison between languages.</label>
+                        </div>
+                    </p>
+                    <p>37 What does the writer say about the popularity of the 7–38–55 formula?
+                        <div>
+                            <label><input type="radio" name="q37极简 value="A"> A It is unlikely to maintain its present status.</label><br>
+                            <label><input type="radio" name="q37" value="B"> B It is leading to an undervaluing of words.</label><br>
+                            <label><input type="radio" name="q37" value="C"> C It should be applied in a more practical way.</label><br>
+                            <label><input type="radio" name="q37" value="D"> D极简 may help understanding of non-verbal messages.</label>
+                        </div>
+                    </p>
+                    <p>38 What point is Bradley making about language learning?
+                        <div>
+                            <label><input type="radio" name="q38" value="A"> A Language could be learned more efficiently than it is.</label><br>
+                            <label><input type="radio" name="q38" value="B"> B More research is needed into attitudes to communication.</label><br>
+                            <label><input type="radio" name="q38" value="C"> C More time should be spent looking at tone and body language.</label><br>
+                            <label><input type="radio" name="q38" value="D"> D Language must be important since we make an effort to acquire it.</label>
+                        </div>
+                    </p>
+                    <p>39 What does Mehrabian himself say about his findings?
+                        <div>
+                            <label><input type="radio" name="q39" value="A"> A They are relevant to only one area of communication.</label><br>
+                            <label><input type="radio" name="q39" value="B"> B It is only in maths that 100% of communication is verbal.</label><br>
+                            <label><input type="radio" name="q39" value="C"> C Feelings are more difficult to communicate than numerical facts.</label><br>
+                            <label><input type="radio" name="q39" value="D"> D Non-verbal communication is the main part of the message.</label>
+                        </div>
+                    </p>
+                    <p>40 What is the writer's purpose in the paragraph beginning "To be fair…"?
+                        <div>
+                            <label><input type="radio" name="q40" value="A"> A To justify the strong points of Mehrabian's study.</label><br>
+                            <label><input type="radio" name="q40" value="B"> B To outline other research on non-verbal behaviour.</label><br>
+                            <label><input type="radio" name="q40" value="C"> C To present varying interpretations of Mehrabian's study.</label><br>
+                            <label><input type="radio" name="q40" value="D"> D To show that textbooks tend to ignore non-verbal behaviour.</label>
+                        </div>
+                    </p>
+                </div>
+            </div>
+            
+            <div style="display:flex;gap:8px;margin:20px 0;">
+                <button class="btn btn-primary" onclick="submitAnswers()">Submit Answers</button>
+                <button class="btn" onclick="resetAnswers()">Reset Answers</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="practice-nav">
+        <span class="section-title">Passage 1:</span>
+        <div class="q-item" onclick="scrollToQuestion('q1')">1</div>
+        <div class="q-item" onclick="scrollToQuestion('q2')">2</div>
+        <div class="q-item" onclick="scrollToQuestion('q3')">3</div>
+        <div class="q-item极简" onclick="scrollToQuestion('q4')">4</div>
+        <div class="q-item" onclick="scrollToQuestion('q5')">5</div>
+        <div class="q-item" onclick="scrollToQuestion('q6')">6</极简
+        <div class="q-item" onclick="scrollToQuestion('q7')">7</div>
+        <div class="q-item" onclick="scrollToQuestion('q8')">8</div>
+        <div class="q-item" onclick="scrollToQuestion('q9')">9</div>
+        <div class="q-item" onclick="scrollToQuestion('q10')">10</div>
+        <div class="q-item" onclick="scrollToQuestion('q11')">11</div>
+        <div class="q-item" onclick="scrollToQuestion('q12')">12</div>
+        <div class="q-item" onclick="scrollToQuestion('q13')">13</div>
+        
+        <span class="section-title">Passage 2:</span>
+        <div class="q-item" onclick="scrollToQuestion('q14')">14</div>
+        <div class="q-item" onclick="scrollToQuestion('q15')">15</div>
+        <div class="q-item" onclick="scrollToQuestion('q16')">16</div>
+        <div class="q-item" onclick="scrollToQuestion('q17')">17</div>
+        <div class="q-item" onclick="scrollToQuestion('q18')">18</div>
+        <div class="q-item" onclick="scrollToQuestion('q19')">19</div>
+        <div class="q-item" onclick="scrollToQuestion('q20')">20</div>
+        <div class="q-item" onclick="scrollToQuestion('q21')">21</div>
+        <div class="q-item" onclick="scrollToQuestion('q22')">22</div>
+        <div class="q-item" onclick="scrollToQuestion('q23')极简</div>
+        <div class="q-item" onclick="scrollToQuestion('q极简')">24</div>
+        <div class="q-item" onclick="scrollToQuestion('q25')">25</div>
+        <div class="q-item" onclick="scrollToQuestion('q26')">26</div>
+        
+        <span class="section-title">Passage 3:</span>
+        <div class="q-item" onclick="scrollToQuestion('q27')">27</div>
+        <div class="q-item" onclick="scrollToQuestion('q28')">28</div>
+        <div class="q-item" onclick="scrollToQuestion('q29')">29</div>
+        <div class="q-item" onclick="scrollToQuestion('q30')">30</div>
+        <div class="q-item" onclick="scrollToQuestion('q31')">31</div>
+        <div class="q-item" onclick="scrollToQuestion('q32')">32</div>
+        <div class="q-item" onclick="scrollToQuestion('q33')">33</div>
+        <div class="q-item" onclick极简="scrollToQuestion('q34')">34</div>
+        <div class="q-item" onclick="scrollToQuestion('q35')">35</div>
+        <div class="q-item" onclick="scrollToQuestion('q36')">极简</div>
+        <div class="q-item" onclick="scrollToQuestion('q37')">37</div>
+        <div class="q-item" onclick="scrollToQuestion('q38')">38</div>
+        <div class="q-item" onclick="scrollToQuestion('q39')">39</div>
+        <div class="q-item" onclick="scrollToQuestion('q40')">40</div>
+    </div>
+
+    <div id="selbar">
+        <button id="highlightBtn">高亮</button>
+        <button id="removeHighlightBtn">取消高亮</button>
+    </div>
+
+    <script>
+        // Timer functionality (60 minutes countdown)
+        let totalTime = 60 * 60; // 60 minutes in seconds
+        const timerEl = document.getElementById('timer');
+        
+        function updateTimer() {
+            if (totalTime <= 0) {
+                clearInterval(timerInterval);
+                alert("Time is up! Submitting your answers.");
+                submitAnswers();
+                return;
+            }
+            
+            const minutes = Math.floor(totalTime / 60);
+            const seconds = totalTime % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            totalTime--;
+        }
+        
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call
+        
+        // Tab switching functionality with synchronization
+        function switchTabs(clickedTab, isRightTab = false) {
+            const tabId = clickedTab.getAttribute('data-tab');
+            
+            if (isRightTab) {
+                // If right tab was clicked, also switch the left tab
+                const passageId = clickedTab.getAttribute('data-passage');
+                const leftTab = document.querySelector(`.tab[极简-tab="${passageId}"]`);
+                if (leftTab) {
+                    // Remove active class from all left tabs and contents
+                    document.querySelectorAll('#left .tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('#left .tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to corresponding left tab and content
+                    leftTab.classList.add('active');
+                    document.getElementById(passageId).classList.add('active');
+                }
+            }
+            
+            // Remove active class from all tabs and contents in the current container
+            const container = clickedTab.closest('.tab-container');
+            container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            container.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            clickedTab.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Set up tab click events
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const isRightTab = this.closest('#right') !== null;
+                switchTabs(this, isRightTab);
+            });
+        });
+        
+        // Drag and drop functionality
+        const cards = document.querySelectorAll('.card');
+        const dropzones = document.querySelectorAll('.dropzone');
+        
+        cards.forEach(card => {
+            card.addEventListener('dragstart', () => {
+                card.classList.add('dragging');
+            });
+            
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+            });
+        });
+        
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                zone.classList.add('over');
+            });
+            
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('over');
+            });
+            
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('over');
+                
+                const card = document.querySelector('.card.dragging');
+                if (card) {
+                    // Clear existing content
+                    zone.innerHTML = '';
+                    
+                    // Create a clone of the card for the dropzone
+                    const clone = card.cloneNode(true);
+                    clone.setAttribute('draggable', 'false');
+                    clone.classList.remove('dragging');
+                    zone.appendChild(clone);
+                    
+                    // Mark the question as answered in the navigation
+                    const questionId = zone.getAttribute('data-target');
+                    const navItem = document.querySelector(`.q-item[onclick="scrollToQuestion('${questionId}')"]`);
+                    if (navItem) {
+                        navItem.classList.add('answered');
+                    }
+                }
+            });
+        });
+        
+        // Function to scroll to a specific question
+        function scrollToQuestion(questionId) {
+            const questionElement = document.querySelector(`[data-target="${questionId}"]`);
+            if (questionElement) {
+                questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Highlight the question briefly
+                questionElement.style.backgroundColor = '#fff3a3';
+                setTimeout(() => {
+                    questionElement.style.backgroundColor = '';
+                }, 1000);
+            }
+        }
+        
+        // Function to submit answers
+        function submitAnswers() {
+            alert("Answers submitted! This would normally be sent to a server for grading.");
+            // In a real implementation, this would collect all answers and send them for evaluation
+        }
+        
+        // Function to reset answers
+        function resetAnswers() {
+            if (confirm("Are you sure you want to reset all answers?")) {
+                // Clear all dropzones
+                document.querySelectorAll('.dropzone').forEach(zone => {
+                    zone.innerHTML = '<span class="droplabel">Drag answer here</span>';
+                });
+                
+                // Clear all radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.checked = false;
+                });
+                
+                // Clear all text inputs
+                document.querySelectorAll('input[type="text"]').forEach(input => {
+                    input.value = '';
+                });
+                
+                // Remove answered status from navigation
+                document.querySelectorAll('.q-item.answered').forEach(item => {
+                    item.classList.remove('answered');
+                });
+            }
+        }
+        
+        // Divider dragging functionality
+        const divider = document.getElementById('divider');
+        const leftPane = document.getElementById('left');
+        const rightPane = document.getElementById('right');
+        let isResizing = false;
+        
+        divider.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            document.body.style.cursor = 'ew-resize';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const containerRect = document.querySelector('.shell').getBoundingClientRect();
+            const xPosition = e.clientX - containerRect.left;
+            
+            // Set minimum widths for both panes
+            const leftWidth = Math.max(280, Math.min(containerRect.width - 320, xPosition));
+            const rightWidth = containerRect.width - leftWidth - 8; // 8px for the divider
+            
+            leftPane.style.flex = `0 0 ${leftWidth}px`;
+            rightPane.style.flex = `1 1 ${rightWidth}px`;
+        });
+        
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+            document.body.style.cursor = '';
+        });
+
+        // Highlight functionality
+        const selbar = document.getElementById('selbar');
+        const highlightBtn = document.getElementById('highlightBtn');
+        const removeHighlightBtn = document.getElementById('removeHighlightBtn');
+        let currentSelection = null;
+
+        // Listen for text selection
+        document.addEventListener('mouseup', function(e) {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            
+            if (selectedText.length > 0 && !e.target.closest('#selbar')) {
+                currentSelection = selection;
+                
+                // Position the toolbar near the selection
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                selbar.style.display = 'flex';
+                selbar.style.top = (rect.top + window.scrollY - 40) + 'px';
+                selbar.style.left = (rect.left + window.scrollX) + 'px';
+            } else if (!e.target.closest('#selbar')) {
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Highlight button functionality
+        highlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                const selectedText = range.toString();
+                
+                // Create highlight span
+                const span = document.createElement('span');
+                span.className = 'hl';
+                span.textContent = selectedText;
+                
+                // Replace selected text with highlighted span
+                range.deleteContents();
+                range.insertNode(span);
+                
+                // Clear selection and hide toolbar
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Remove highlight button functionality
+        removeHighlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                
+                // Find if the selection contains highlighted text
+                let parent = range.startContainer.parentNode;
+                while (parent && parent !== document.body) {
+                    if (parent.classList && parent.classList.contains('hl')) {
+                        // Replace the highlighted span with just its text content
+                        const text = document.createTextNode(parent.textContent);
+                        parent.parentNode.replaceChild(text, parent);
+                        
+                        // Clear selection and hide toolbar
+                        window.getSelection().removeAllRanges();
+                        selbar.style.display = 'none';
+                        return;
+                    }
+                    parent = parent.parentNode;
+                }
+                
+                // If no highlight found, just clear selection
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Hide toolbar when clicking elsewhere
+        document.addEventListener('mousedown', function(e) {
+            if (!e.target.closest('#selbar') && selbar.style.display === 'flex') {
+                selbar.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

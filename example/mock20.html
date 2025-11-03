@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Mock Test</title>
+    <style>
+        :root {
+            --line: #e5e7eb;
+            --bg: #f6f7fb;
+            --panel: #fff;
+            --accent: #3b82f6;
+            --muted: #6b7280;
+            --shadow: 0 6px 20px rgba(0,0,0,.12);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .shell {
+            display: flex;
+            height: calc(100vh - 60px);
+            width: 100%;
+        }
+        .pane {
+            background: var(--panel);
+            overflow: auto;
+            padding: 20px;
+        }
+        #left {
+            flex: 0 0 50%;
+            min-width: 280px;
+        }
+        #right {
+            flex: 1 1 auto;
+            min-width: 320px;
+            background: #fbfbff;
+            border-left: 1px solid var(--line);
+        }
+        #divider {
+            flex: 0 0 8px;
+            background: linear-gradient(90deg, #e5e7eb, #d1d5db);
+            cursor: ew-resize;
+            position: relative;
+            z-index: 5;
+            user-select: none;
+        }
+        h2, h3, h4 {
+            margin: 0 0 10px;
+        }
+        p {
+            margin: 0 0 12px;
+            line-height: 1.6;
+        }
+        .group {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+        .timer-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-height: 40px;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: auto;
+            min-width: 120px;
+            max-width: 200px;
+            vertical-align: middle;
+            margin: 5px 0;
+        }
+        .droplabel {
+            color: #64748b;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cardpool {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            cursor: grab;
+            box-shadow: 0 1px 0 rgba(0,0,0,.03);
+            white-space: nowrap;
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        .btn {
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: #3b82f6;
+        }
+        .hl {
+            background: #fff3a3;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,.05);
+            cursor: pointer;
+        }
+        .hl:hover {
+            filter: brightness(0.98);
+        }
+        #selbar {
+            position: absolute;
+            display: none;
+            z-index: 2000;
+            background: #111;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: var(--shadow);
+            font-size: 13px;
+            gap: 6px;
+            align-items: center;
+        }
+        #selbar button {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.25);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #selbar button:hover {
+            border-color: #fff;
+        }
+        .practice-nav {
+            background: #fff;
+            border-top: 2px solid var(--line);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 4000;
+            height: 60px;
+            overflow-x: auto;
+        }
+        .practice-nav .q-item {
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 36px;
+            text-align: center;
+        }
+        .practice-nav .q-item:hover {
+            background: #f1f5f9;
+            border-color: var(--accent);
+        }
+        .practice-nav .q-item.answered {
+            background: #e0e7ff;
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .practice-nav .q-item.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .section-title {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+        .answer-options {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .answer-options label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        Time remaining: <span id="timer">60:00</span>
+    </div>
+
+    <div class="shell">
+        <section class="pane" id="left">
+            <div class="tab-container">
+                <div class="tab active" data-tab="passage1">Passage 1</div>
+                <div class="tab" data-tab="passage2">Passage 2</div>
+                <div class="tab" data-tab="passage3">Passage 3</div>
+            </div>
+            
+            <div class="tab-content active" id="passage1">
+                <h2>Book review: Triumph of the City</h2>
+                <p><strong>A</strong> Triumph of the City, by Edward Glaeser, is a thrilling and very readable hymn of praise to an invention so vast and so effective that it is generally taken for granted. More than half the global population already live in urban areas and, every month, five million more flood into the cities of the developed and developing worlds. The crowds and poverty of some of these modern cities may horrify us. They shouldn't, says Glaeser; they are signs of growth, energy and aspiration. Cities are our best and brightest hope.</p>
+                
+                <p><strong>B</strong> This idea has had more than two hundred years of resistance. Not long after the Industrial Revolution began in Britain, the Romantic poets turned away from the smoke and factories of their cities to celebrate the air and light of untouched nature. In 19th-century America, the writer Henry David Thoreau retreated to the wilderness of Walden Pond to live the solitary, simple life, and convinced generations of Americans that cities were bad and nature was good.</p>
+                
+                <p><strong>C</strong> They had, Glaeser admits, a point. The early industrial cities were dirty, since they lacked efficient waste-disposal systems, and disease spread rapidly among the population. But more importantly they were profitable, and there were enormous commercial incentives to make them work, as well as political ones. Their transformation could be achieved at a stroke: in the second half of the 19th century, the French Emperor Napoleon III gave Baron Haussmann unrestricted power to turn the slum-infested city of Paris into one of the wonders and delights of the modern world. Or the transformation could be done by trial and error. Glaeser gives a brilliant account of the stop-start progression of New York to its late 20th-century position as the cultural and economic centre of the world. Either way, Paris, New York and other cities developed because they were truly effective markets of ideas and innovation.</p>
+                
+                <p><strong>D</strong> For these and many other reasons, we should not be so upset by the spectacle of urban poverty. The poor flock to cities in the hope of becoming richer (which, by and large, they do). They also reinvigorate the economy of the city. It is folly to drive them away by forcing property prices to soar with unreasonable planning regulations. Instead, cities should build more houses and thereby hold property prices in check.</p>
+                
+                <p><strong>E</strong> It can go wrong, of course. In Glaeser's view, this is primarily because municipal authorities fail to understand the principal virtues of their cities. The heart of Paris, as many Parisians say, is turning into a museum because of the desire to preserve Baron Haussmann's 19th-century boulevards. Glaeser defends their preservation, but argues that in the 1950s the French made a mistake in establishing a huge high-rise commercial development — La Défense — on the outskirts of the city. Far better, he says, to have turned the central area of Montparnasse into a new commercial district. This would have revitalised much of the city centre without destroying its fabric. In India, Mumbai could save itself from ever-more inefficient sprawl over the surrounding area simply by relaxing the rules presently imposed on the height of new constructions.</p>
+                
+                <p><strong>F</strong> In America, it is the suburbs that have proved to be the real disaster. Glaeser is repentant on this subject himself. He moved to the suburbs when he had children. His entirely legitimate excuse is that the government made him (and millions like him) do it. By under-taxing petrol and imposing tight planning restrictions on inner cities that drove up the cost of property, it made flight to the suburbs more or less inevitable for the middle classes.</p>
+                
+                <p><strong>G</strong> This is a disaster because nothing is more inefficient than a suburb. Suburbanites mingle less, and lose the face-to-face contact that makes being an urbanite so much more creative. Moreover, houses are costlier to heat and cool than flats, and suburbanites drive thousands more miles per year than city dwellers. Every aspect of life involves more consumption. This leads to the strongest and newest argument in favour of cities — they are good for the environment. To live in the country or the suburbs is to have a vastly larger carbon footprint than any urbanite.</p>
+                
+                <p><strong>H</strong> Full of characters and accessible information, this is a tremendous book, not least because, like me, you will find yourself constantly seeking reasons to disagree. Like the poor in the city, this is a sign of success. If you hate the city and get moist-eyed at the thought of the country then, one way or another, Glaeser is the man you will have to take on.</p>
+            </div>
+            
+            <div class="tab-content" id="passage2">
+                <h2>How to be Happy</h2>
+                <p><em>Some recent developments in the science of happiness</em></p>
+                
+                <p><strong>A</strong> A psychiatrist Tony Fernando was walking down the street when he saw a group of young homeless men sitting on the footpath. As Fernando handed out gifts of food, he tried to video the men's reactions in his mind, recording how their gratitude lifted him in return. 'I felt warm, content, meaningful,' he says. Fernando believes the brain can be trained to make us happy and that his 'video method' is one way to achieve this. In fact, a growing body of scientific research internationally is showing how we can learn happiness in the same way we can learn to play the piano. In the soft tissue that forms the brain, there are approximately ten trillion synapses connecting roughly a hundred billion neurons. Active synapses become more sensitive; less active synapses die, but new ones grow quickly. This is relatively new thinking – just 30 years ago, neuroscientists believed that adult brain cells couldn't regenerate. One of the pioneers in this field is University of Wisconsin professor Richard Davidson. He studied Buddhist monks using brain scans in his research facility, and found that those trained in meditation had higher levels of activity in the left prefrontal cortex – the area associated with happiness. Davidson believes that the trained brain is physically different from the untrained one.</p>
+                
+                <p><strong>B</strong> The idea that we can train our brains to find more happiness has been called 'mindfulness' by neuropsychologist Rick Hanson, author of Hardwiring Happiness. It was in college that Hanson, quite unintentionally, first recognised the importance of something that would become his life's work. As an unconfident teenager, he discovered he could turn a small event, 'a young woman smiling at me', into a good feeling he could hold on to. To do this, Hanson employs exactly the same imaginary 'video method' as psychiatrist Tony Fernando. 'The brain takes its shape from what the mind rests upon,' says Hanson. If you keep resting your mind on self-criticism and worries, he argues, your brain will be shaped by that. Hanson explains that resting it on pleasant feelings and the things you have accomplished means that over time your brain will take on a different shape, with strength and optimism hard-wired into it.</p>
+                
+                <p><strong>C</strong> In New Zealand, the Mental Health Foundation runs mindfulness programmes in 14 schools. Foundation CEO Judi Clements says, 'It's a valuable approach because children are told to pay attention, but aren't told how to pay attention.' Preliminary results on the outcomes found that children had sustained increases in well-being. The Foundation recognises five pathways to happiness – being active, connecting with others, taking notice, learning and giving. And, says Clements, 'We're detecting a hunger for it from different organisations and professions as well, so the Foundation is soon going to pilot an online "well-being game" in several workplaces.' The project leader is psychologist Carsten Grimm, who is interested in whether some pathways to happiness are more effective than others. In a study, Grimm recorded the activities and corresponding happiness scores of 173 people. What he found was that people who used several pathways to happiness achieved the best results, suggesting it's better to have a balance than concentrate on the single pathway you most identify with.</p>
+                
+                <p><strong>D</strong> However, Associate Professor of Psychological Medicine Nathan Consedine greets our relentless search for the secrets to happiness with a tired sigh. 'The more you chase it, the less you get it,' he says, quoting studies showing those who value contentment and well-being are, in fact, less happy. The big question, he says, is whether there's any benefit in actively seeking happiness. He cites a study, for example, which showed that people who were happier were less inclined to show sympathy. Consedine says that's probably because happy people are strongly motivated to stay happy, but engaging sympathetically with others typically involves engaging with their distress, and that's going to reduce their own happiness. Consedine's not disagreeing with the theory of mindfulness, but believes there's more work to be done.</p>
+                
+                <p><strong>E</strong> Some of that work is being conducted at Auckland University's Centre for Brain Research. Associate Professor Johanna Montgomery has been studying Hanson's theory – that altering our brain activity at a synaptic level affects our behaviour. She accepts that it's a logical explanation based on studies from animals, but we haven't yet got the technology to prove it scientifically in humans. It's true that MRI scans certainly do indicate an increased flow of blood to different areas of the brain which are experiencing positive stimuli. However, she warns that this is a long way from confirming that the brain itself is developing or strengthening.</p>
+                
+                <p><strong>F</strong> Nonetheless, Montgomery believes she is making progress. In the laboratory, when scientists want to experiment with synaptic connections, they stimulate the brain with electricity, as this copies the high-frequency firings that happen normally in the brain every second. Using this technique, Montgomery has made a number of findings. For example, the hormones that are released routinely in response to good or bad situations – such as adrenaline – act to regulate the brain, in the same way that weather has a regulating effect on human activity more generally. But scientists understand some of these stimuli better than others. More is known about the impact on brain activity of prolonged periods of fear than the effects of 'happiness' hormones that are released by positive events in life. This is one potentially important area that she hopes to investigate further in future.</p>
+            </div>
+            
+            <div class="tab-content" id="passage3">
+                <h2>Yawning</h2>
+                <p><em>how and why we yawn still presents problems for researchers in an area which has only recently been opened up to study.</em></p>
+                
+                <p>When Robert R. Provine began studying yawning in the 1960s, it was difficult for him to convince research students of the merits of 'yawning science'. Although it may appear quirky to some, Provine's decision to study yawning was a logical extension of his research in developmental neuroscience.</p>
+                
+                <p>The verb to yawn is derived from the Old English ganien or ginian, meaning to gape or open wide. But in addition to gaping jaws, yawning has significant features that are easy to observe and analyse. Provine 'collected' yawns to study by using a variation of the contagion response*. He asked people to "think about yawning" and, once they began to yawn, to depress a button that would record from the start of the yawn to the exhalation at its end.</p>
+                
+                <p>Provine's early discoveries can be summarized as follows: the yawn is highly stereotyped but not invariant in its duration and form. It is an excellent example of the instinctive fixed-action pattern of classical animal-behaviour study, or ethology. It is not a reflex (short-duration, rapid, proportional response to a simple stimulus), but, once started, a yawn progresses with the inevitability of a sneeze. The standard yawn runs its course over about six seconds on average, but its duration can range from about three seconds to much longer than the average. There are no half-yawns: this is an example of the typical intensity of fixed-action patterns and a reason why you cannot stifle yawns. Just like a cough, yawns can come in bouts with a highly variable inter-yawn interval, which is generally about 68 seconds but rarely more than 70. There is no relation between yawn frequency and duration: producers of short or long yawns do not compensate by yawning more or less often. Furthermore, Provine's hypotheses about the form and function of yawning can be tested by three informative yawn variants which can be used to look at the roles of the nose, the mouth and the jaws.</p>
+                
+                <h3>i The closed-nose yawn</h3>
+                <p>Subjects are asked to pinch their nose closed when they feel themselves start to yawn. Most subjects report being able to perform perfectly normal closed-nose yawns. This indicates that the inhalation at the onset of a yawn, and the exhalation at its end, need not involve the nostrils — the mouth provides a sufficient airway.</p>
+                
+                <h3>ii The clenched-teeth yawn</h3>
+                <p>Subjects are asked to clench their teeth when they feel themselves start to yawn but allow themselves to inhale normally through their open lips and clenched teeth. This variant gives one the sensation of being stuck mid-yawn. This shows that gaping of the jaws is an essential component of the fixed-action pattern of the yawn, and unless it is accomplished, the programme will not run to completion. The yawn is also shown to be more than a deep breath, because, unlike normal breathing, inhalation and exhalation cannot be performed so well through the clenched teeth as through the nose.</p>
+                
+                <h3>iii The nose yawn</h3>
+                <p>This variant tests the adequacy of the nasal airway to sustain a yawn. Unlike normal breathing, which can be performed equally well through mouth or nose, yawning is impossible via nasal inhalation alone. As with the clenched-teeth yawn, the nose yawn provides the unfulfilling sensation of being stuck in mid-yawn. Exhalation, on the other hand, can be accomplished equally well through nose or mouth. Through this methodology Provine demonstrated that inhalation through the oral airway and the gaping of jaws are necessary for normal yawns. The motor programme for yawning will not run to completion without feedback that these parts of the programme have been accomplished.</p>
+                
+                <p>But yawning is a powerful, generalised movement that involves much more than airway manoeuvres and jaw-gaping. When yawning you also stretch your facial muscles, tilt your head back, narrow or close your eyes, produce tears, salivate, open the Eustachian tubes of your middle ear and perform many other, yet unspecified, cardiovascular and respiratory acts. Perhaps the yawn shares components with other behaviour. For example, is the yawn a kind of 'slow sneeze', or is the sneeze a 'fast yawn'? Both share common respiratory and other features including jaw gaping, eye closing and head tilting.</p>
+                
+                <p>Yawning and stretching share properties and may be performed together as parts of a global motor complex. Studies by J. I. P. de Vries et al. in the early 1980s, charting movement in the developing foetus using ultrasound, observed a link between yawning and stretching. The most extraordinary demonstration of the yawn-stretch linkage occurs in many people paralysed on one side of their body because of brain damage caused by a stroke: the prominent British neurologist Sir Francis Walshe noted in 1923 that when these people yawn, they are startled and mystified to observe that their otherwise paralysed arm rises and flexes automatically in what neurologists term an 'associated response'. Yawning apparently activates undamaged, unconsciously controlled connections between the brain and the motor system, causing the paralysed limb to move. It is not known whether the associated response is a positive prognosis for recovery, nor whether yawning is therapeutic for prevention of muscular deterioration.</p>
+                
+                <p>Provine speculated that, in general, yawning may have many functions, and selecting a single function from the available options may be an unrealistic goal. Yawning appears to be associated with a change of behavioural state, switching from one activity to another. Yawning is also a reminder that ancient and unconscious behaviour linking us to the animal world lurks beneath the veneer of culture, rationality and language.</p>
+            </div>
+        </section>
+
+        <div id="divider" title="Drag to resize"></div>
+
+        <section class="pane" id="right">
+            <div class="tab-container">
+                <div class="tab active" data-tab="questions1" data-passage="passage1">Questions 1-13</div>
+                <div class="tab" data-tab="questions2" data-passage="passage2">Questions 14-26</div>
+                <div class="tab" data-tab="questions3" data-passage="passage3">Questions 27-40</div>
+            </div>
+            
+            <div class="tab-content active" id="questions1">
+                <h3>Questions 1–8</h3>
+                <p>Complete the notes below.</p>
+                <p>Choose <strong>ONE WORD ONLY</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 1–8 on your answer sheet.</p>
+                
+                <div class="group">
+                    <h4>Cities</h4>
+                    <ul style="list-style-type: none; padding-left: 0;">
+                        <li>Problems with early cities
+                            <ul style="list-style-type: none; padding-left: 20px;">
+                                <li>dirt</li>
+                                <li>1 <input type="text" id="q1" style="width: 100px;"></li>
+                            </ul>
+                        </li>
+                        <li>but there were commercial and 2 <input type="text" id="q2" style="width: 100px;"> reasons for improving them</li>
+                        <li>Urban poverty is not a major problem because poor people
+                            <ul style="list-style-type: none; padding-left: 20px;">
+                                <li>generally get 3 <input type="text" id="q3" style="width: 100px;"></li>
+                                <li>help to develop the urban 4 <input type="text" id="q4" style="width: 100px;"></li>
+                            </ul>
+                        </li>
+                        <li>Cities do have some problems – e.g.
+                            <ul style="list-style-type: none; padding-left: 20px;">
+                                <li>the centre of Paris is becoming a 5 <input type="text" id="q5" style="width: 100px;"></li>
+                                <li>Mumbai is negatively affected by height restrictions on new buildings.</li>
+                            </ul>
+                        </li>
+                        <li>In the US, the middle classes have moved to the suburbs due to
+                            <ul style="list-style-type: none; padding-left: 20px;">
+                                <li>cheap petrol</li>
+                                <li>high 6 <input type="text" id="q6" style="width: 100px;"> prices in inner cities</li>
+                            </ul>
+                        </li>
+                        <li>Disadvantages of suburbs
+                            <ul style="list-style-type: none; padding-left: 20px;">
+                                <li>less personal 7 <input type="text" id="q7" style="width: 100px;"></li>
+                                <li>increased 8 <input type="text" id="q8" style="width: 100px;"> of resources such as heating – which damages the environment</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                
+                <h3>Questions 9–13</h3>
+                <p>Do the following statements agree with the information given in Reading Passage 1?</p>
+                <p>In boxes 9–13 on your answer sheet, write</p>
+                <p><strong>TRUE</strong> if the statement agrees with the information</p>
+                <p><strong>FALSE</strong> if the statement contradicts the information</p>
+                <p><strong>NOT GIVEN</strong> if there is no information on this</p>
+                
+                <div class="group">
+                    <p>9 Glasser believes that congestion and poverty in some modern cities indicate serious problems.
+                        <div class="answer-options">
+                            <label><input type="radio" name="q9" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q9" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q9" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>10 The writer Henry David Thoreau discussed the ideas of the Romantic poets in his work.
+                        <div class="answer-options">
+                            <label><input type="radio" name="q10" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q10" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q10" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>11 Emperor Napoleon III was influenced by the complaints of poor people living in Paris.
+                        <div class="answer-options">
+                            <label><input type="radio" name="q11" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q11" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q11" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>12 Strict planning regulations may be beneficial for a city's development.
+                        <div class="answer-options">
+                            <label><input type="radio" name="q12" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q12" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q12" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>13 Glasser argues that the location of commercial development at La Défense was a bad idea.
+                        <div class="answer-options">
+                            <label><input type="radio" name="q13" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q13" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q13" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions2">
+                <h3>Questions 14–17</h3>
+                <p>Reading Passage 2 has six paragraphs, <strong>A–F</strong>.</p>
+                <p>Which paragraph contains the following information?</p>
+                <p>Write the correct letter, <strong>A–F</strong>, in boxes 14–17 on your answer sheet.</p>
+                <p><strong>NB</strong> You may use any letter more than once.</p>
+                
+                <div class="group">
+                    <p>14 a reference to a fact that two scientists use the same technique to promote their own happiness
+                        <div class="dropzone" data-target="q14"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>15 the suggestion that scientific opinion about an aspect of brain function has changed over a given time period
+                        <div class="dropzone" data-target="q15"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>16 an estimate of how numerous some brain components are
+                        <div class="dropzone" data-target="q16"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>17 the reason why some educational courses were set up
+                        <div class="dropzone" data-target="q17"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                        <div class="card" draggable="true" data-value="F">F</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 18–21</h3>
+                <p>Look at the following statements (Questions 18–21) and the list of people below.</p>
+                <p>Match each statement with the correct person, <strong>A–F</strong>.</p>
+                <p>Write the correct letter, <strong>A–F</strong>, in boxes 18–21 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>List of People</strong></p>
+                    <p>A Tony Fernando</p>
+                    <p>B Richard Davidson</p>
+                    <p>C Rick Hanson</p>
+                    <p>D Judi Clements</p>
+                    <p>E Carsten Grimm</p>
+                    <p>F Nathan Consedine</p>
+                    
+                    <p>18 It's better to look for a variety of ways to increase happiness than focus on just one.
+                        <div class="dropzone" data-target="q18"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>19 Focusing on personal achievements rather than negative experiences will make people happier.
+                        <div class="dropzone" data-target="q19"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>20 Happy people might have a reason not to display one favourable characteristic.
+                        <div class="dropzone" data-target="q20"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>21 A range of groups are becoming more interested in learning techniques to improve happiness.
+                        <div class="dropzone" data-target="q21"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                        <div class="card" draggable="true" data-value="F">F</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 22–26</h3>
+                <p>Complete the summary below.</p>
+                <p>Choose <strong>ONE WORD ONLY</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 22–26 on your answer sheet.</p>
+                
+                <div class="group">
+                    <h4>Auckland University's Centre for Brain Research</h4>
+                    <p>Associate Professor Johanna Montgomery says that current research into brain activity and behaviour only relates to 22 <input type="text" id="q22" style="width: 100px;">, so Hanson's theories have not been proved correct. While scans do show that positive stimuli result in more 23 <input type="text" id="q23" style="width: 100px;"> reaching parts of the brain, this isn't proof that the brain is getting stronger.</p>
+                    
+                    <p>But Montgomery is making progress. In laboratory experiments, scientists use 24 <input type="text" id="q24" style="width: 100px;"> to initiate brain activity, because it's similar to natural processes. One finding is that hormones can be compared to the 25 <input type="text" id="q25" style="width: 100px;">, because both can change human behaviour. But scientists understand some stimuli, such as 26 <input type="text" id="q26" style="width: 100px;">, better than they understand more positive stimuli.</p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions3">
+                <h3>Questions 27–32</h3>
+                <p>Complete the summary below using the list of words and phrases <strong>A–K</strong>.</p>
+                <p>Write the correct letter <strong>A–K</strong> in boxes 27-32 on your answer sheet.</p>
+                
+                <div class="group">
+                    <h4>Provine's early findings on yawns</h4>
+                    <p>Through his observations of yawns, Provine was able to confirm that 27 <div class="dropzone" data-target="q27"><span class="droplabel">Drag answer here</span></div> do not exist.</p>
+                    
+                    <p>Just like a 28 <div class="dropzone" data-target="q28"><span class="droplabel">Drag answer here</span></div>, yawns cannot be interrupted after they have begun. This is because yawns occur as a 29 <div class="dropzone" data-target="q29"><span class="droplabel">Drag answer here</span></div> rather than a stimulus–response, as was previously thought.</p>
+                    
+                    <p>In measuring the time taken to yawn, Provine found that a typical yawn lasts about 30 <div class="dropzone" data-target="q30"><span class="droplabel">Drag answer here</span></div>. He also found that it is common for people to yawn a number of times in quick succession, with the yawns usually being around 31 <div class="dropzone" data-target="q31"><span class="droplabel">Drag answer here</span></div> apart. When studying whether length and rate were connected, Provine concluded that people who yawn less do not necessarily produce 32 <div class="dropzone" data-target="q32"><span class="droplabel">Drag answer here</span></div> to make up for this.</p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A form and function</div>
+                        <div class="card" draggable="true" data-value="B">B long yawns</div>
+                        <div class="card" draggable="true" data-value="C">C 3 seconds</div>
+                        <div class="card" draggable="true" data-value="D">D fixed-action pattern</div>
+                        <div class="card" draggable="true" data-value="E">E 68 seconds</div>
+                        <div class="card" draggable="true" data-value="F">F short yawns</div>
+                        <div class="card" draggable="true" data-value="G">G reflex</div>
+                        <div class="card" draggable="true" data-value="H">H sneeze</div>
+                        <div class="card" draggable="true" data-value="I">I short duration</div>
+                        <div class="card" draggable="true" data-value="J">J 6 seconds</div>
+                        <div class="card" draggable="true" data-value="K">K half-yawns</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 33–37</h3>
+                <p>Choose the correct letter, <strong>A, B, C or D</strong>.</p>
+                <p>Write the correct letter in boxes 33–37 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>33 What did Provine conclude from his closed-nose yawn experiment?
+                        <div>
+                            <label><input type="radio" name="q33" value="A"> A Ending a yawn requires use of the nostrils</label><br>
+                            <label><input type="radio" name="q33" value="B"> B You can yawn without breathing through your nose</label><br>
+                            <label><input type="radio" name="q33" value="C"> C Breathing through the nose produces a silent yawn</label><br>
+                            <label><input type="radio" name="q33" value="D"> D The role of the nose in yawning needs further investigation</label>
+                        </div>
+                    </p>
+                    <p>34 Provine's clenched-teeth yawn experiment shows that
+                        <div>
+                            <label><input type="radio" name="q34" value="A"> A yawning is unconnected with fatigue</label><br>
+                            <label><input type="radio" name="q34" value="B"> B a yawn is the equivalent of a deep intake of breath</label><br>
+                            <label><input type="radio" name="q34" value="C"> C you have to be able to open your mouth wide to yawn</label><br>
+                            <label><input type="radio" name="q34" value="D"> D breathing with the teeth together is as efficient as through the nose</label>
+                        </div>
+                    </p>
+                    <p>35 The nose-yawn experiment was used to test whether yawning
+                        <div>
+                            <label><input type="radio" name="q35" value="A"> A can be stopped after it has started</label><br>
+                            <label><input type="radio" name="q35" value="B"> B is the result of motor programming</label><br>
+                            <label><input type="radio" name="q35" value="C"> C involves both inhalation and exhalation</label><br>
+                            <label><input type="radio" name="q35" value="D"> D can be accomplished only through the nose</label>
+                        </div>
+                    </p>
+                    <p>36 In people paralysed on one side because of brain damage
+                        <div>
+                            <label><input type="radio" name="q36" value="A"> A yawning may involve only one side of the face</label><br>
+                            <label><input type="radio" name="q36" value="B"> B the yawning response indicates that recovery is likely</label><br>
+                            <label><input type="radio" name="q36" value="C"> C movement in the paralysed arm is stimulated by yawning</label><br>
+                            <label><input type="radio" name="q36" value="D"> D yawning can be used as an exercise to prevent muscle wasting</label>
+                        </div>
+                    </p>
+                    <p>37 In the last paragraph, the writer concludes that
+                        <div>
+                            <label><input type="radio" name="q37" value="A"> A yawning is a sign of boredom</label><br>
+                            <label><input type="radio" name="q37" value="B"> B we yawn in spite of the development of our species</label><br>
+                            <label><input type="radio" name="q37" value="C"> C yawning is a more passive activity than we imagine</label><br>
+                            <label><input type="radio" name="q37" value="D"> D we are stimulated to yawn when our brain activity is low</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 38–40</h3>
+                <p>Do the following statements agree with the claims of the writer in Reading Passage 3?</p>
+                <p>In boxes 38–40 on your answer sheet, write</p>
+                <p><strong>YES</strong> if the statement agrees with the claims of the writer</p>
+                <p><strong>NO</strong> if the statement contradicts the claims of the writer</p>
+                <p><strong>NOT GIVEN</strong> if it is impossible to say what the writer thinks about this</p>
+                
+                <div class="group">
+                    <p>38 Research students were initially reluctant to appreciate the value of Provine's studies.
+                        <div class="answer-options">
+                            <label><input type="radio" name="q38" value="YES"> YES</label>
+                            <label><input type="radio" name="q38" value="NO"> NO</label>
+                            <label><input type="radio" name="q38" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>39 When fetuses yawn and stretch, they are learning how to control movement.
+                        <div class="answer-options">
+                            <label><input type="radio" name="q39" value="YES"> YES</label>
+                            <label><input type="radio" name="q39" value="NO"> NO</label>
+                            <label><input type="radio" name="q39" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>40 According to Provine, referring to only one function is probably inadequate to explain why people yawn.
+                        <div class="answer-options">
+                            <label><input type="radio" name="q40" value="YES"> YES</label>
+                            <label><input type="radio" name="q40" value="NO"> NO</label>
+                            <label><input type="radio" name="q40" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+            </div>
+            
+            <div style="display:flex;gap:8px;margin:20px 0;">
+                <button class="btn btn-primary" onclick="submitAnswers()">Submit Answers</button>
+                <button class="btn" onclick="resetAnswers()">Reset Answers</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="practice-nav">
+        <span class="section-title">Passage 1:</span>
+        <div class="q-item" onclick="scrollToQuestion('q1')">1</div>
+        <div class="q-item" onclick="scrollToQuestion('q2')">2</div>
+        <div class="q-item" onclick="scrollToQuestion('q3')">3</div>
+        <div class="q-item" onclick="scrollToQuestion('q4')">4</div>
+        <div class="q-item" onclick="scrollToQuestion('q5')">5</div>
+        <div class="q-item" onclick="scrollToQuestion('q6')">6</div>
+        <div class="q-item" onclick="scrollToQuestion('q7')">7</div>
+        <div class="q-item" onclick="scrollToQuestion('q8')">8</div>
+        <div class="q-item" onclick="scrollToQuestion('q9')">9</div>
+        <div class="q-item" onclick="scrollToQuestion('q10')">10</div>
+        <div class="q-item" onclick="scrollToQuestion('q11')">11</div>
+        <div class="q-item" onclick="scrollToQuestion('q12')">12</div>
+        <div class="q-item" onclick="scrollToQuestion('q13')">13</div>
+        
+        <span class="section-title">Passage 2:</span>
+        <div class="q-item" onclick="scrollToQuestion('q14')">14</div>
+        <div class="q-item" onclick="scrollToQuestion('q15')">15</div>
+        <div class="q-item" onclick="scrollToQuestion('q16')">16</div>
+        <div class="q-item" onclick="scrollToQuestion('q17')">17</div>
+        <div class="q-item" onclick="scrollToQuestion('q18')">18</div>
+        <div class="q-item" onclick="scrollToQuestion('q19')">19</div>
+        <div class="q-item" onclick="scrollToQuestion('q20')">20</div>
+        <div class="q-item" onclick="scrollToQuestion('q21')">21</div>
+        <div class="q-item" onclick="scrollToQuestion('q22')">22</div>
+        <div class="q-item" onclick="scrollToQuestion('q23')">23</div>
+        <div class="q-item" onclick="scrollToQuestion('q24')">24</div>
+        <div class="q-item" onclick="scrollToQuestion('q25')">25</div>
+        <div class="q-item" onclick="scrollToQuestion('q26')">26</div>
+        
+        <span class="section-title">Passage 3:</span>
+        <div class="q-item" onclick="scrollToQuestion('q27')">27</div>
+        <div class="q-item" onclick="scrollToQuestion('q28')">28</div>
+        <div class="q-item" onclick="scrollToQuestion('q29')">29</div>
+        <div class="q-item" onclick="scrollToQuestion('q30')">30</div>
+        <div class="q-item" onclick="scrollToQuestion('q31')">31</div>
+        <div class="q-item" onclick="scrollToQuestion('q32')">32</div>
+        <div class="q-item" onclick="scrollToQuestion('q33')">33</div>
+        <div class="q-item" onclick="scrollToQuestion('q34')">34</div>
+        <div class="q-item" onclick="scrollToQuestion('q35')">35</div>
+        <div class="q-item" onclick="scrollToQuestion('q36')">36</div>
+        <div class="q-item" onclick="scrollToQuestion('q37')">37</div>
+        <div class="q-item" onclick="scrollToQuestion('q38')">38</div>
+        <div class="q-item" onclick="scrollToQuestion('q39')">39</div>
+        <div class="q-item" onclick="scrollToQuestion('q40')">40</div>
+    </div>
+
+    <div id="selbar">
+        <button id="highlightBtn">高亮</button>
+        <button id="removeHighlightBtn">取消高亮</button>
+    </div>
+
+    <script>
+        // Timer functionality (60 minutes countdown)
+        let totalTime = 60 * 60; // 60 minutes in seconds
+        const timerEl = document.getElementById('timer');
+        
+        function updateTimer() {
+            if (totalTime <= 0) {
+                clearInterval(timerInterval);
+                alert("Time is up! Submitting your answers.");
+                submitAnswers();
+                return;
+            }
+            
+            const minutes = Math.floor(totalTime / 60);
+            const seconds = totalTime % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            totalTime--;
+        }
+        
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call
+        
+        // Tab switching functionality with synchronization
+        function switchTabs(clickedTab, isRightTab = false) {
+            const tabId = clickedTab.getAttribute('data-tab');
+            
+            if (isRightTab) {
+                // If right tab was clicked, also switch the left tab
+                const passageId = clickedTab.getAttribute('data-passage');
+                const leftTab = document.querySelector(`.tab[data-tab="${passageId}"]`);
+                if (leftTab) {
+                    // Remove active class from all left tabs and contents
+                    document.querySelectorAll('#left .tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('#left .tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to corresponding left tab and content
+                    leftTab.classList.add('active');
+                    document.getElementById(passageId).classList.add('active');
+                }
+            }
+            
+            // Remove active class from all tabs and contents in the current container
+            const container = clickedTab.closest('.tab-container');
+            container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            container.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            clickedTab.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Set up tab click events
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const isRightTab = this.closest('#right') !== null;
+                switchTabs(this, isRightTab);
+            });
+        });
+        
+        // Drag and drop functionality
+        const cards = document.querySelectorAll('.card');
+        const dropzones = document.querySelectorAll('.dropzone');
+        
+        cards.forEach(card => {
+            card.addEventListener('dragstart', () => {
+                card.classList.add('dragging');
+            });
+            
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+            });
+        });
+        
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                zone.classList.add('over');
+            });
+            
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('over');
+            });
+            
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('over');
+                
+                const card = document.querySelector('.card.dragging');
+                if (card) {
+                    // Clear existing content
+                    zone.innerHTML = '';
+                    
+                    // Create a clone of the card for the dropzone
+                    const clone = card.cloneNode(true);
+                    clone.setAttribute('draggable', 'false');
+                    clone.classList.remove('dragging');
+                    zone.appendChild(clone);
+                    
+                    // Mark the question as answered in the navigation
+                    const questionId = zone.getAttribute('data-target');
+                    const navItem = document.querySelector(`.q-item[onclick="scrollToQuestion('${questionId}')"]`);
+                    if (navItem) {
+                        navItem.classList.add('answered');
+                    }
+                }
+            });
+        });
+        
+        // Function to scroll to a specific question
+        function scrollToQuestion(questionId) {
+            const questionElement = document.querySelector(`[data-target="${questionId}"]`);
+            if (questionElement) {
+                questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Highlight the question briefly
+                questionElement.style.backgroundColor = '#fff3a3';
+                setTimeout(() => {
+                    questionElement.style.backgroundColor = '';
+                }, 1000);
+            }
+        }
+        
+        // Function to submit answers
+        function submitAnswers() {
+            alert("Answers submitted! This would normally be sent to a server for grading.");
+            // In a real implementation, this would collect all answers and send them for evaluation
+        }
+        
+        // Function to reset answers
+        function resetAnswers() {
+            if (confirm("Are you sure you want to reset all answers?")) {
+                // Clear all dropzones
+                document.querySelectorAll('.dropzone').forEach(zone => {
+                    zone.innerHTML = '<span class="droplabel">Drag answer here</span>';
+                });
+                
+                // Clear all radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.checked = false;
+                });
+                
+                // Clear all text inputs
+                document.querySelectorAll('input[type="text"]').forEach(input => {
+                    input.value = '';
+                });
+                
+                // Remove answered status from navigation
+                document.querySelectorAll('.q-item.answered').forEach(item => {
+                    item.classList.remove('answered');
+                });
+            }
+        }
+        
+        // Divider dragging functionality
+        const divider = document.getElementById('divider');
+        const leftPane = document.getElementById('left');
+        const rightPane = document.getElementById('right');
+        let isResizing = false;
+        
+        divider.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            document.body.style.cursor = 'ew-resize';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const containerRect = document.querySelector('.shell').getBoundingClientRect();
+            const xPosition = e.clientX - containerRect.left;
+            
+            // Set minimum widths for both panes
+            const leftWidth = Math.max(280, Math.min(containerRect.width - 320, xPosition));
+            const rightWidth = containerRect.width - leftWidth - 8; // 8px for the divider
+            
+            leftPane.style.flex = `0 0 ${leftWidth}px`;
+            rightPane.style.flex = `1 1 ${rightWidth}px`;
+        });
+        
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+            document.body.style.cursor = '';
+        });
+
+        // Highlight functionality
+        const selbar = document.getElementById('selbar');
+        const highlightBtn = document.getElementById('highlightBtn');
+        const removeHighlightBtn = document.getElementById('removeHighlightBtn');
+        let currentSelection = null;
+
+        // Listen for text selection
+        document.addEventListener('mouseup', function(e) {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            
+            if (selectedText.length > 0 && !e.target.closest('#selbar')) {
+                currentSelection = selection;
+                
+                // Position the toolbar near the selection
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                selbar.style.display = 'flex';
+                selbar.style.top = (rect.top + window.scrollY - 40) + 'px';
+                selbar.style.left = (rect.left + window.scrollX) + 'px';
+            } else if (!e.target.closest('#selbar')) {
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Highlight button functionality
+        highlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                const selectedText = range.toString();
+                
+                // Create highlight span
+                const span = document.createElement('span');
+                span.className = 'hl';
+                span.textContent = selectedText;
+                
+                // Replace selected text with highlighted span
+                range.deleteContents();
+                range.insertNode(span);
+                
+                // Clear selection and hide toolbar
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Remove highlight button functionality
+        removeHighlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                
+                // Find if the selection contains highlighted text
+                let parent = range.startContainer.parentNode;
+                while (parent && parent !== document.body) {
+                    if (parent.classList && parent.classList.contains('hl')) {
+                        // Replace the highlighted span with just its text content
+                        const text = document.createTextNode(parent.textContent);
+                        parent.parentNode.replaceChild(text, parent);
+                        
+                        // Clear selection and hide toolbar
+                        window.getSelection().removeAllRanges();
+                        selbar.style.display = 'none';
+                        return;
+                    }
+                    parent = parent.parentNode;
+                }
+                
+                // If no highlight found, just clear selection
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Hide toolbar when clicking elsewhere
+        document.addEventListener('mousedown', function(e) {
+            if (!e.target.closest('#selbar') && selbar.style.display === 'flex') {
+                selbar.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Mock Test</title>
+    <style>
+        :root {
+            --line: #e5e7eb;
+            --bg: #f6f7fb;
+            --panel: #fff;
+            --accent: #3b82f6;
+            --muted: #6b7280;
+            --shadow: 0 6px 20px rgba(0,0,0,.12);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .shell {
+            display: flex;
+            height: calc(100vh - 60px);
+            width: 100%;
+        }
+        .pane {
+            background: var(--panel);
+            overflow: auto;
+            padding: 20px;
+        }
+        #left {
+            flex: 0 0 50%;
+            min-width: 280px;
+        }
+        #right {
+            flex: 1 1 auto;
+            min-width: 320px;
+            background: #fbfbff;
+            border-left: 1px solid var(--line);
+        }
+        #divider {
+            flex: 0 0 8px;
+            background: linear-gradient(90deg, #e5e7eb, #d1d5db);
+            cursor: ew-resize;
+            position: relative;
+            z-index: 5;
+            user-select: none;
+        }
+        h2, h3, h4 {
+            margin: 0 0 10px;
+        }
+        p {
+            margin: 0 0 12px;
+            line-height: 1.6;
+        }
+        .group {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+        .timer-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-height: 40px;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: auto;
+            min-width: 120px;
+            max-width: 200px;
+            vertical-align: middle;
+            margin: 5px 0;
+        }
+        .droplabel {
+            color: #64748b;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cardpool {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            cursor: grab;
+            box-shadow: 0 1px 0 rgba(0,0,0,.03);
+            white-space: nowrap;
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        .btn {
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: #3b82f6;
+        }
+        .hl {
+            background: #fff3a3;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,.05);
+            cursor: pointer;
+        }
+        .hl:hover {
+            filter: brightness(0.98);
+        }
+        #selbar {
+            position: absolute;
+            display: none;
+            z-index: 2000;
+            background: #111;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: var(--shadow);
+            font-size: 13px;
+            gap: 6px;
+            align-items: center;
+        }
+        #selbar button {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.25);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #selbar button:hover {
+            border-color: #fff;
+        }
+        .practice-nav {
+            background: #fff;
+            border-top: 2px solid var(--line);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 4000;
+            height: 60px;
+            overflow-x: auto;
+        }
+        .practice-nav .q-item {
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 36px;
+            text-align: center;
+        }
+        .practice-nav .q-item:hover {
+            background: #f1f5f9;
+            border-color: var(--accent);
+        }
+        .practice-nav .q-item.answered {
+            background: #e0e7ff;
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .practice-nav .q-item.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .section-title {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+        .true-false-container {
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .true-false-container label {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        Time remaining: <span id="timer">60:00</span>
+    </div>
+
+    <div class="shell">
+        <section class="pane" id="left">
+            <div class="tab-container">
+                <div class="tab active" data-tab="passage1">Passage 1</div>
+                <div class="tab" data-tab="passage2">Passage 2</div>
+                <div class="tab" data-tab="passage3">Passage 3</div>
+            </div>
+            
+            <div class="tab-content active" id="passage1">
+                <h2>Wood: A Valuable Resource in New Zealand's Economy</h2>
+                <p><strong>A</strong> During the settlement of New Zealand by European immigrants, natural timbers played a major role. Wood was easily accessible and relatively cheap. A tradition of wooden houses arose, supported by the recognition that they were less likely to collapse suddenly during earthquakes, a not-infrequent event in this part of the world. But in addition to demand from the domestic market, there was also demand for forest products from overseas.</p>
+                
+                <p><strong>B</strong> Early explorers recognised the suitability of the tall, straight trunks of the kauri for constructing sailing vessels. The kauri is a species of coniferous tree found only in small areas of the southern hemisphere. So, from the early 1800s, huge amounts of this type of wood were sold to Australia and the UK for that purpose. For a period, the forestry industry was the country's major export earner, but the rate of harvest was unsustainable and, by the beginning of the 20th century, indigenous timber exports were rapidly declining.</p>
+                
+                <p><strong>C</strong> From the 1940s, newly established plantations of an imported species of tree called radiata pine supplied timber and other wood products in increasing quantities. By the 1960s, plantation-grown timber was providing most of the country's sawn-timber needs, especially for construction. Today, less than two percent of timber is cut from indigenous forests, and almost all of that is used for higher-value end uses such as furniture and fittings. As the pine industry developed, it became apparent that this type of wood was also well suited for many uses. It makes excellent pulp*, and is frequently used for posts, poles, furnishings and mouldings, particleboard, fibreboard, and for plywood and 'engineered' wood products. Pine by-products are used in the chemical and pharmaceutical industries and residues are consumed for fuel. This amazing versatility has encouraged the development of an integrated forest-products industry which is almost unique in the world.</p>
+                
+                <p><strong>D</strong> Exporters of wood products have largely targeted the rapidly growing markets of South and East Asia and Australia. Eighty percent of exports by value go to only five markets: Japan, Korea, China, the United States and Australia. The product mix remains heavily biased towards raw materials, with logs, sawn wood, pulp and paper comprising 75 percent of export value. However, finished wood products such as panels and furniture components are exported to more than 50 countries.</p>
+                
+                <p><em>*pulp: wood which is crushed until soft enough to form the basis of paper</em></p>
+                
+                <p><strong>E</strong> In New Zealand itself, the construction industry is the principal user of solid wood products, servicing around 20,000 new-house starts annually. However, the small size of New Zealand's population (just over four million), plus its small manufacturing and remanufacturing base, limits the forestry industry's domestic opportunities. For the last few years local wood consumption has been around only four million cubic metres. Accordingly, the development of the export market is the key to the industry's growth and contribution to the national economy in decades to come.</p>
+                
+                <p><strong>F</strong> In 2004, forestry export receipts were about 11 percent of the country's total export income, their value having increased steadily for ten years, until affected by the exchange fluctuations and shipping costs of recent years. The forestry industry is New Zealand's third-largest export sector, generating around $3.3 billion annually from logs and processed wood products. But it is generally agreed that it is operating well below its capacity and, with the domestic market already at its peak, almost all of the extra wood produced in future will have to be marketed overseas. That presents a major marketing challenge for the industry.</p>
+                
+                <p><strong>G</strong> Although the export of logs will continue to provide valuable earnings for forest owners, there is broad acceptance that the industry must be based on value-added products in future. So the industry is investigating various processing, infrastructure and investment strategies with a view to increasing the level of local manufacturing before export. The keys to future success will depend on a variety of factors — better international marketing, product innovation, internationally competitive processing, improved infrastructure and a suitable political, regulatory and investment environment. The industry claims that, given the right conditions, by 2025 the forestry sector could be the country's biggest export earner, generating $20 billion a year and employing 60,000 people.</p>
+                
+                <p><strong>H</strong> One competitive advantage that New Zealand has is its ability to source large quantities of softwood from renewable forests. Consumers in several key wood markets are becoming more worried about sustainability, and the industry is supporting the development of national standards as well as the recognition of these internationally. However, New Zealand is not the only country with a plantation-style forestry industry; Chile, Brazil, Argentina, South Africa and Australia all have extensive plantings of fast-growing species (hardwood and softwood), and in the northern hemisphere, Scandinavian countries have all expanded their forests or controlled their use in the interests of future production.</p>
+                
+                <p><strong>I</strong> Finally, in addition to competition from other wood producers, New Zealand faces competition from goods such as wood substitutes. These include steel framing for houses. This further underlines the necessity for globally competitive production and marketing strategies.</p>
+            </div>
+            
+            <div class="tab-content" id="passage2">
+                <h2>The plan to bring an asteroid to Earth</h2>
+                <p><em>Moving in orbit around our Sun are millions of rocks known as asteroids. Now scientists have plans to capture one.</em></p>
+                
+                <p><strong>A</strong> Send a robot into space, catch an asteroid and bring it back to Earth's orbit. This, say scientists and engineers at the California Institute of Technology (Caltech), could be feasible. A four-day workshop was dedicated to investigating the feasibility of capturing a near-Earth asteroid, bringing it closer to our planet and using it as a base for future manned space-flight missions.</p>
+                
+                <p>This is not something the scientists are imagining could be done someday in the future. It is possible with the technology we have today and could be accomplished within a decade. A robotic probe could anchor to an asteroid with simple magnets or grab it with specialised claws. Alternatively, a large spacecraft could use its gravitational field to shift the orbit of a larger asteroid, sending it towards Earth.</p>
+                
+                <p>'Once you get over the initial reaction — You want to do what?! — it actually starts to seem like a reasonable idea,' says engineer John Brophy, who helped organise the workshop. In fact, many of these ideas have been on the drawing board for years as part of NASA's planetary-defence programme against large space-based objects that might threaten Earth. And there's no shortage of potential targets: NASA estimates there are 19 500 asteroids at least 100 metres wide within 45 million kilometres of Earth.</p>
+                
+                <p><strong>B</strong> Though rearranging the heavens may seem an excessive undertaking, this US mission has its merits. The US already has plans to send astronauts to a near-Earth asteroid, a mission that would mean confining them in a tiny capsule for three to six months and would involve all the risks of a deep-space voyage. Instead, robots could bring an asteroid close enough for them to get there in just a month.</p>
+                
+                <p>An asteroid would provide a stationary base from which to launch missions further into space. There are several advantages to this. For one, launching missions carrying materials from Earth requires a lot of power, fuel and, consequently, money, because of our planet's strong force of gravity. Since this would be far weaker on an asteroid, materials mined there could be more easily taken off the asteroid and shuttled around the solar system.</p>
+                
+                <p>Many asteroids have a lot to offer. Some are rich in metals, which can be mined and used to build space-based habitats, or brought back to Earth. Others are up to one-quarter water, which could be used for life-support or broken down into hydrogen and oxygen to make fuel. Astronomers would also have the chance to get a close-up look at one of the solar system's earliest relics, generating important scientific data. 'Executing the asteroid-retrieval plan would help demonstrate and greatly expand mankind's space-based engineering capabilities,' says engineer Louis Friedman, another co-organiser of the Caltech workshop. For instance, the mission would teach engineers how to capture an unco-operative target, which could be useful practice for planetary-defence missions in the event of a threat from a meteoroid or comet approaching our planet,' he adds.</p>
+                
+                <p><strong>C</strong> Former astronaut Rusty Schweickart, co-founder of the B612 Foundation, an organisation dedicated to protecting Earth from asteroid strikes, points out that although it would be technically feasible, shifting such a hefty and substantial target would not be easy: 'You're moving the largest mother-lode imaginable,' he says.</p>
+                
+                <p>Engineers would need to be absolutely certain they could control such a potentially dangerous object. 'It's the opposite of planetary defence; if you do something wrong you have a Tunguska event,' says engineer Marco Tantardini from the Planetary Society, referring to the powerful 1908 explosion above a remote Russian region thought to have been caused by a meteoroid or comet.</p>
+                
+                <p><strong>D</strong> Still, these obstacles only add to the appeal of the project for engineers, who love to go over every potential difficulty in order to solve it. And if the challenges posed by a large asteroid seem too daunting, researchers could always start with a smaller asteroid, perhaps two to ten metres across. Last year, Brophy helped conduct a study to look at the feasibility of bringing a two-metre, 1 000-kilogram asteroid — of which there might conceivably be millions — to the International Space Station. The study suggested the asteroid could be captured robotically in something as simple as a large bag. Of course, such a small object might not have the same emotional impact as a larger target. 'NASA isn't going to want to go to something that is smaller than our spaceships,' says engineer Dan Mazanek from NASA's Langley Research Center.</p>
+                
+                <p><strong>E</strong> No matter the size of the asteroid, these plans would require hefty investments. Even capturing a small asteroid would consume at least a billion dollars. Convincing taxpayers to foot such a bill could be difficult. However, private industry might be interested in getting involved. One possibility would be to push the asteroid into near-Earth orbit and then invite anyone who wants to develop the capabilities to reach and mine the object.</p>
+                
+                <p>However, although the undertaking might be scientifically exciting and provide great insight into the solar system's formation, this is not enough on its own to justify the expense of bringing an asteroid to Earth. Investigations of asteroids can be done much more cheaply with an unmanned spacecraft, says chemist Joseph A. Nuth from NASA's Goddard Space Flight Center. According to Brophy, ultimately we would be working towards bringing an asteroid closer to Earth in order to help humanity move out into the solar system.</p>
+            </div>
+            
+            <div class="tab-content" id="passage3">
+                <h2>The Fruit Book</h2>
+                <p><em>It's not every scientist who writes books for people who can't read. And how many scientists want their books to look as dog-eared as possible? But Patricia Shanley, an ethnobotanist, wanted to give something back. After the poorest people of the Amazon allowed her to study their land and its ecology, she turned her research findings into a picture book that tells the local people how to get a good return from their trees without succumbing to the lure of a quick buck from a logging company. It has proved a big success.</em></p>
+                
+                <p><strong>A</strong> The book is called Fruit Trees and Useful Plants in the Lives of Amazonians, but is better known simply as the "fruit book". The second edition was produced at the request of politicians in western Amazonia. Its blend of hard science and local knowledge on the use and trade of 35 native forest species has been so well received (and well used) that no less a dignitary than Brazil's environment minister, Marina Silva, has written the foreword. "There is nothing else like the Shanley book," says Adalberto Veríssimo, director of the Institute of People and the Environment of the Amazon. "It gives science back to the poor, to the people who really need it."</p>
+                
+                <p><strong>B</strong> Shanley's work on the book began a decade ago, with a plea for help from the Rural Workers' Union of Paragoninas, a Brazilian town whose prosperity is based on exploitation of timber. The union realised that logging companies would soon be knocking on the doors of the caboclos, peasant farmers living on the Rio Capim, an Amazon tributary in the Brazilian state of Pará. Isolated and illiterate, the caboclos would have little concept of the true value of their trees; communities downstream had already sold off large blocks of forest for a pittance. "What they wanted to know was how valuable the forests were," recalls Shanley, then a researcher in the area for the Massachusetts-based Woods Hole Research Centre.</p>
+                
+                <p><strong>C</strong> The Rural Workers' Union wanted to know whether harvesting wild fruits would make economic sense in the Rio Capim. "There was a lot of interest in trading non-timber forest products (NTFPs)," Shanley says. At the time, environmental groups and green-minded businesses were promoting the idea. This was the view presented in a seminal paper, Valuation of an Amazonian Rainforest, published in Nature in 1989. The researchers had calculated that revenues from the sale of fruits could far exceed those from a one-off sale of trees to loggers. "The union was keen to discover whether it made more sense conserving the forest for subsistence use and the possible sale of fruit, game and medicinal plants, than selling trees for timber," says Shanley. Whether it would work for the caboclos was far from clear.</p>
+                
+                <p><strong>D</strong> Although Shanley had been invited to work in the Rio Capim, some caboclos were suspicious. "When Patricia asked if she could study my forest," says Joao Fernando Moreira Brito, "my neighbours said she was a foreigner who'd come to rob me of my trees." In the end, Moreira Brito, or Mangueira as he is known, welcomed Shanley and worked on her study. His land, an hour's walk from the Rio Capim, is almost entirely covered with primary forest. A study of this and other tracts of forest selected by the communities enabled Shanley to identify three trees, found throughout the Amazon, whose fruit was much favoured by the caboclos: bacuri (Platonia insignis), uxi (Endopleura uchi) and piquia (Caryocar villosum). The caboclos used their fruits, extracted oils, and knew what sort of wildlife they attracted. But, in the face of aggressive tactics from the logging companies, they had no measure of the trees' financial worth. The only way to find out, Shanley decided, was to start from scratch with a scientific study. "From a scientific point of view, hardly anything was known about these trees," she says. But six years of field research yielded a mass of data on their flowering and fruiting behaviour. During 1993 and 1994, 30 families weighed everything they used from the forest – game, fruit, fibre, medicinal plants – and documented its source.</p>
+                
+                <p><strong>E</strong> After three logging sales and a major fire in 1997, the researchers were also able to study the ecosystem's reaction to logging and disturbance. They carried out a similar, though less exhaustive, study in 1999, this time with 15 families. The changes were striking. Average annual household consumption of forest fruit had fallen from 89 to 28 kilograms between 1993 and 1999. "What we found," says Shanley, "was that fruit collection could coexist with a certain amount of logging, but after the forest fire, it dropped dramatically." Over the same period, fibre use also dropped from around 20 to 4 kilograms. The fire and logging also changed the nature of the caboclo diet. In 1993 most households ate game two or three times a month. By 1999 some were fortunate if they ate game more than two or three times a year.</p>
+                
+                <p><strong>F</strong> The loss of certain species of tree was especially significant. Shanley's team persuaded local hunters to weigh their catch, noting the trees under which the animals were caught. Over the year, they trapped five species of game averaging 232 kilogrammes under piquia trees. Under copaiba, they caught just two species averaging 63 kilogrammes; and under uxi, four species weighing 38 kilogrammes. At last, the team was getting a handle on which trees were worth keeping, and which could reasonably be sold. "This showed that selling piquia trees to loggers for a few dollars made little sense," explains Shanley. "Their local value lies in providing a prized fruit, as well as flowers which attract more game than any other species."</p>
+                
+                <p><strong>G</strong> As a result of these studies, Shanley had to tell the Rural Workers' Union of Paragoninas that the Nature thesis could not be applied wholesale to their community – harvesting NTFPs would not always yield more than timber sales. Fruiting patterns of trees such as uxi were unpredictable, for example. In 1994, one household collected 3,654 uxi fruits; the following year, none at all.</p>
+                
+                <p><strong>H</strong> This is not to say that wild fruit trees were unimportant. On the contrary, argues Shanley, they are critical for subsistence, something that is often ignored in much of the current research on NTFPs, which tends to focus on their commercial potential. Geography was another factor preventing the Rio Capim caboclos from establishing a serious trade in wild fruit: villagers in remote areas could not compete with communities collecting NTFPs close to urban markets, although they could sell them to passing river boats.</p>
+                
+                <p><strong>I</strong> But Shanley and her colleagues decided to do more than just report their results to the union. Together with two of her research colleagues, Shanley wrote the fruit book. This, the Bible and a publication on medicinal plants co-authored by Shanley and designed for people with minimal literacy skills are about the only books you will see along this stretch of the Rio Capim. The first print run was only 3,000 copies, but the fruit book has been remarkably influential, and is used by colleges, peasant unions, industries and the caboclos themselves. Its success is largely due to the fact that people with poor literacy skills can understand much of the information it contains about the non-timber forest products, thanks to its illustrations, anecdotes, stories and songs. "The book doesn't tell people what to do," says Shanley, "but it does provide them with choices." The caboclos who have used the book now have a much better understanding of which trees to sell to the loggers, and which to protect.</p>
+            </div>
+        </section>
+
+        <div id="divider" title="Drag to resize"></div>
+
+        <section class="pane" id="right">
+            <div class="tab-container">
+                <div class="tab active" data-tab="questions1" data-passage="passage1">Questions 1-13</div>
+                <div class="tab" data-tab="questions2" data-passage="passage2">Questions 14-26</div>
+                <div class="tab" data-tab="questions3" data-passage="passage3">Questions 27-40</div>
+            </div>
+            
+            <div class="tab-content active" id="questions1">
+                <h3>Questions 1–6</h3>
+                <p>Do the following statements agree with the information given in Reading Passage 1?</p>
+                <p>In boxes 1–6 on your answer sheet, write</p>
+                <ul>
+                    <li><strong>TRUE</strong> if the statement agrees with the information</li>
+                    <li><strong>FALSE</strong> if the statement contradicts the information</li>
+                    <li><strong>NOT GIVEN</strong> if there is no information on this</li>
+                </ul>
+                
+                <div class="group">
+                    <p>1 Settlers realised that wooden houses were more dangerous than other types of structure.
+                        <div class="true-false-container">
+                            <label><input type="radio" name="q1" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q1" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q1" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>2 During the 1800s, New Zealand exported wood for use in boat-building.
+                        <div class="true-false-container">
+                            <label><input type="radio" name="q2" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q2" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q2" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>3 Plantation-grown wood is generally better for construction than native forest wood.
+                        <div class="true-false-container">
+                            <label><input type="radio" name="q3" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q3" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q3" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>4 Compared with other types of wood, pine has a narrow range of uses.
+                        <div class="true-false-container">
+                            <label><input type="radio" name="q4" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q4" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q4" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>5 Demand for housing in New Zealand is predicted to fall in the next few years.
+                        <div class="true-false-container">
+                            <label><input type="radio" name="q5" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q5" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q5" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                    <p>6 In future, the expansion of New Zealand's wood industry will depend on its exports.
+                        <div class="true-false-container">
+                            <label><input type="radio" name="q6" value="TRUE"> TRUE</label>
+                            <label><input type="radio" name="q6" value="FALSE"> FALSE</label>
+                            <label><input type="radio" name="q6" value="NOT GIVEN"> NOT GIVEN</label>
+                        </div>
+                    </p>
+                </div>
+                
+                <h3>Questions 7–13</h3>
+                <p>Answer the questions below.</p>
+                <p>Choose <strong>NO MORE THAN TWO WORDS AND/OR A NUMBER</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 7–13 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>7 Apart from exchange rates, which factor has had a negative impact on New Zealand's forestry exports?
+                        <input type="text" id="q7" style="width: 200px;">
+                    </p>
+                    <p>8 Which part of New Zealand's economy does the forestry industry rank third in?
+                        <input type="text" id="q8" style="width: 200px;">
+                    </p>
+                    <p>9 According to the New Zealand forestry industry, what could be the size of its workforce by 2025?
+                        <input type="text" id="q9" style="width: 200px;">
+                    </p>
+                    <p>10 What kind of timber product is available in large amounts from renewable forests in New Zealand?
+                        <input type="text" id="q10" style="width: 200px;">
+                    </p>
+                    <p>11 Which aspect of timber production are New Zealand's main customers increasingly concerned about?
+                        <input type="text" id="q11" style="width: 200px;">
+                    </p>
+                    <p>12 Outside the Southern Hemisphere, who are New Zealand forestry's main competitors?
+                        <input type="text" id="q12" style="width: 200px;">
+                    </p>
+                    <p>13 Which group of products is New Zealand's forestry industry now having to compete with?
+                        <input type="text" id="q13" style="width: 200px;">
+                    </p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions2">
+                <h3>Questions 14–18</h3>
+                <p>Reading Passage 2 has five sections, <strong>A–E</strong>.</p>
+                <p>Choose the correct heading for each section from the list of headings below.</p>
+                <p>Write the correct number, <strong>i–viii</strong>, in boxes 14–18 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>List of Headings</strong></p>
+                    <p>i &nbsp; &nbsp; The need for skill and care</p>
+                    <p>ii &nbsp; Choosing the richest asteroid</p>
+                    <p>iii &nbsp; The safest way to protect an asteroid</p>
+                    <p>iv &nbsp; Obtaining support for the project</p>
+                    <p>v &nbsp; An achievable goal, not an impossible dream</p>
+                    <p>vi &nbsp; The need for global cooperation</p>
+                    <p>vii &nbsp; Beginning with a less challenging task</p>
+                    <p>viii &nbsp; Practical, economic and research justifications</p>
+                    
+                    <p>14 Section <strong>A</strong> 
+                        <div class="dropzone" data-target="q14"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>15 Section <strong>B</strong> 
+                        <div class="dropzone" data-target="q15"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>16 Section <strong>C</strong> 
+                        <div class="dropzone" data-target="q16"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>17 Section <strong>D</strong> 
+                        <div class="dropzone" data-target="q17"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>18 Section <strong>E</strong> 
+                        <div class="dropzone" data-target="q18"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="i">i</div>
+                        <div class="card" draggable="true" data-value="ii">ii</div>
+                        <div class="card" draggable="true" data-value="iii">iii</div>
+                        <div class="card" draggable="true" data-value="iv">iv</div>
+                        <div class="card" draggable="true" data-value="v">v</div>
+                        <div class="card" draggable="true" data-value="vi">vi</div>
+                        <div class="card" draggable="true" data-value="vii">vii</div>
+                        <div class="card" draggable="true" data-value="viii">viii</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 19–22</h3>
+                <p>Look at the following experts (Questions 19–22) and the list of statements below.</p>
+                <p>Match each expert with the correct statement, <strong>A–G</strong>.</p>
+                <p>Write the correct letter, <strong>A–G</strong>, in boxes 19–22 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>List of statements</strong></p>
+                    <p>A A mistake could have serious consequences for Earth.</p>
+                    <p>B It might be difficult to arouse interest in an asteroid of limited size.</p>
+                    <p>C The project could be an early step in space exploration.</p>
+                    <p>D An asteroid's weight makes the project extremely challenging.</p>
+                    <p>E The skill gained could save Earth from future danger.</p>
+                    <p>F An asteroid could be a useful landing place for a spaceship.</p>
+                    <p>G Capturing an asteroid would not be an efficient method of research.</p>
+                    
+                    <p>19 Louis Friedman
+                        <div class="dropzone" data-target="q19"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>20 Rusty Schweickart
+                        <div class="dropzone" data-target="q20"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>21 Dan Mazanek
+                        <div class="dropzone" data-target="q21"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>22 Joseph A. Nuth
+                        <div class="dropzone" data-target="q22"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                        <div class="card" draggable="true" data-value="F">F</div>
+                        <div class="card" draggable="true" data-value="G">G</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 23–26</h3>
+                <p>Complete the summary below.</p>
+                <p>Choose <strong>ONE WORD ONLY</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 23–26 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>The merits of the US mission</strong></p>
+                    <p>Capture of an asteroid would reduce the time that astronauts travelling to it needed to spend in space. An asteroid could also act as a <input type="text" id="q23" style="width: 100px;"> for further space travel and exploration. The fact that an asteroid would have weaker <input type="text" id="q24" style="width: 100px;"> would allow easier movement of resources.</p>
+                    
+                    <p>These resources include <input type="text" id="q25" style="width: 100px;"> which could be used in space or on Earth, and <input type="text" id="q26" style="width: 100px;"> which could be consumed or used as a source of power.</p>
+                    
+                    <p>The mission could provide data on the history of our Sun and planets. It could also be good practice if there was a threat to Earth from a body from space.</p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="questions3">
+                <h3>Questions 27–32</h3>
+                <p>Reading Passage 3 has nine paragraphs, <strong>A–I</strong>.</p>
+                <p>Which paragraph contains the following information?</p>
+                <p>Write the correct letter, <strong>A–I</strong>, in boxes 27–32 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p>27 A description of Shanley's initial data collection
+                        <div class="dropzone" data-target="q27"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>28 Why a government official also contributes to the book
+                        <div class="dropzone" data-target="q28"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>29 Reasons why the community asked Shanley to conduct the research
+                        <div class="dropzone" data-target="q29"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>30 Reference to the starting point of her research
+                        <div class="dropzone" data-target="q30"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>31 Two factors that alter food consumption patterns
+                        <div class="dropzone" data-target="q31"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    <p>32 Why the book is successful
+                        <div class="dropzone" data-target="q32"><span class="droplabel">Drag answer here</span></div>
+                    </p>
+                    
+                    <div class="cardpool">
+                        <div class="card" draggable="true" data-value="A">A</div>
+                        <div class="card" draggable="true" data-value="B">B</div>
+                        <div class="card" draggable="true" data-value="C">C</div>
+                        <div class="card" draggable="true" data-value="D">D</div>
+                        <div class="card" draggable="true" data-value="E">E</div>
+                        <div class="card" draggable="true" data-value="F">F</div>
+                        <div class="card" draggable="true" data-value="G">G</div>
+                        <div class="card" draggable="true" data-value="H">H</div>
+                        <div class="card" draggable="true" data-value="I">I</div>
+                    </div>
+                </div>
+                
+                <h3>Questions 33–40</h3>
+                <p>Complete the summary below.</p>
+                <p>Choose <strong>NO MORE THAN THREE WORDS</strong> from the passage for each answer.</p>
+                <p>Write your answers in boxes 33–40 on your answer sheet.</p>
+                
+                <div class="group">
+                    <p><strong>Forest fire has caused local villagers to consume less:</strong></p>
+                    <p>- <input type="text" id="q33" style="width: 150px;"></p>
+                    <p>- <input type="text" id="q34" style="width: 150px;"></p>
+                    <p>- game</p>
+                    
+                    <p>There is the least amount of game hunted under <input type="text" id="q35" style="width: 150px;">; yield is also <input type="text" id="q36" style="width: 150px;">.</p>
+                    
+                    <p>Thus, it is more reasonable to keep <input type="text" id="q37" style="width: 150px;">.</p>
+                    
+                    <p>All the trees can also be used for <input type="text" id="q38" style="width: 150px;"> besides selling them to loggers. But this is often ignored, because most research usually focuses on the <input type="text" id="q39" style="width: 150px;"> of the trees.</p>
+                    
+                    <p><strong>The purpose of the book:</strong></p>
+                    <p>- To give information about <input type="text" id="q40" style="width: 200px;">.</p>
+                </div>
+            </div>
+            
+            <div style="display:flex;gap:8px;margin:20px 0;">
+                <button class="btn btn-primary" onclick="submitAnswers()">Submit Answers</button>
+                <button class="btn" onclick="resetAnswers()">Reset Answers</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="practice-nav">
+        <span class="section-title">Passage 1:</span>
+        <div class="q-item" onclick="scrollToQuestion('q1')">1</div>
+        <div class="q-item" onclick="scrollToQuestion('q2')">2</div>
+        <div class="q-item" onclick="scrollToQuestion('q3')">3</div>
+        <div class="q-item" onclick="scrollToQuestion('q4')">4</div>
+        <div class="q-item" onclick="scrollToQuestion('q5')">5</div>
+        <div class="q-item" onclick="scrollToQuestion('q6')">6</div>
+        <div class="q-item" onclick="scrollToQuestion('q7')">7</div>
+        <div class="q-item" onclick="scrollToQuestion('q8')">8</div>
+        <div class="q-item" onclick="scrollToQuestion('q9')">9</div>
+        <div class="q-item" onclick="scrollToQuestion('q10')">10</div>
+        <div class="q-item" onclick="scrollToQuestion('q11')">11</div>
+        <div class="q-item" onclick="scrollToQuestion('q12')">12</div>
+        <div class="q-item" onclick="scrollToQuestion('q13')">13</div>
+        
+        <span class="section-title">Passage 2:</span>
+        <div class="q-item" onclick="scrollToQuestion('q14')">14</div>
+        <div class="q-item" onclick="scrollToQuestion('q15')">15</div>
+        <div class="q-item" onclick="scrollToQuestion('q16')">16</div>
+        <div class="q-item" onclick="scrollToQuestion('q17')">17</div>
+        <div class="q-item" onclick="scrollToQuestion('q18')">18</div>
+        <div class="q-item" onclick="scrollToQuestion('q19')">19</div>
+        <div class="q-item" onclick="scrollToQuestion('q20')">20</div>
+        <div class="q-item" onclick="scrollToQuestion('q21')">21</div>
+        <div class="q-item" onclick="scrollToQuestion('q22')">22</div>
+        <div class="q-item" onclick="scrollToQuestion('q23')">23</div>
+        <div class="q-item" onclick="scrollToQuestion('q24')">24</div>
+        <div class="q-item" onclick="scrollToQuestion('q25')">25</div>
+        <div class="q-item" onclick="scrollToQuestion('q26')">26</div>
+        
+        <span class="section-title">Passage 3:</span>
+        <div class="q-item" onclick="scrollToQuestion('q27')">27</div>
+        <div class="q-item" onclick="scrollToQuestion('q28')">28</div>
+        <div class="q-item" onclick="scrollToQuestion('q29')">29</div>
+        <div class="q-item" onclick="scrollToQuestion('q30')">30</div>
+        <div class="q-item" onclick="scrollToQuestion('q31')">31</div>
+        <div class="q-item" onclick="scrollToQuestion('q32')">32</div>
+        <div class="q-item" onclick="scrollToQuestion('q33')">33</div>
+        <div class="q-item" onclick="scrollToQuestion('q34')">34</div>
+        <div class="q-item" onclick="scrollToQuestion('q35')">35</div>
+        <div class="q-item" onclick="scrollToQuestion('q36')">36</div>
+        <div class="q-item" onclick="scrollToQuestion('q37')">37</div>
+        <div class="q-item" onclick="scrollToQuestion('q38')">38</div>
+        <div class="q-item" onclick="scrollToQuestion('q39')">39</div>
+        <div class="q-item" onclick="scrollToQuestion('q40')">40</div>
+    </div>
+
+    <div id="selbar">
+        <button id="highlightBtn">Highlight</button>
+        <button id="removeHighlightBtn">Remove Highlight</button>
+    </div>
+
+    <script>
+        // Timer functionality (60 minutes countdown)
+        let totalTime = 60 * 60; // 60 minutes in seconds
+        const timerEl = document.getElementById('timer');
+        
+        function updateTimer() {
+            if (totalTime <= 0) {
+                clearInterval(timerInterval);
+                alert("Time is up! Submitting your answers.");
+                submitAnswers();
+                return;
+            }
+            
+            const minutes = Math.floor(totalTime / 60);
+            const seconds = totalTime % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            totalTime--;
+        }
+        
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call
+        
+        // Tab switching functionality with synchronization
+        function switchTabs(clickedTab, isRightTab = false) {
+            const tabId = clickedTab.getAttribute('data-tab');
+            
+            if (isRightTab) {
+                // If right tab was clicked, also switch the left tab
+                const passageId = clickedTab.getAttribute('data-passage');
+                const leftTab = document.querySelector(`.tab[data-tab="${passageId}"]`);
+                if (leftTab) {
+                    // Remove active class from all left tabs and contents
+                    document.querySelectorAll('#left .tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('#left .tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to corresponding left tab and content
+                    leftTab.classList.add('active');
+                    document.getElementById(passageId).classList.add('active');
+                }
+            }
+            
+            // Remove active class from all tabs and contents in the current container
+            const container = clickedTab.closest('.tab-container');
+            container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            container.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            clickedTab.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Set up tab click events
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const isRightTab = this.closest('#right') !== null;
+                switchTabs(this, isRightTab);
+            });
+        });
+        
+        // Drag and drop functionality
+        const cards = document.querySelectorAll('.card');
+        const dropzones = document.querySelectorAll('.dropzone');
+        
+        cards.forEach(card => {
+            card.addEventListener('dragstart', () => {
+                card.classList.add('dragging');
+            });
+            
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+            });
+        });
+        
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                zone.classList.add('over');
+            });
+            
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('over');
+            });
+            
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('over');
+                
+                const card = document.querySelector('.card.dragging');
+                if (card) {
+                    // Clear existing content
+                    zone.innerHTML = '';
+                    
+                    // Create a clone of the card for the dropzone
+                    const clone = card.cloneNode(true);
+                    clone.setAttribute('draggable', 'false');
+                    clone.classList.remove('dragging');
+                    zone.appendChild(clone);
+                    
+                    // Mark the question as answered in the navigation
+                    const questionId = zone.getAttribute('data-target');
+                    const navItem = document.querySelector(`.q-item[onclick="scrollToQuestion('${questionId}')"]`);
+                    if (navItem) {
+                        navItem.classList.add('answered');
+                    }
+                }
+            });
+        });
+        
+        // Function to scroll to a specific question
+        function scrollToQuestion(questionId) {
+            let questionElement;
+            
+            // Check if it's a text input question
+            if (questionId.startsWith('q') && document.getElementById(questionId)) {
+                questionElement = document.getElementById(questionId);
+            } 
+            // Check if it's a dropzone question
+            else if (document.querySelector(`[data-target="${questionId}"]`)) {
+                questionElement = document.querySelector(`[data-target="${questionId}"]`);
+            }
+            // Check if it's a radio button question
+            else if (document.querySelector(`input[name="${questionId}"]`)) {
+                questionElement = document.querySelector(`input[name="${questionId}"]`).parentElement.parentElement;
+            }
+            
+            if (questionElement) {
+                questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Highlight the question briefly
+                const originalBg = questionElement.style.backgroundColor;
+                questionElement.style.backgroundColor = '#fff3a3';
+                setTimeout(() => {
+                    questionElement.style.backgroundColor = originalBg;
+                }, 1000);
+            }
+        }
+        
+        // Function to submit answers
+        function submitAnswers() {
+            alert("Answers submitted! This would normally be sent to a server for grading.");
+            // In a real implementation, this would collect all answers and send them for evaluation
+        }
+        
+        // Function to reset answers
+        function resetAnswers() {
+            if (confirm("Are you sure you want to reset all answers?")) {
+                // Clear all dropzones
+                document.querySelectorAll('.dropzone').forEach(zone => {
+                    zone.innerHTML = '<span class="droplabel">Drag answer here</span>';
+                });
+                
+                // Clear all radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.checked = false;
+                });
+                
+                // Clear all text inputs
+                document.querySelectorAll('input[type="text"]').forEach(input => {
+                    input.value = '';
+                });
+                
+                // Remove answered status from navigation
+                document.querySelectorAll('.q-item.answered').forEach(item => {
+                    item.classList.remove('answered');
+                });
+            }
+        }
+        
+        // Divider dragging functionality
+        const divider = document.getElementById('divider');
+        const leftPane = document.getElementById('left');
+        const rightPane = document.getElementById('right');
+        let isResizing = false;
+        
+        divider.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            document.body.style.cursor = 'ew-resize';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const containerRect = document.querySelector('.shell').getBoundingClientRect();
+            const xPosition = e.clientX - containerRect.left;
+            
+            // Set minimum widths for both panes
+            const leftWidth = Math.max(280, Math.min(containerRect.width - 320, xPosition));
+            const rightWidth = containerRect.width - leftWidth - 8; // 8px for the divider
+            
+            leftPane.style.flex = `0 0 ${leftWidth}px`;
+            rightPane.style.flex = `1 1 ${rightWidth}px`;
+        });
+        
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+            document.body.style.cursor = '';
+        });
+
+        // Highlight functionality
+        const selbar = document.getElementById('selbar');
+        const highlightBtn = document.getElementById('highlightBtn');
+        const removeHighlightBtn = document.getElementById('removeHighlightBtn');
+        let currentSelection = null;
+
+        // Listen for text selection
+        document.addEventListener('mouseup', function(e) {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            
+            if (selectedText.length > 0 && !e.target.closest('#selbar')) {
+                currentSelection = selection;
+                
+                // Position the toolbar near the selection
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                selbar.style.display = 'flex';
+                selbar.style.top = (rect.top + window.scrollY - 40) + 'px';
+                selbar.style.left = (rect.left + window.scrollX) + 'px';
+            } else if (!e.target.closest('#selbar')) {
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Highlight button functionality
+        highlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                const selectedText = range.toString();
+                
+                // Create highlight span
+                const span = document.createElement('span');
+                span.className = 'hl';
+                span.textContent = selectedText;
+                
+                // Replace selected text with highlighted span
+                range.deleteContents();
+                range.insertNode(span);
+                
+                // Clear selection and hide toolbar
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Remove highlight button functionality
+        removeHighlightBtn.addEventListener('click', function() {
+            if (currentSelection && !currentSelection.isCollapsed) {
+                const range = currentSelection.getRangeAt(0);
+                
+                // Find if the selection contains highlighted text
+                let parent = range.startContainer.parentNode;
+                while (parent && parent !== document.body) {
+                    if (parent.classList && parent.classList.contains('hl')) {
+                        // Replace the highlighted span with just its text content
+                        const text = document.createTextNode(parent.textContent);
+                        parent.parentNode.replaceChild(text, parent);
+                        
+                        // Clear selection and hide toolbar
+                        window.getSelection().removeAllRanges();
+                        selbar.style.display = 'none';
+                        return;
+                    }
+                    parent = parent.parentNode;
+                }
+                
+                // If no highlight found, just clear selection
+                window.getSelection().removeAllRanges();
+                selbar.style.display = 'none';
+            }
+        });
+
+        // Hide toolbar when clicking elsewhere
+        document.addEventListener('mousedown', function(e) {
+            if (!e.target.closest('#selbar') && selbar.style.display === 'flex') {
+                selbar.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
