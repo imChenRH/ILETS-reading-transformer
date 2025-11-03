@@ -683,6 +683,369 @@ def parse_yes_no_not_given(questions_text: str) -> List[Dict[str, Any]]:
     return sections
 
 
+def parse_matching_headings(questions_text: str) -> List[Dict[str, Any]]:
+    """Parse Matching Headings questions - match roman numeral headings (i, ii, iii) to paragraphs (A, B, C)."""
+    if not questions_text:
+        return []
+
+    sections: List[Dict[str, Any]] = []
+    heading_pattern = re.compile(r'Questions?\s+(\d+)(?:\s*[-\u2013]\s*(\d+))?', re.IGNORECASE)
+    matches = list(heading_pattern.finditer(questions_text))
+    
+    if not matches:
+        return []
+
+    for idx, heading_match in enumerate(matches):
+        start_idx = heading_match.start()
+        end_idx = matches[idx + 1].start() if idx + 1 < len(matches) else len(questions_text)
+        section_text = questions_text[start_idx:end_idx].strip()
+        
+        lowered = section_text.lower()
+        if 'heading' not in lowered:
+            continue
+        
+        lines = section_text.splitlines()
+        title = ''
+        instructions: List[str] = []
+        headings: List[Dict[str, str]] = []
+        paragraphs: List[str] = []
+        
+        # Parse headings with roman numerals
+        heading_list_started = False
+        paragraph_list_started = False
+        
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+                
+            if not title:
+                title = normalize_whitespace(stripped)
+                continue
+            
+            # Check for heading list (i, ii, iii, iv, etc.)
+            roman_match = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x)\s+(.+)$', stripped, re.IGNORECASE)
+            if roman_match:
+                heading_list_started = True
+                roman = roman_match.group(1)
+                text = normalize_whitespace(roman_match.group(2))
+                headings.append({'key': roman, 'text': text})
+                continue
+            
+            # Check for paragraph list (A, B, C, etc.)
+            para_match = re.match(r'^(\d+)\s+Paragraph\s+([A-Z])$', stripped, re.IGNORECASE)
+            if para_match:
+                paragraph_list_started = True
+                number = para_match.group(1)
+                letter = para_match.group(2)
+                paragraphs.append({'number': number, 'letter': letter})
+                continue
+            
+            # Instructions
+            if not heading_list_started and not paragraph_list_started:
+                instructions.append(normalize_whitespace(stripped))
+        
+        if headings and title:
+            sections.append({
+                'type': 'matching_headings',
+                'title': title,
+                'instructions': instructions,
+                'headings': headings,
+                'paragraphs': paragraphs,
+                'match_start': start_idx,
+                'match_end': end_idx
+            })
+    
+    return sections
+
+
+def parse_matching_features(questions_text: str) -> List[Dict[str, Any]]:
+    """Parse Matching Features questions - match statements to persons/features/entities."""
+    if not questions_text:
+        return []
+    
+    sections: List[Dict[str, Any]] = []
+    heading_pattern = re.compile(r'Questions?\s+(\d+)(?:\s*[-\u2013]\s*(\d+))?', re.IGNORECASE)
+    matches = list(heading_pattern.finditer(questions_text))
+    
+    if not matches:
+        return []
+    
+    for idx, heading_match in enumerate(matches):
+        start_idx = heading_match.start()
+        end_idx = matches[idx + 1].start() if idx + 1 < len(matches) else len(questions_text)
+        section_text = questions_text[start_idx:end_idx].strip()
+        
+        lowered = section_text.lower()
+        # Look for matching features keywords
+        if not any(keyword in lowered for keyword in ['match', 'list of']):
+            continue
+        
+        # Avoid confusion with paragraph matching
+        if 'which paragraph' in lowered:
+            continue
+            
+        lines = section_text.splitlines()
+        title = ''
+        instructions: List[str] = []
+        features: List[Dict[str, str]] = []
+        statements: List[Dict[str, str]] = []
+        
+        feature_list_started = False
+        statement_list_started = False
+        
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            
+            if not title:
+                title = normalize_whitespace(stripped)
+                continue
+            
+            # Check for feature list (A Name1, B Name2, etc.)
+            feature_match = re.match(r'^([A-Z])\s+(.+)$', stripped)
+            if feature_match and not statement_list_started:
+                letter = feature_match.group(1)
+                name = normalize_whitespace(feature_match.group(2))
+                # Only single capital letters for features
+                if len(letter) == 1 and not re.match(r'^\d+', name):
+                    feature_list_started = True
+                    features.append({'key': letter, 'text': name})
+                    continue
+            
+            # Check for statement list (numbered statements)
+            statement_match = re.match(r'^(\d+)\s+(.+)$', stripped)
+            if statement_match and feature_list_started:
+                statement_list_started = True
+                number = statement_match.group(1)
+                text = normalize_whitespace(statement_match.group(2))
+                statements.append({'number': number, 'text': text})
+                continue
+            
+            # Instructions
+            if not feature_list_started:
+                instructions.append(normalize_whitespace(stripped))
+        
+        if features and statements and title:
+            sections.append({
+                'type': 'matching_features',
+                'title': title,
+                'instructions': instructions,
+                'features': features,
+                'statements': statements,
+                'match_start': start_idx,
+                'match_end': end_idx
+            })
+    
+    return sections
+
+
+def parse_matching_sentence_endings(questions_text: str) -> List[Dict[str, Any]]:
+    """Parse Matching Sentence Endings questions - complete sentences by matching beginnings to endings."""
+    if not questions_text:
+        return []
+    
+    sections: List[Dict[str, Any]] = []
+    heading_pattern = re.compile(r'Questions?\s+(\d+)(?:\s*[-\u2013]\s*(\d+))?', re.IGNORECASE)
+    matches = list(heading_pattern.finditer(questions_text))
+    
+    if not matches:
+        return []
+    
+    for idx, heading_match in enumerate(matches):
+        start_idx = heading_match.start()
+        end_idx = matches[idx + 1].start() if idx + 1 < len(matches) else len(questions_text)
+        section_text = questions_text[start_idx:end_idx].strip()
+        
+        lowered = section_text.lower()
+        # Look for sentence ending keywords
+        if not any(keyword in lowered for keyword in ['complete', 'sentence', 'ending']):
+            continue
+        
+        lines = section_text.splitlines()
+        title = ''
+        instructions: List[str] = []
+        sentence_beginnings: List[Dict[str, str]] = []
+        endings: List[Dict[str, str]] = []
+        
+        beginnings_started = False
+        endings_started = False
+        
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            
+            if not title:
+                title = normalize_whitespace(stripped)
+                continue
+            
+            # Check for sentence beginnings (numbered)
+            beginning_match = re.match(r'^(\d+)\s+(.+)$', stripped)
+            if beginning_match and not endings_started:
+                beginnings_started = True
+                number = beginning_match.group(1)
+                text = normalize_whitespace(beginning_match.group(2))
+                sentence_beginnings.append({'number': number, 'text': text})
+                continue
+            
+            # Check for endings (lettered)
+            ending_match = re.match(r'^([A-Z])\s+(.+)$', stripped)
+            if ending_match and beginnings_started:
+                endings_started = True
+                letter = ending_match.group(1)
+                text = normalize_whitespace(ending_match.group(2))
+                if len(letter) == 1:
+                    endings.append({'key': letter, 'text': text})
+                    continue
+            
+            # Instructions
+            if not beginnings_started:
+                instructions.append(normalize_whitespace(stripped))
+        
+        if sentence_beginnings and endings and title:
+            sections.append({
+                'type': 'matching_sentence_endings',
+                'title': title,
+                'instructions': instructions,
+                'sentence_beginnings': sentence_beginnings,
+                'endings': endings,
+                'match_start': start_idx,
+                'match_end': end_idx
+            })
+    
+    return sections
+
+
+def parse_diagram_label_completion(questions_text: str) -> List[Dict[str, Any]]:
+    """Parse Diagram Label Completion questions - label diagram with words from passage."""
+    if not questions_text:
+        return []
+    
+    sections: List[Dict[str, Any]] = []
+    heading_pattern = re.compile(r'Questions?\s+(\d+)(?:\s*[-\u2013]\s*(\d+))?', re.IGNORECASE)
+    matches = list(heading_pattern.finditer(questions_text))
+    
+    if not matches:
+        return []
+    
+    for idx, heading_match in enumerate(matches):
+        start_idx = heading_match.start()
+        end_idx = matches[idx + 1].start() if idx + 1 < len(matches) else len(questions_text)
+        section_text = questions_text[start_idx:end_idx].strip()
+        
+        lowered = section_text.lower()
+        # Look for diagram/label keywords
+        if not any(keyword in lowered for keyword in ['diagram', 'label', 'figure', 'illustration']):
+            continue
+        
+        lines = section_text.splitlines()
+        title = ''
+        instructions: List[str] = []
+        labels: List[Dict[str, str]] = []
+        
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            
+            if not title:
+                title = normalize_whitespace(stripped)
+                continue
+            
+            # Check for label items (numbered)
+            label_match = re.match(r'^(\d+)\s+(.+)$', stripped)
+            if label_match:
+                number = label_match.group(1)
+                text = normalize_whitespace(label_match.group(2))
+                # Check if it's a blank to fill
+                if '_' in text or 'label' in text.lower():
+                    labels.append({'number': number, 'text': text})
+                    continue
+            
+            # Instructions
+            if not labels:
+                instructions.append(normalize_whitespace(stripped))
+        
+        if labels and title:
+            sections.append({
+                'type': 'diagram_label_completion',
+                'title': title,
+                'instructions': instructions,
+                'labels': labels,
+                'match_start': start_idx,
+                'match_end': end_idx
+            })
+    
+    return sections
+
+
+def parse_short_answer_questions(questions_text: str) -> List[Dict[str, Any]]:
+    """Parse Short-Answer Questions - answer using NO MORE THAN X WORDS."""
+    if not questions_text:
+        return []
+    
+    questions: List[Dict[str, Any]] = []
+    
+    # Look for the "NO MORE THAN X WORDS" pattern
+    word_limit_pattern = re.compile(
+        r'(?:using|write|answer)?\s*(?:no more than|maximum of|maximum)\s+(\w+)\s+(?:words?|numbers?)',
+        re.IGNORECASE
+    )
+    
+    # Only proceed if we find word limit instructions
+    if not word_limit_pattern.search(questions_text):
+        return []
+    
+    # Extract word limit
+    word_limit_match = word_limit_pattern.search(questions_text)
+    word_limit = word_limit_match.group(1) if word_limit_match else 'THREE'
+    
+    # Find the section that contains short answer questions
+    heading_pattern = re.compile(r'Questions?\s+(\d+)(?:\s*[-\u2013]\s*(\d+))?', re.IGNORECASE)
+    matches = list(heading_pattern.finditer(questions_text))
+    
+    if not matches:
+        return []
+    
+    for idx, heading_match in enumerate(matches):
+        start_idx = heading_match.start()
+        end_idx = matches[idx + 1].start() if idx + 1 < len(matches) else len(questions_text)
+        section_text = questions_text[start_idx:end_idx].strip()
+        
+        # Check if this section has word limit instructions
+        if not word_limit_pattern.search(section_text):
+            continue
+        
+        # Find question numbers and text in this section
+        question_pattern = re.compile(
+            r'^(\d+)\s+(.+?)$',
+            re.MULTILINE
+        )
+        
+        for match in question_pattern.finditer(section_text):
+            number = match.group(1)
+            text = normalize_whitespace(match.group(2))
+            
+            # Filter out section headers and instructions
+            if any(keyword in text.lower() for keyword in ['questions', 'answer the', 'write', 'using no more']):
+                continue
+            
+            # Must be a real question (ends with ?)
+            if text and '?' in text:
+                questions.append({
+                    'type': 'short_answer',
+                    'number': number,
+                    'text': text,
+                    'word_limit': word_limit,
+                    'match_start': match.start() + start_idx,
+                    'match_end': match.end() + start_idx
+                })
+    
+    return questions
+
+
 def parse_questions(questions_text: str, blocks: Optional[List[Dict[str, Any]]] = None) -> List[Dict[str, Any]]:
     questions: List[Dict[str, Any]] = []
     consumed_numbers: set[str] = set()
@@ -697,11 +1060,29 @@ def parse_questions(questions_text: str, blocks: Optional[List[Dict[str, Any]]] 
                 return True
         return False
 
+    # Parse summary completion (has blanks with word bank)
     summary = parse_summary_completion(questions_text, blocks)
     if summary:
         questions.append(summary)
         consumed_numbers.update(summary['blanks'])
 
+    # Parse matching headings (roman numerals to paragraphs)
+    matching_heading_sections = parse_matching_headings(questions_text)
+    for section in matching_heading_sections:
+        start = section.get('match_start', -1)
+        end = section.get('match_end', -1)
+        if is_consumed(start, end):
+            continue
+        if section.get('paragraphs'):
+            section_numbers = {p['number'] for p in section['paragraphs']}
+            if section_numbers & consumed_numbers:
+                continue
+            consumed_numbers.update(section_numbers)
+        questions.append(section)
+        if start >= 0 and end >= 0:
+            consumed_ranges.append((start, end))
+
+    # Parse paragraph matching (which paragraph contains information)
     paragraph_sections = parse_paragraph_matching(questions_text)
     for section in paragraph_sections:
         start = section.get('match_start', -1)
@@ -713,6 +1094,63 @@ def parse_questions(questions_text: str, blocks: Optional[List[Dict[str, Any]]] 
             continue
         questions.append(section)
         consumed_numbers.update(section_numbers)
+        if start >= 0 and end >= 0:
+            consumed_ranges.append((start, end))
+
+    # Parse matching features (match statements to persons/features)
+    matching_feature_sections = parse_matching_features(questions_text)
+    for section in matching_feature_sections:
+        start = section.get('match_start', -1)
+        end = section.get('match_end', -1)
+        if is_consumed(start, end):
+            continue
+        section_numbers = {statement['number'] for statement in section['statements']}
+        if section_numbers & consumed_numbers:
+            continue
+        questions.append(section)
+        consumed_numbers.update(section_numbers)
+        if start >= 0 and end >= 0:
+            consumed_ranges.append((start, end))
+
+    # Parse matching sentence endings
+    sentence_ending_sections = parse_matching_sentence_endings(questions_text)
+    for section in sentence_ending_sections:
+        start = section.get('match_start', -1)
+        end = section.get('match_end', -1)
+        if is_consumed(start, end):
+            continue
+        section_numbers = {sb['number'] for sb in section['sentence_beginnings']}
+        if section_numbers & consumed_numbers:
+            continue
+        questions.append(section)
+        consumed_numbers.update(section_numbers)
+        if start >= 0 and end >= 0:
+            consumed_ranges.append((start, end))
+
+    # Parse diagram label completion
+    diagram_sections = parse_diagram_label_completion(questions_text)
+    for section in diagram_sections:
+        start = section.get('match_start', -1)
+        end = section.get('match_end', -1)
+        if is_consumed(start, end):
+            continue
+        section_numbers = {label['number'] for label in section['labels']}
+        if section_numbers & consumed_numbers:
+            continue
+        questions.append(section)
+        consumed_numbers.update(section_numbers)
+        if start >= 0 and end >= 0:
+            consumed_ranges.append((start, end))
+
+    # Parse short answer questions
+    short_answer_qs = parse_short_answer_questions(questions_text)
+    for q in short_answer_qs:
+        start = q.get('match_start', -1)
+        end = q.get('match_end', -1)
+        if q['number'] in consumed_numbers or is_consumed(start, end):
+            continue
+        questions.append(q)
+        consumed_numbers.add(q['number'])
         if start >= 0 and end >= 0:
             consumed_ranges.append((start, end))
 

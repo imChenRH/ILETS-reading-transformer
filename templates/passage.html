@@ -3,14 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>IELTS Reading Workspace</title>
+    <title>IELTS Reading Test</title>
     <style>
         :root {
             --panel: #ffffff;
-            --accent: #2563eb;
+            --accent: #3b82f6;
             --line: #e5e7eb;
             --muted: #6b7280;
-            --bg: #f3f4f6;
+            --bg: #f6f7fb;
+            --shadow: 0 6px 20px rgba(0,0,0,.12);
         }
 
         * {
@@ -20,61 +21,57 @@
         }
 
         body {
-            font-family: "Segoe UI", Roboto, Arial, sans-serif;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
             background: var(--bg);
             color: #111827;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        header {
-            padding: 18px 24px;
+        .timer-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
             background: var(--panel);
-            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08);
-            position: sticky;
-            top: 0;
-            z-index: 20;
-        }
-
-        header h1 {
-            font-size: 1.5rem;
-            margin-bottom: 4px;
-        }
-
-        header p {
-            color: var(--muted);
-            font-size: 0.95rem;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: var(--shadow);
         }
 
         .shell {
-            flex: 1 1 auto;
             display: flex;
-            gap: 16px;
-            padding: 18px 24px;
+            height: 100vh;
+            width: 100%;
         }
 
         .pane {
             background: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            padding: 20px;
             overflow-y: auto;
-        }
-
-        .pane h2 {
-            font-size: 1.15rem;
-            margin-bottom: 16px;
-            color: #1f2937;
+            padding: 20px;
         }
 
         #passage-pane {
-            flex: 0 0 48%;
-            max-width: 600px;
+            flex: 0 0 50%;
+            min-width: 280px;
+        }
+
+        #divider {
+            flex: 0 0 8px;
+            background: linear-gradient(90deg, #e5e7eb, #d1d5db);
+            cursor: ew-resize;
+            position: relative;
+            z-index: 5;
+            user-select: none;
         }
 
         #question-pane {
             flex: 1 1 auto;
+            min-width: 320px;
+            background: #fbfbff;
         }
 
         .passage-text p {
@@ -285,10 +282,9 @@
     </style>
 </head>
 <body>
-    <header>
-        <h1>IELTS Reading Practice</h1>
-        <p>Review the passage on the left and answer the questions on the right.</p>
-    </header>
+    <div class="timer-container">
+        Time remaining: <span id="timer">60:00</span>
+    </div>
 
     <div class="shell">
         <section id="passage-pane" class="pane">
@@ -319,6 +315,8 @@
                 {% endif %}
             </div>
         </section>
+
+        <div id="divider" title="Drag to resize"></div>
 
         <section id="question-pane" class="pane">
             <h2>Questions</h2>
@@ -422,8 +420,149 @@
                                 {% endfor %}
                             </div>
                         </div>
-                    {% endif %}
-                    {% if q.type == 'fill_blank' %}
+                    {% elif q.type == 'matching_headings' %}
+                        <div class="question-group">
+                            <div class="question-title">{{ q.title }}</div>
+                            {% if q.instructions %}
+                                <div class="question-instructions">
+                                    {% for line in q.instructions %}
+                                        <p>{{ line }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="option-pool" style="margin-bottom:16px;">
+                                {% for heading in q.headings %}
+                                    <div class="pool-card">
+                                        <span>{{ heading.key }}</span>
+                                        <span>{{ heading.text }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="statement-list">
+                                {% for para in q.paragraphs %}
+                                    <div class="statement-row">
+                                        <div class="statement-text">
+                                            <span class="statement-number">{{ para.number }}.</span>Paragraph {{ para.letter }}
+                                        </div>
+                                        <div>
+                                            <select name="mh{{ para.number }}" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--line);">
+                                                <option value="">Select heading</option>
+                                                {% for heading in q.headings %}
+                                                    <option value="{{ heading.key }}">{{ heading.key }} - {{ heading.text }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% elif q.type == 'matching_features' %}
+                        <div class="question-group">
+                            <div class="question-title">{{ q.title }}</div>
+                            {% if q.instructions %}
+                                <div class="question-instructions">
+                                    {% for line in q.instructions %}
+                                        <p>{{ line }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="option-pool" style="margin-bottom:16px;">
+                                {% for feature in q.features %}
+                                    <div class="pool-card">
+                                        <span>{{ feature.key }}</span>
+                                        <span>{{ feature.text }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="statement-list">
+                                {% for statement in q.statements %}
+                                    <div class="statement-row">
+                                        <div class="statement-text">
+                                            <span class="statement-number">{{ statement.number }}.</span>{{ statement.text }}
+                                        </div>
+                                        <div class="statement-options">
+                                            {% for feature in q.features %}
+                                                <label class="statement-option">
+                                                    <input type="radio" name="mf{{ statement.number }}" value="{{ feature.key }}">
+                                                    <span>{{ feature.key }}</span>
+                                                </label>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% elif q.type == 'matching_sentence_endings' %}
+                        <div class="question-group">
+                            <div class="question-title">{{ q.title }}</div>
+                            {% if q.instructions %}
+                                <div class="question-instructions">
+                                    {% for line in q.instructions %}
+                                        <p>{{ line }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="option-pool" style="margin-bottom:16px;">
+                                <strong>Endings:</strong>
+                                {% for ending in q.endings %}
+                                    <div class="pool-card">
+                                        <span>{{ ending.key }}</span>
+                                        <span>{{ ending.text }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="statement-list">
+                                {% for beginning in q.sentence_beginnings %}
+                                    <div class="statement-row">
+                                        <div class="statement-text">
+                                            <span class="statement-number">{{ beginning.number }}.</span>{{ beginning.text }}
+                                        </div>
+                                        <div>
+                                            <select name="mse{{ beginning.number }}" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--line);">
+                                                <option value="">Select ending</option>
+                                                {% for ending in q.endings %}
+                                                    <option value="{{ ending.key }}">{{ ending.key }} - {{ ending.text }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% elif q.type == 'diagram_label_completion' %}
+                        <div class="question-group">
+                            <div class="question-title">{{ q.title }}</div>
+                            {% if q.instructions %}
+                                <div class="question-instructions">
+                                    {% for line in q.instructions %}
+                                        <p>{{ line }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="statement-list">
+                                {% for label in q.labels %}
+                                    <div class="statement-row">
+                                        <div class="statement-text">
+                                            <span class="statement-number">{{ label.number }}.</span>{{ label.text }}
+                                        </div>
+                                        <div style="margin-top:8px;">
+                                            <input type="text" name="dlc{{ label.number }}" placeholder="Label from passage" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--line);" />
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% elif q.type == 'short_answer' %}
+                        <div class="question-group">
+                            <div class="question-title">{{ q.number }}. {{ q.text }}</div>
+                            <div class="question-instructions">
+                                <p><em>Answer using NO MORE THAN {{ q.word_limit }} WORDS</em></p>
+                            </div>
+                            <div style="margin-top:8px;">
+                                <input type="text" name="sa{{ q.number }}" placeholder="Write your answer here" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--line);" />
+                            </div>
+                        </div>
+                    {% elif q.type == 'fill_blank' %}
                         <div class="question-group">
                             <div class="question-title">{{ q.number }}. {{ q.text }}</div>
                             <div style="margin-top:8px;">
@@ -435,5 +574,56 @@
             </form>
         </section>
     </div>
+
+    <script>
+        // Timer functionality
+        let timeLeft = 60 * 60; // 60 minutes in seconds
+        const timerElement = document.getElementById('timer');
+        
+        function updateTimer() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft > 0) {
+                timeLeft--;
+            }
+        }
+        
+        // Update timer every second
+        setInterval(updateTimer, 1000);
+        updateTimer();
+
+        // Resizable divider functionality
+        const divider = document.getElementById('divider');
+        const leftPane = document.getElementById('passage-pane');
+        const rightPane = document.getElementById('question-pane');
+        let isResizing = false;
+
+        divider.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            document.body.style.cursor = 'ew-resize';
+            document.body.style.userSelect = 'none';
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const containerWidth = document.querySelector('.shell').offsetWidth;
+            const newLeftWidth = (e.clientX / containerWidth) * 100;
+            
+            if (newLeftWidth > 20 && newLeftWidth < 80) {
+                leftPane.style.flex = `0 0 ${newLeftWidth}%`;
+            }
+        });
+
+        document.addEventListener('mouseup', function() {
+            if (isResizing) {
+                isResizing = false;
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+        });
+    </script>
 </body>
 </html>
