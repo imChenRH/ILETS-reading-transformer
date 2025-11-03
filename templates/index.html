@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>IELTS Reading Assistant</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        h1 { text-align: center; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .upload-form { margin-top: 2em; text-align: center; }
+        .flash { padding: 1em; margin-bottom: 1em; border: 1px solid #ccc; background-color: #f8d7da; color: #721c24; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="flash">
+              {% for message in messages %}
+                <p>{{ message }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        <h1>Upload IELTS Reading PDF</h1>
+        <div class="upload-form">
+            <form method=post enctype=multipart/form-data action="/upload">
+              <input type=file name=file>
+              <input type=submit value=Upload>
+            </form>
+        </div>
+    </div>
+  </body>
+</html>

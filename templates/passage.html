@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>IELTS Reading Workspace</title>
+    <style>
+        :root {
+            --panel: #ffffff;
+            --accent: #2563eb;
+            --line: #e5e7eb;
+            --muted: #6b7280;
+            --bg: #f3f4f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Segoe UI", Roboto, Arial, sans-serif;
+            background: var(--bg);
+            color: #111827;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 18px 24px;
+            background: var(--panel);
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+        }
+
+        header p {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .shell {
+            flex: 1 1 auto;
+            display: flex;
+            gap: 16px;
+            padding: 18px 24px;
+        }
+
+        .pane {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .pane h2 {
+            font-size: 1.15rem;
+            margin-bottom: 16px;
+            color: #1f2937;
+        }
+
+        #passage-pane {
+            flex: 0 0 48%;
+            max-width: 600px;
+        }
+
+        #question-pane {
+            flex: 1 1 auto;
+        }
+
+        .passage-text p {
+            line-height: 1.65;
+            margin-bottom: 14px;
+        }
+
+        .passage-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 18px;
+            letter-spacing: 0.02em;
+        }
+
+        .passage-intro {
+            background: #eef2ff;
+            border-left: 4px solid var(--accent);
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+        }
+
+        .passage-paragraph {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .paragraph-letter {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(37, 99, 235, 0.16);
+            color: var(--accent);
+            font-weight: 700;
+            flex: 0 0 32px;
+        }
+
+        .passage-paragraph span:last-child {
+            line-height: 1.7;
+        }
+
+        .question-group {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 18px;
+            background: #f9fafb;
+        }
+
+        .question-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .question-instructions {
+            color: var(--muted);
+            font-size: 0.95rem;
+            display: grid;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+
+        .option-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+        }
+
+        .option:hover {
+            background: #ecf2ff;
+            border-color: rgba(37, 99, 235, 0.35);
+        }
+
+        .option-letter {
+            font-weight: 600;
+            color: var(--accent);
+            min-width: 18px;
+        }
+
+        .summary-text {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+            line-height: 1.65;
+            white-space: pre-line;
+        }
+
+        .blank-select {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .blank-select label {
+            font-weight: 600;
+            color: var(--muted);
+            min-width: 80px;
+        }
+
+        select {
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            min-width: 180px;
+            background: #fff;
+        }
+
+        .option-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .pool-card {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 6px 10px;
+            background: #fff;
+            display: inline-flex;
+            gap: 6px;
+            align-items: center;
+            font-size: 0.95rem;
+        }
+
+        .pool-card span:first-child {
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .statement-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .statement-row {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .statement-text {
+            line-height: 1.55;
+        }
+
+        .statement-number {
+            font-weight: 700;
+            color: var(--accent);
+            margin-right: 6px;
+        }
+
+        .statement-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .statement-option {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: #f8fafc;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .statement-option:hover {
+            border-color: rgba(37, 99, 235, 0.4);
+            background: #eef3ff;
+        }
+
+        .statement-option input {
+            accent-color: var(--accent);
+        }
+
+        @media (max-width: 960px) {
+            .shell {
+                flex-direction: column;
+            }
+
+            #passage-pane {
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>IELTS Reading Practice</h1>
+        <p>Review the passage on the left and answer the questions on the right.</p>
+    </header>
+
+    <div class="shell">
+        <section id="passage-pane" class="pane">
+            <h2>Reading Passage</h2>
+            <div class="passage-text">
+                {% if passage.title %}
+                    <div class="passage-title">{{ passage.title }}</div>
+                {% endif %}
+                {% if passage.intro %}
+                    <p class="passage-intro">{{ passage.intro }}</p>
+                {% endif %}
+                {% if passage.paragraphs %}
+                    {% for paragraph in passage.paragraphs %}
+                        <p class="passage-paragraph">
+                            {% if paragraph.letter %}
+                                <span class="paragraph-letter">{{ paragraph.letter }}</span>
+                            {% endif %}
+                            <span>{{ paragraph.text }}</span>
+                        </p>
+                    {% endfor %}
+                {% else %}
+                    {% for paragraph in passage.raw.split('\n\n') %}
+                        {% set cleaned = paragraph.strip() %}
+                        {% if cleaned %}
+                            <p>{{ cleaned.replace('\n', ' ') }}</p>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </section>
+
+        <section id="question-pane" class="pane">
+            <h2>Questions</h2>
+            <form class="question-list">
+                {% set letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' %}
+                {% for q in questions %}
+                    {% if q.type == 'single_choice' %}
+                        <div class="question-group">
+                            <div class="question-title">{{ q.number }}. {{ q.text }}</div>
+                            <div class="option-list">
+                                {% for option in q.options %}
+                                    <label class="option">
+                                        <input type="radio" name="q{{ q.number }}" value="{{ letters[loop.index0] }}">
+                                        <span class="option-letter">{{ letters[loop.index0] }}</span>
+                                        <span>{{ option }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% elif q.type == 'summary_completion' %}
+                        <div class="question-group">
+                            <div class="question-title">Summary Completion</div>
+                            <div class="summary-text">{{ q.text | replace('\n', '\n') }}</div>
+                            {% for blank in q.blanks %}
+                                <div class="blank-select">
+                                    <label for="blank{{ blank }}">Blank {{ blank }}</label>
+                                    <select id="blank{{ blank }}" name="blank{{ blank }}">
+                                        <option value="">Select an option</option>
+                                        {% for option in q.options %}
+                                            <option value="{{ option.key }}">{{ option.key }}. {{ option.text }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            {% endfor %}
+                            <div class="option-pool">
+                                {% for option in q.options %}
+                                    <div class="pool-card">
+                                        <span>{{ option.key }}</span>
+                                        <span>{{ option.text }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% elif q.type == 'paragraph_matching' %}
+                        <div class="question-group">
+                            <div class="question-title">{{ q.title }}</div>
+                            {% if q.instructions %}
+                                <div class="question-instructions">
+                                    {% for line in q.instructions %}
+                                        <p>{{ line }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="statement-list">
+                                {% for statement in q.statements %}
+                                    <div class="statement-row">
+                                        <div class="statement-text">
+                                            <span class="statement-number">{{ statement.number }}.</span>{{ statement.text }}
+                                        </div>
+                                        <div class="statement-options">
+                                            {% if q.options %}
+                                                {% for option in q.options %}
+                                                    <label class="statement-option">
+                                                        <input type="radio" name="pm{{ statement.number }}" value="{{ option }}">
+                                                        <span>Paragraph {{ option }}</span>
+                                                    </label>
+                                                {% endfor %}
+                                            {% else %}
+                                                <input type="text" name="pm{{ statement.number }}" placeholder="Paragraph letter" style="width:160px; padding:6px 8px; border-radius:8px; border:1px solid var(--line);" />
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% elif q.type == 'yes_no_not_given' %}
+                        <div class="question-group">
+                            <div class="question-title">{{ q.title }}</div>
+                            {% if q.instructions %}
+                                <div class="question-instructions">
+                                    {% for line in q.instructions %}
+                                        <p>{{ line }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="statement-list">
+                                {% for statement in q.statements %}
+                                    <div class="statement-row">
+                                        <div class="statement-text">
+                                            <span class="statement-number">{{ statement.number }}.</span>{{ statement.text }}
+                                        </div>
+                                        <div class="statement-options">
+                                            {% for option in q.options %}
+                                                <label class="statement-option">
+                                                    <input type="radio" name="yn{{ statement.number }}" value="{{ option }}">
+                                                    <span>{{ option }}</span>
+                                                </label>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if q.type == 'fill_blank' %}
+                        <div class="question-group">
+                            <div class="question-title">{{ q.number }}. {{ q.text }}</div>
+                            <div style="margin-top:8px;">
+                                <input type="text" name="fill{{ q.number }}" placeholder="Write your answer here" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--line);" />
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </form>
+        </section>
+    </div>
+</body>
+</html>
