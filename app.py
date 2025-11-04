@@ -51,6 +51,7 @@ def split_passage_questions(full_text: str) -> Tuple[str, str]:
     Handles multiple formats:
     1. Standard: passage followed by questions
     2. Matching Headings: questions (with List of Headings) then passage title, then more questions
+    3. Reading Passage header followed by title and content, then questions
     """
     passage = full_text
     questions = ''
@@ -111,6 +112,23 @@ def split_passage_questions(full_text: str) -> Tuple[str, str]:
                 passage = full_text[passage_start_pos:]
                 questions = full_text[:passage_start_pos]
             
+            return passage.strip(), questions.strip()
+
+    # Check for "READING PASSAGE" header format - common in IELTS materials
+    # Pattern: "READING PASSAGE X" -> title -> content -> "Questions"
+    reading_passage_match = re.search(r'READING\s+PASSAGE\s+\d+', full_text, re.IGNORECASE)
+    if reading_passage_match:
+        # Start looking after the "READING PASSAGE" header
+        search_start = reading_passage_match.end()
+        
+        # Find the first "Questions \d+" after the header
+        first_questions_match = re.search(r'\n\s*Questions?\s+\d+', full_text[search_start:], re.IGNORECASE)
+        
+        if first_questions_match:
+            # The passage is from after the header to before the first questions
+            passage_end_pos = search_start + first_questions_match.start()
+            passage = full_text[search_start:passage_end_pos]
+            questions = full_text[passage_end_pos:]
             return passage.strip(), questions.strip()
 
     # Standard pattern: look for "below" keyword
