@@ -70,27 +70,44 @@ def split_passage_questions(full_text: str) -> Tuple[str, str]:
         # 2. "i    heading text" on same line
         passage_start_line = -1
         in_heading_list = True
-        last_was_roman = False
+        last_line_was_standalone_roman = False
         
         for idx, line in enumerate(lines):
             stripped = line.strip()
             if not stripped:
                 continue
             
-            # Check if this line has roman numeral (standalone or with text)
-            has_roman = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x|xi{1,3})', stripped, re.IGNORECASE)
-            
-            if has_roman and in_heading_list:
-                # This is part of the heading list, skip it
-                last_was_roman = False  # Reset since we handled it
+            # Check if this is a standalone roman numeral (just the numeral, minimal text)
+            standalone_roman_match = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x|xi{1,3})\s*$', stripped, re.IGNORECASE)
+            if standalone_roman_match:
+                # This is a standalone roman numeral, next line will be its heading text
+                last_line_was_standalone_roman = True
                 continue
             
-            # If we haven't seen a roman numeral recently and this line doesn't start with roman
-            if not has_roman and in_heading_list:
-                # Check if this looks like a passage title (short, not a paragraph letter)
-                if len(stripped) > 3 and len(stripped) < 80 and stripped not in ['A', 'B', 'C', 'D', 'E', 'F', 'G']:
+            # Check if this line has roman numeral with text on same line
+            roman_with_text_match = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x|xi{1,3})\s+(.+)$', stripped, re.IGNORECASE)
+            if roman_with_text_match:
+                # This is a heading with roman numeral and text on same line
+                last_line_was_standalone_roman = False
+                continue
+            
+            # If the last line was a standalone roman numeral, this line is the heading text
+            if last_line_was_standalone_roman:
+                last_line_was_standalone_roman = False
+                continue
+            
+            # If we reach here and still in heading list, check if this looks like a passage title
+            if in_heading_list:
+                # A passage title is typically:
+                # - Short (20-80 chars) and capitalized
+                # - NOT a single letter (A, B, C, etc.)
+                # - NOT starting with a number (like "34" for next question)
+                if (20 <= len(stripped) <= 80 and 
+                    stripped not in ['A', 'B', 'C', 'D', 'E', 'F', 'G'] and
+                    not re.match(r'^\d+', stripped)):
                     # This is likely the passage title
                     passage_start_line = idx
+                    in_heading_list = False
                     break
         
         if passage_start_line >= 0:
@@ -474,9 +491,13 @@ def parse_single_choice(questions_text: str) -> List[Dict[str, Any]]:
 
     # Improved pattern that requires the question number to be at the start of a line
     # This prevents matching numbers from instruction text like "boxes 27-32"
+    # Allow optional newlines/whitespace after the question number for multi-line prompts
+    # Use non-greedy matching and limit prompt length to avoid matching fill-in-the-blank questions
     # Stop at next question number OR "Questions" keyword
+    # The prompt should be reasonable length (< 300 chars) to avoid consuming other questions from Y/N/NG sections
+    # Require options A, B, C, D to be at line start to avoid matching words like "a service"
     pattern = re.compile(
-        r'(?:^|\n)(\d+)\s+(.*?)\s+A\s+(.*?)\s+B\s+(.*?)\s+C\s+(.*?)\s+D\s+(.*?)(?=\n\d+\s+|\nQuestions?\s+\d+|\Z)',
+        r'(?:^|\n)(\d+)\s+(.{10,300}?)\n\s*A\s+(.*?)\n\s*B\s+(.*?)\n\s*C\s+(.*?)\n\s*D\s+(.*?)(?=\n\d+\s+|\nQuestions?\s+\d+|\Z)',
         re.DOTALL | re.MULTILINE
     )
 
@@ -493,6 +514,14 @@ def parse_single_choice(questions_text: str) -> List[Dict[str, Any]]:
         if any(keyword in prompt.lower() for keyword in INSTRUCTION_KEYWORDS):
             continue
         
+        # Skip if this section is from a Y/N/NG question section
+        # Check if the text leading up to this question contains Y/N/NG instructions
+        # Look back further (1000 chars) to catch Y/N/NG instructions that might be farther up
+        section_before = questions_text[max(0, match.start()-1000):match.start()]
+        if 'YES' in section_before.upper() and 'NOT GIVEN' in section_before.upper():
+            # This is likely a Y/N/NG section, skip it
+            continue
+        
         # Find the last sentence of the prompt
         sentences = re.split(r'(?<=[.?!])\s+', prompt)
         actual_prompt = sentences[-1] if sentences else ''
@@ -501,6 +530,13 @@ def parse_single_choice(questions_text: str) -> List[Dict[str, Any]]:
         
         # Validate options - they should have reasonable length
         if not options or any(len(opt) < 3 for opt in options):
+            continue
+        
+        # Check for YES/NO/NOT GIVEN pattern in options - if found, this is likely not an MCQ
+        # Y/N/NG questions sometimes have A, B, C, D markers but the options are YES/NO/NOT GIVEN
+        option_text_combined = ' '.join(options).upper()
+        if ('YES' in option_text_combined and 'NOT GIVEN' in option_text_combined) or \
+           (option_text_combined.count('YES') >= 2 and option_text_combined.count('NO') >= 2):
             continue
         
         # Check that options look like real options (not just single words or letters)
@@ -1094,6 +1130,32 @@ def parse_matching_features(questions_text: str) -> List[Dict[str, Any]]:
             # Instructions (collect everything before statements/features start)
             if not feature_list_started and not statement_list_started:
                 instructions.append(normalize_whitespace(stripped))
+        
+        # If we have statements but no features, look for the feature list in subsequent sections
+        # This handles cases like PDF84 where the list appears after other questions
+        if statements and not features and idx + 1 < len(matches):
+            # Search for "List of" in the text after this section
+            search_text = questions_text[end_idx:]
+            list_match = re.search(r'List of [A-Za-z]+', search_text, re.IGNORECASE)
+            if list_match:
+                # Extract features from the list section
+                list_start = end_idx + list_match.end()
+                # Read until next "Questions" section or end
+                next_q_match = re.search(r'\n\s*Questions?\s+\d+', search_text[list_match.end():], re.IGNORECASE)
+                list_end = list_start + (next_q_match.start() if next_q_match else 500)
+                list_text = questions_text[list_start:list_end]
+                
+                # Parse features from this section
+                for line in list_text.splitlines():
+                    stripped = line.strip()
+                    if not stripped:
+                        continue
+                    feature_match = re.match(r'^([A-Z])\s+(.+)$', stripped)
+                    if feature_match:
+                        letter = feature_match.group(1)
+                        name = normalize_whitespace(feature_match.group(2))
+                        if len(letter) == 1 and not re.match(r'^\d+', name):
+                            features.append({'key': letter, 'text': name})
         
         if features and statements and title:
             sections.append({
