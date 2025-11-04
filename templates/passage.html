@@ -195,6 +195,14 @@
             background: #fff;
         }
 
+        .blank-select input[type="text"] {
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            flex: 1 1 auto;
+            background: #fff;
+        }
+
         .option-pool {
             display: flex;
             flex-wrap: wrap;
@@ -343,22 +351,19 @@
                             {% for blank in q.blanks %}
                                 <div class="blank-select">
                                     <label for="blank{{ blank }}">Blank {{ blank }}</label>
-                                    <select id="blank{{ blank }}" name="blank{{ blank }}">
-                                        <option value="">Select an option</option>
-                                        {% for option in q.options %}
-                                            <option value="{{ option.key }}">{{ option.key }}. {{ option.text }}</option>
-                                        {% endfor %}
-                                    </select>
+                                    <input type="text" id="blank{{ blank }}" name="blank{{ blank }}" placeholder="Enter answer" autocomplete="off" />
                                 </div>
                             {% endfor %}
-                            <div class="option-pool">
-                                {% for option in q.options %}
-                                    <div class="pool-card">
-                                        <span>{{ option.key }}</span>
-                                        <span>{{ option.text }}</span>
-                                    </div>
-                                {% endfor %}
-                            </div>
+                            {% if q.options %}
+                                <div class="option-pool">
+                                    {% for option in q.options %}
+                                        <div class="pool-card">
+                                            <span>{{ option.key }}</span>
+                                            <span>{{ option.text }}</span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
                     {% elif q.type == 'paragraph_matching' %}
                         <div class="question-group">

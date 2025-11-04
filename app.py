@@ -46,9 +46,112 @@ def extract_text_and_blocks(filepath: Path) -> Tuple[str, List[Dict[str, Any]]]:
 
 
 def split_passage_questions(full_text: str) -> Tuple[str, str]:
+    """
+    Split the full text into passage and questions.
+    Handles multiple formats:
+    1. Standard: passage followed by questions
+    2. Matching Headings: questions (with List of Headings) then passage title, then more questions
+    3. Reading Passage header followed by title and content, then questions
+    """
     passage = full_text
     questions = ''
 
+    # Check for "List of Headings" pattern - indicates Matching Headings question format
+    list_of_headings_match = re.search(r'List of Headings\s*\n', full_text, re.IGNORECASE)
+    if list_of_headings_match:
+        # After "List of Headings", skip the roman numeral headings to find passage title
+        search_start = list_of_headings_match.end()
+        remaining_text = full_text[search_start:]
+        lines = remaining_text.split('\n')
+        
+        # Skip lines that are roman numerals and their associated heading texts
+        # Two patterns: 
+        # 1. "i" on one line, "heading text" on next line
+        # 2. "i    heading text" on same line
+        passage_start_line = -1
+        in_heading_list = True
+        last_line_was_standalone_roman = False
+        
+        for idx, line in enumerate(lines):
+            stripped = line.strip()
+            if not stripped:
+                continue
+            
+            # Check if this is a standalone roman numeral (just the numeral, minimal text)
+            standalone_roman_match = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x|xi{1,3})\s*$', stripped, re.IGNORECASE)
+            if standalone_roman_match:
+                # This is a standalone roman numeral, next line will be its heading text
+                last_line_was_standalone_roman = True
+                continue
+            
+            # Check if this line has roman numeral with text on same line
+            roman_with_text_match = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x|xi{1,3})\s+(.+)$', stripped, re.IGNORECASE)
+            if roman_with_text_match:
+                # This is a heading with roman numeral and text on same line
+                last_line_was_standalone_roman = False
+                continue
+            
+            # If the last line was a standalone roman numeral, this line is the heading text
+            if last_line_was_standalone_roman:
+                last_line_was_standalone_roman = False
+                continue
+            
+            # If we reach here and still in heading list, check if this looks like a passage title
+            if in_heading_list:
+                # A passage title is typically:
+                # - Short (20-80 chars) and capitalized
+                # - NOT a single letter (A, B, C, etc.)
+                # - NOT starting with a number (like "34" for next question)
+                if (20 <= len(stripped) <= 80 and 
+                    stripped not in ['A', 'B', 'C', 'D', 'E', 'F', 'G'] and
+                    not re.match(r'^\d+', stripped)):
+                    # This is likely the passage title
+                    passage_start_line = idx
+                    in_heading_list = False
+                    break
+        
+        if passage_start_line >= 0:
+            # Calculate absolute position
+            passage_start_pos = search_start + sum(len(lines[i]) + 1 for i in range(passage_start_line))
+            
+            # Find where questions resume after the passage
+            # Look for "Questions \d+" after the passage start
+            passage_text = full_text[passage_start_pos:]
+            next_questions_match = re.search(r'\n\s*Questions?\s+\d+', passage_text, re.IGNORECASE)
+            
+            if next_questions_match:
+                # Passage ends where next questions section starts
+                passage_end_pos = passage_start_pos + next_questions_match.start()
+                passage = full_text[passage_start_pos:passage_end_pos]
+                # Questions are before passage + after passage
+                questions_before = full_text[:passage_start_pos]
+                questions_after = full_text[passage_end_pos:]
+                questions = questions_before + '\n\n' + questions_after
+            else:
+                # No more questions after passage
+                passage = full_text[passage_start_pos:]
+                questions = full_text[:passage_start_pos]
+            
+            return passage.strip(), questions.strip()
+
+    # Check for "READING PASSAGE" header format - common in IELTS materials
+    # Pattern: "READING PASSAGE X" -> title -> content -> "Questions"
+    reading_passage_match = re.search(r'READING\s+PASSAGE\s+\d+', full_text, re.IGNORECASE)
+    if reading_passage_match:
+        # Start looking after the "READING PASSAGE" header
+        search_start = reading_passage_match.end()
+        
+        # Find the first "Questions \d+" after the header
+        first_questions_match = re.search(r'\n\s*Questions?\s+\d+', full_text[search_start:], re.IGNORECASE)
+        
+        if first_questions_match:
+            # The passage is from after the header to before the first questions
+            passage_end_pos = search_start + first_questions_match.start()
+            passage = full_text[search_start:passage_end_pos]
+            questions = full_text[passage_end_pos:]
+            return passage.strip(), questions.strip()
+
+    # Standard pattern: look for "below" keyword
     passage_start = re.search(r'below\.', full_text, re.IGNORECASE)
     if passage_start:
         passage_start_index = passage_start.end()
@@ -58,7 +161,6 @@ def split_passage_questions(full_text: str) -> Tuple[str, str]:
             'Complete the summary',
             'Do the following statements agree',
             'Matching',
-            'List of Headings',
             r'Questions?\s+\d+'
         ]
         question_start_index = -1
@@ -170,8 +272,54 @@ def structure_passage(raw_passage: str, passage_blocks: Optional[List[str]] = No
             current -= 1
         return label
 
-    non_empty_lines = [line.strip() for line in raw_passage.splitlines() if line.strip()]
-    title = non_empty_lines[0] if non_empty_lines else ''
+    raw_lines = [line.rstrip('\r') for line in raw_passage.splitlines()]
+
+    def is_instruction_line(value: str) -> bool:
+        lowered = value.lower()
+        if lowered.startswith('reading passage'):
+            return True
+        if lowered.startswith('you should spend'):
+            return True
+        if lowered.startswith('questions '):
+            return True
+        if lowered.startswith('question '):
+            return True
+        return False
+
+    def is_probable_title(value: str) -> bool:
+        if not value:
+            return False
+        stripped = value.strip()
+        if not stripped or is_instruction_line(stripped):
+            return False
+        if re.match(r'^[A-Z]$', stripped):
+            return False
+        if len(stripped) > 120:
+            return False
+        if stripped[-1] in '.!?':
+            return False
+        words = stripped.split()
+        if len(words) > 14:
+            return False
+        return True
+
+    non_empty_lines = [line.strip() for line in raw_lines if line.strip()]
+    title = ''
+    for candidate in non_empty_lines[:8]:
+        normalized_candidate = normalize_whitespace(candidate)
+        if is_probable_title(normalized_candidate):
+            title = normalized_candidate
+            break
+
+    if not title:
+        for candidate in non_empty_lines:
+            normalized_candidate = normalize_whitespace(candidate)
+            if not is_instruction_line(normalized_candidate):
+                title = normalized_candidate
+                break
+
+    if not title and non_empty_lines:
+        title = normalize_whitespace(non_empty_lines[0])
 
     normalized_title = normalize_whitespace(title).lower()
     paragraphs: List[Dict[str, str]] = []
@@ -181,7 +329,6 @@ def structure_passage(raw_passage: str, passage_blocks: Optional[List[str]] = No
     source_blocks = [normalize_whitespace(block) for block in source_blocks if normalize_whitespace(block)]
 
     def extract_letter_sections() -> Tuple[List[str], List[Tuple[str, str]]]:
-        raw_lines = [line.rstrip('\r') for line in raw_passage.splitlines()]
         pre_letter_lines: List[str] = []
         sections: List[Tuple[str, List[str]]] = []
         current_letter: Optional[str] = None
@@ -273,16 +420,65 @@ def structure_passage(raw_passage: str, passage_blocks: Optional[List[str]] = No
 
     pre_letter, letter_sections = extract_letter_sections()
 
+    instruction_patterns = (
+        re.compile(r'^reading passage', re.IGNORECASE),
+        re.compile(r'^you should spend', re.IGNORECASE),
+        re.compile(r'^questions?\b', re.IGNORECASE),
+    )
+
+    def filter_intro_lines(lines: List[str]) -> List[str]:
+        filtered: List[str] = []
+        for line in lines:
+            normalized_line = normalize_whitespace(line)
+            if not normalized_line:
+                continue
+            if normalized_line.lower() == normalized_title:
+                continue
+            if any(pattern.match(normalized_line) for pattern in instruction_patterns):
+                continue
+            filtered.append(normalized_line)
+        return filtered
+
+    def looks_like_intro(text_value: str) -> bool:
+        if not text_value:
+            return False
+        if len(text_value) > 350:
+            return False
+        sentence_endings = re.findall(r'[.!?]', text_value)
+        if len(sentence_endings) > 3:
+            return False
+        return True
+
     if letter_sections:
-        if not intro_text and pre_letter:
-            intro_text = normalize_whitespace(' '.join(pre_letter))
+        if pre_letter:
+            filtered_lines = filter_intro_lines(pre_letter)
+            pre_text = normalize_whitespace(' '.join(filtered_lines))
+            if pre_text and pre_text.lower() != normalized_title:
+                first_letter = letter_sections[0][0] if letter_sections else None
+                if first_letter and first_letter.isalpha():
+                    prev_letter_ord = ord(first_letter) - 1
+                    if prev_letter_ord >= ord('A'):
+                        prev_letter = chr(prev_letter_ord)
+                        letter_sections.insert(0, (prev_letter, pre_text))
+                    else:
+                        intro_text = pre_text
+                else:
+                    intro_text = pre_text
         paragraphs.extend({'letter': letter, 'text': text} for letter, text in letter_sections)
     elif source_blocks:
         source_blocks = [block for block in source_blocks if block.lower() != normalized_title]
-        if source_blocks and len(source_blocks[0]) <= 120 and '.' not in source_blocks[0]:
-            intro_text = source_blocks.pop(0)
+        while source_blocks:
+            candidate = source_blocks[0]
+            if any(pattern.match(candidate) for pattern in instruction_patterns):
+                source_blocks.pop(0)
+                continue
+            if looks_like_intro(candidate):
+                intro_text = source_blocks.pop(0)
+            break
 
         for block in source_blocks:
+            if any(pattern.match(block) for pattern in instruction_patterns):
+                continue
             paragraphs.append({'letter': '', 'text': block})
     else:
         blocks = re.split(r'(?:\r?\n){2,}', raw_passage)
@@ -290,7 +486,9 @@ def structure_passage(raw_passage: str, passage_blocks: Optional[List[str]] = No
             cleaned = normalize_whitespace(block)
             if not cleaned or cleaned.lower() == normalized_title:
                 continue
-            if not intro_text and len(cleaned) <= 120 and '.' not in cleaned:
+            if any(pattern.match(cleaned) for pattern in instruction_patterns):
+                continue
+            if not intro_text and looks_like_intro(cleaned):
                 intro_text = cleaned
                 continue
             paragraphs.append({'letter': '', 'text': cleaned})
@@ -307,20 +505,79 @@ def parse_single_choice(questions_text: str) -> List[Dict[str, Any]]:
     if not questions_text:
         return []
 
+    # MCQ validation thresholds
+    MIN_AVG_OPTION_LENGTH = 15  # Minimum average option length to filter word banks
+    MAX_OPTION_LENGTH = 200      # Maximum option length to filter malformed matches
+    
+    # Instruction keywords that indicate this is not a real question
+    INSTRUCTION_KEYWORDS = ['choose the correct letter', 'write the correct letter', 'boxes']
+
+    # Improved pattern that requires the question number to be at the start of a line
+    # This prevents matching numbers from instruction text like "boxes 27-32"
+    # Allow optional newlines/whitespace after the question number for multi-line prompts
+    # Use non-greedy matching and limit prompt length to avoid matching fill-in-the-blank questions
+    # Stop at next question number OR "Questions" keyword
+    # The prompt should be reasonable length (< 300 chars) to avoid consuming other questions from Y/N/NG sections
+    # Require options A, B, C, D to be at line start to avoid matching words like "a service"
     pattern = re.compile(
-        r'(\d+)\s+(.*?)\s+A\s+(.*?)\s+B\s+(.*?)\s+C\s+(.*?)\s+D\s+(.*?)(?=\s+\d+\s|\Z)',
-        re.DOTALL
+        r'(?:^|\n)(\d+)\s+((?:(?!\nQuestions?\s+\d+).){10,300}?)\n\s*A\s+(.*?)\n\s*B\s+(.*?)\n\s*C\s+(.*?)\n\s*D\s+(.*?)(?=\n\d+\s+|\nQuestions?\s+\d+|\Z)',
+        re.DOTALL | re.MULTILINE
     )
 
     questions: List[Dict[str, Any]] = []
     for match in pattern.finditer(questions_text):
         number = match.group(1)
         prompt = re.sub(r'\s+', ' ', match.group(2).strip())
+        
+        # Skip if prompt is too short (likely not a real question)
+        if len(prompt) < 10:
+            continue
+        
+        # Skip if this looks like instruction text
+        if any(keyword in prompt.lower() for keyword in INSTRUCTION_KEYWORDS):
+            continue
+        
+        # Skip if this section is from a Y/N/NG question section
+        # Check if the text leading up to this question contains Y/N/NG instructions
+        # Look back further (1000 chars) to catch Y/N/NG instructions that might be farther up
+        section_before = questions_text[max(0, match.start()-1000):match.start()]
+        section_before_upper = section_before.upper()
+        if 'YES' in section_before_upper and 'NOT GIVEN' in section_before_upper:
+            last_questions_idx = section_before_upper.rfind('QUESTIONS')
+            if last_questions_idx != -1:
+                trailing_segment = section_before_upper[last_questions_idx:]
+                if ('CHOOSE THE CORRECT LETTER' not in trailing_segment and
+                    'WRITE THE CORRECT LETTER' not in trailing_segment):
+                    # This is likely a Y/N/NG section, skip it
+                    continue
+        
         # Find the last sentence of the prompt
         sentences = re.split(r'(?<=[.?!])\s+', prompt)
         actual_prompt = sentences[-1] if sentences else ''
         
         options = [re.sub(r'\s+', ' ', match.group(i).strip()) for i in range(3, 7) if match.group(i)]
+        
+        # Validate options - they should have reasonable length
+        if not options or any(len(opt) < 3 for opt in options):
+            continue
+        
+        # Check for YES/NO/NOT GIVEN pattern in options - if found, this is likely not an MCQ
+        # Y/N/NG questions sometimes have A, B, C, D markers but the options are YES/NO/NOT GIVEN
+        option_text_combined = ' '.join(options).upper()
+        if ('YES' in option_text_combined and 'NOT GIVEN' in option_text_combined) or \
+           (option_text_combined.count('YES') >= 2 and option_text_combined.count('NO') >= 2):
+            continue
+        
+        # Check that options look like real options (not just single words or letters)
+        # Real MCQ options typically have 10-150 characters
+        # Skip if most options are very short OR if any option is extremely long
+        avg_option_length = sum(len(opt) for opt in options) / len(options)
+        max_option_length = max(len(opt) for opt in options)
+        
+        # Filter out word banks (very short options) and malformed matches (very long options)
+        if avg_option_length < MIN_AVG_OPTION_LENGTH or max_option_length > MAX_OPTION_LENGTH:
+            continue
+        
         if options:
             questions.append({
                 'type': 'single_choice',
@@ -338,7 +595,13 @@ def parse_summary_completion(questions_text: str, blocks: Optional[List[Dict[str
     if not blocks:
         return None
 
-    if 'complete the summary' not in (questions_text or '').lower():
+    lowered_questions = (questions_text or '').lower()
+    summary_markers = (
+        'complete the summary',
+        'complete the notes',
+        'complete the note'
+    )
+    if not any(marker in lowered_questions for marker in summary_markers):
         return None
 
     def normalize(text_value: str) -> str:
@@ -348,16 +611,22 @@ def parse_summary_completion(questions_text: str, blocks: Optional[List[Dict[str
             ('\u2018', "'"),
             ('\u2013', '-'),
             ('\u2014', '-'),
-            ('\uFFFD', '-')
+            ('\uFFFD', '-'),
+            ('\u2022', ' '),  # bullet
+            ('\u25CF', ' ')
         )
         for before, after in replacements:
             cleaned = cleaned.replace(before, after)
         return cleaned.strip()
 
     def is_option_line(text_value: str) -> bool:
-        tokens = [token.strip('.,()') for token in text_value.split() if token]
-        letter_tokens = [token for token in tokens if len(token) == 1 and token.isupper()]
-        return len(letter_tokens) >= 2
+        stripped = text_value.strip()
+        if not stripped:
+            return False
+        lowered = stripped.lower()
+        if 'write the correct letter' in lowered or 'choose the correct letter' in lowered:
+            return False
+        return bool(re.match(r'^[A-Z](?:[).:-]|\s{2,})\s+\S', stripped))
 
     blank_pattern = re.compile(r'(?P<num>\d{1,2})\s*[_]{2,}')
 
@@ -424,6 +693,7 @@ def parse_summary_completion(questions_text: str, blocks: Optional[List[Dict[str
             lowered_plain.startswith('questions ')
             or lowered_plain.startswith('choose the correct letter')
             or lowered_plain.startswith('write the correct letter')
+            or lowered_plain.startswith('list of ')
         ):
             break
         summary_lines.append(plain)
@@ -459,34 +729,9 @@ def parse_summary_completion(questions_text: str, blocks: Optional[List[Dict[str
     blank_numbers = list(dict.fromkeys(blank_numbers))
 
     option_entries: List[Dict[str, str]] = []
-    if option_lines:
-        raw_options = ' '.join(option_lines).replace('.', ' ')
-        tokens = [token for token in re.split(r'\s+', raw_options) if token]
-        idx = 0
-        seen_letters: set[str] = set()
-        while idx < len(tokens):
-            token = tokens[idx].strip('.,()')
-            if len(token) == 1 and token.isupper() and token not in seen_letters:
-                letter = token
-                idx += 1
-                value_parts: List[str] = []
-                while idx < len(tokens):
-                    lookahead = tokens[idx].strip('.,()')
-                    if len(lookahead) == 1 and lookahead.isupper():
-                        break
-                    value_parts.append(tokens[idx])
-                    idx += 1
-                option_text = ' '.join(value_parts).strip()
-                if option_text:
-                    option_entries.append({'key': letter, 'text': option_text})
-                    seen_letters.add(letter)
-            else:
-                idx += 1
 
-    if not blank_numbers or not option_entries:
+    if not blank_numbers:
         return None
-
-    option_entries.sort(key=lambda option: option['key'])
 
     return {
         'type': 'summary_completion',
@@ -580,11 +825,27 @@ def parse_paragraph_matching(questions_text: str) -> List[Dict[str, Any]]:
         statements_block = '\n'.join(statement_lines).strip()
         statement_pattern = re.compile(r'(\d{1,2})\s+(.*?)(?=(?:\n\d{1,2}\s)|\Z)', re.DOTALL)
         statements: List[Dict[str, str]] = []
+        seen_numbers = set()
         for stmt_match in statement_pattern.finditer(statements_block):
             number = stmt_match.group(1)
             text_value = normalize_whitespace(stmt_match.group(2))
+            
+            # Skip if already seen this number (avoid duplicates from annotations)
+            if number in seen_numbers:
+                continue
+            
+            # Skip if text is too short (likely an annotation)
+            if len(text_value) < 15:
+                continue
+            
+            # Skip if text contains mostly non-ASCII characters (likely Chinese annotations)
+            ascii_count = sum(1 for c in text_value if ord(c) < 128)
+            if ascii_count < len(text_value) * 0.5:  # Less than 50% ASCII
+                continue
+            
             if text_value:
                 statements.append({'number': number, 'text': text_value})
+                seen_numbers.add(number)
 
         if not statements:
             continue
@@ -636,6 +897,10 @@ def parse_yes_no_not_given(questions_text: str) -> List[Dict[str, Any]]:
             i += 1
             continue
 
+        range_start_num = int(heading_match.group(1))
+        range_end_num = heading_match.group(2)
+        range_end_num = int(range_end_num) if range_end_num else None
+
         j = i + 1
         section_lines = [lines[i]]
         while j < total_lines and not re.match(r'Questions?\s+\d+', lines[j].strip(), re.IGNORECASE):
@@ -660,10 +925,41 @@ def parse_yes_no_not_given(questions_text: str) -> List[Dict[str, Any]]:
                 additional_instructions = cleaned_instructions[1:] if len(cleaned_instructions) > 1 else []
 
                 statements_block = '\n'.join(section_lines[statement_start_idx:])
-                statement_pattern = re.compile(r'(\d+)\s+(.*?)(?=(?:\n\d+\s)|\Z)', re.DOTALL)
+                # Stop at option lists (A  text, B  text) or "List of" markers
+                # Split by double newline or when we hit option markers
+                statements_text = statements_block.strip()
+                
+                # Find where options/word banks start (lines like "A  word" or "List of")
+                option_start = -1
+                letter_option_pattern = re.compile(r'^[A-Z](?:[).:-]|\s{2,})\s+\S')
+                for line in statements_text.split('\n'):
+                    stripped_line = line.strip()
+                    if not stripped_line:
+                        continue
+                    if letter_option_pattern.match(stripped_line) or re.match(r'^List of', stripped_line, re.IGNORECASE):
+                        option_start = statements_text.find(line)
+                        break
+                
+                if option_start > 0:
+                    statements_text = statements_text[:option_start].strip()
+                
+                statement_pattern = re.compile(r'(\d+)\s+(.*?)(?=(?:\n\s*\d+)|\Z)', re.DOTALL)
                 statements: List[Dict[str, str]] = []
-                for match in statement_pattern.finditer(statements_block.strip()):
+                for match in statement_pattern.finditer(statements_text):
                     number = match.group(1)
+                    number_int = int(number)
+
+                    if range_end_num is not None:
+                        if number_int < range_start_num:
+                            continue
+                        if number_int > range_end_num:
+                            break
+                    else:
+                        if number_int < range_start_num:
+                            continue
+                        if number_int - range_start_num > 10:
+                            break
+
                     text_value = clean(match.group(2))
                     if text_value:
                         statements.append({'number': number, 'text': text_value})
@@ -713,7 +1009,9 @@ def parse_matching_headings(questions_text: str) -> List[Dict[str, Any]]:
         # Parse headings with roman numerals
         heading_list_started = False
         paragraph_list_started = False
-        
+        pending_roman = None  # Track standalone roman numerals
+        pending_paragraph_number: Optional[str] = None
+
         for line in lines:
             stripped = line.strip()
             if not stripped:
@@ -723,29 +1021,83 @@ def parse_matching_headings(questions_text: str) -> List[Dict[str, Any]]:
                 title = normalize_whitespace(stripped)
                 continue
             
-            # Check for heading list (i, ii, iii, iv, etc.)
-            roman_match = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x)\s+(.+)$', stripped, re.IGNORECASE)
-            if roman_match:
+            # Check if this is a standalone roman numeral (no text after it)
+            standalone_roman_match = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x|xi{1,3})\s*$', stripped, re.IGNORECASE)
+            if standalone_roman_match:
                 heading_list_started = True
-                roman = roman_match.group(1)
-                text = normalize_whitespace(roman_match.group(2))
-                headings.append({'key': roman, 'text': text})
+                pending_roman = standalone_roman_match.group(1)
                 continue
             
-            # Check for paragraph list (A, B, C, etc.)
-            para_match = re.match(r'^(\d+)\s+Paragraph\s+([A-Z])$', stripped, re.IGNORECASE)
+            # Check for heading list (i, ii, iii, iv, etc.) with text on same line
+            roman_with_text_match = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x|xi{1,3})\s+(.+)$', stripped, re.IGNORECASE)
+            if roman_with_text_match:
+                heading_list_started = True
+                roman = roman_with_text_match.group(1)
+                text = normalize_whitespace(roman_with_text_match.group(2))
+                headings.append({'key': roman, 'text': text})
+                pending_roman = None
+                continue
+            
+            # If we have a pending roman numeral and this line has text, pair them
+            if pending_roman and len(stripped) > 3:
+                text = normalize_whitespace(stripped)
+                headings.append({'key': pending_roman, 'text': text})
+                pending_roman = None
+                continue
+            
+            # Check for paragraph list (A, B, C, etc.) - allow multiple spaces
+            para_match = re.match(r'^(\d+)\s+(?:Paragraph|Section)\s+([A-Z])$', stripped, re.IGNORECASE)
             if para_match:
                 paragraph_list_started = True
                 number = para_match.group(1)
                 letter = para_match.group(2)
                 paragraphs.append({'number': number, 'letter': letter})
+                pending_paragraph_number = None
+                continue
+
+            # Handle number on its own line followed by "Paragraph X"
+            if re.match(r'^\d+$', stripped):
+                pending_paragraph_number = stripped
+                paragraph_list_started = True
+                continue
+
+            separate_para_match = re.match(r'^(?:Paragraph|Section)\s+([A-Z])$', stripped, re.IGNORECASE)
+            if pending_paragraph_number and separate_para_match:
+                letter = separate_para_match.group(1)
+                paragraphs.append({'number': pending_paragraph_number, 'letter': letter})
+                pending_paragraph_number = None
+                paragraph_list_started = True
                 continue
             
             # Instructions
             if not heading_list_started and not paragraph_list_started:
                 instructions.append(normalize_whitespace(stripped))
         
-        if headings and title:
+        # If we found paragraphs but no headings, look for "List of Headings" elsewhere in the text
+        if paragraphs and not headings:
+            # Look for "List of Headings" in the remaining text after this section
+            list_of_headings_match = re.search(r'List of Headings\s*\n', questions_text[end_idx:], re.IGNORECASE)
+            if list_of_headings_match:
+                # Parse headings from this section
+                heading_section_start = end_idx + list_of_headings_match.end()
+                # Read until next "Questions" section or end of text
+                next_questions_match = re.search(r'\nQuestions?\s+\d+', questions_text[heading_section_start:], re.IGNORECASE)
+                heading_section_end = heading_section_start + (next_questions_match.start() if next_questions_match else 1000)
+                heading_section_text = questions_text[heading_section_start:heading_section_end]
+                
+                # Parse roman numerals with text
+                heading_lines = heading_section_text.splitlines()
+                for line in heading_lines:
+                    stripped = line.strip()
+                    if not stripped:
+                        continue
+                    roman_match = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x|xi{1,3})\s+(.+)$', stripped, re.IGNORECASE)
+                    if roman_match:
+                        roman = roman_match.group(1)
+                        text = normalize_whitespace(roman_match.group(2))
+                        headings.append({'key': roman, 'text': text})
+        
+        if headings and paragraphs and title:
             sections.append({
                 'type': 'matching_headings',
                 'title': title,
@@ -777,8 +1129,8 @@ def parse_matching_features(questions_text: str) -> List[Dict[str, Any]]:
         section_text = questions_text[start_idx:end_idx].strip()
         
         lowered = section_text.lower()
-        # Look for matching features keywords
-        if not any(keyword in lowered for keyword in ['match', 'list of']):
+        # Look for matching features keywords - expanded to include "classify"
+        if not any(keyword in lowered for keyword in ['match', 'list of', 'classify']):
             continue
         
         # Avoid confusion with paragraph matching
@@ -790,9 +1142,11 @@ def parse_matching_features(questions_text: str) -> List[Dict[str, Any]]:
         instructions: List[str] = []
         features: List[Dict[str, str]] = []
         statements: List[Dict[str, str]] = []
-        
+
         feature_list_started = False
         statement_list_started = False
+        in_list_section = False
+        pending_feature_letter: Optional[str] = None
         
         for line in lines:
             stripped = line.strip()
@@ -803,29 +1157,85 @@ def parse_matching_features(questions_text: str) -> List[Dict[str, Any]]:
                 title = normalize_whitespace(stripped)
                 continue
             
-            # Check for feature list (A Name1, B Name2, etc.)
-            feature_match = re.match(r'^([A-Z])\s+(.+)$', stripped)
-            if feature_match and not statement_list_started:
-                letter = feature_match.group(1)
-                name = normalize_whitespace(feature_match.group(2))
-                # Only single capital letters for features
-                if len(letter) == 1 and not re.match(r'^\d+', name):
-                    feature_list_started = True
-                    features.append({'key': letter, 'text': name})
-                    continue
+            # Check for "List of" header (for reversed order where statements come first)
+            if re.match(r'^List of ', stripped, re.IGNORECASE):
+                in_list_section = True
+                continue
             
-            # Check for statement list (numbered statements)
+            # Check for numbered statements (can appear first in some formats)
             statement_match = re.match(r'^(\d+)\s+(.+)$', stripped)
-            if statement_match and feature_list_started:
+            if statement_match and not in_list_section:
                 statement_list_started = True
                 number = statement_match.group(1)
                 text = normalize_whitespace(statement_match.group(2))
                 statements.append({'number': number, 'text': text})
                 continue
             
-            # Instructions
-            if not feature_list_started:
+            # Check for feature list (A Name1, B Name2, etc.)
+            feature_match = re.match(r'^([A-Z])\s+(.+)$', stripped)
+            if feature_match:
+                letter = feature_match.group(1)
+                name = normalize_whitespace(feature_match.group(2))
+                if len(letter) == 1 and not re.match(r'^\d+', name):
+                    feature_list_started = True
+                    features.append({'key': letter, 'text': name})
+                    pending_feature_letter = None
+                    continue
+
+            if re.match(r'^[A-Z]$', stripped):
+                pending_feature_letter = stripped
+                feature_list_started = True
+                continue
+
+            if pending_feature_letter and stripped:
+                if not re.match(r'^Questions?\s+\d+', stripped, re.IGNORECASE):
+                    name = normalize_whitespace(stripped)
+                    if name and not re.match(r'^\d+', name):
+                        features.append({'key': pending_feature_letter, 'text': name})
+                        feature_list_started = True
+                        pending_feature_letter = None
+                        continue
+            
+            # Instructions (collect everything before statements/features start)
+            if not feature_list_started and not statement_list_started:
                 instructions.append(normalize_whitespace(stripped))
+        
+        # If we have statements but no features, look for the feature list in subsequent sections
+        # This handles cases like PDF84 where the list appears after other questions
+        if statements and not features and idx + 1 < len(matches):
+            # Search for "List of" in the text after this section
+            search_text = questions_text[end_idx:]
+            list_match = re.search(r'List of [A-Za-z]+', search_text, re.IGNORECASE)
+            if list_match:
+                # Extract features from the list section
+                list_start = end_idx + list_match.end()
+                # Read until next "Questions" section or end
+                next_q_match = re.search(r'\n\s*Questions?\s+\d+', search_text[list_match.end():], re.IGNORECASE)
+                list_end = list_start + (next_q_match.start() if next_q_match else 500)
+                list_text = questions_text[list_start:list_end]
+                
+                # Parse features from this section
+                pending_letter = None
+                for line in list_text.splitlines():
+                    stripped = line.strip()
+                    if not stripped:
+                        continue
+                    feature_match = re.match(r'^([A-Z])\s+(.+)$', stripped)
+                    if feature_match:
+                        letter = feature_match.group(1)
+                        name = normalize_whitespace(feature_match.group(2))
+                        if len(letter) == 1 and not re.match(r'^\d+', name):
+                            features.append({'key': letter, 'text': name})
+                            pending_letter = None
+                        continue
+                    if re.match(r'^[A-Z]$', stripped):
+                        pending_letter = stripped
+                        continue
+                    if pending_letter:
+                        name = normalize_whitespace(stripped)
+                        if name and not re.match(r'^\d+', name):
+                            features.append({'key': pending_letter, 'text': name})
+                            pending_letter = None
         
         if features and statements and title:
             sections.append({
@@ -859,6 +1269,15 @@ def parse_matching_sentence_endings(questions_text: str) -> List[Dict[str, Any]]
         section_text = questions_text[start_idx:end_idx].strip()
         
         lowered = section_text.lower()
+        
+        # Exclude Yes/No/Not Given and True/False/Not Given sections
+        if ('yes' in lowered and 'not given' in lowered) or ('true' in lowered and 'not given' in lowered):
+            continue
+        
+        # Exclude MCQ sections
+        if 'choose the correct letter' in lowered or 'write the correct letter' in lowered:
+            continue
+        
         # Look for sentence ending keywords
         if not any(keyword in lowered for keyword in ['complete', 'sentence', 'ending']):
             continue
@@ -1009,39 +1428,57 @@ def parse_short_answer_questions(questions_text: str) -> List[Dict[str, Any]]:
     if not matches:
         return []
     
+    instruction_markers = (
+        'answer the questions',
+        'choose no more than',
+        'write your answers',
+        'using no more than',
+        'use no more than',
+        'reading passage'
+    )
+
     for idx, heading_match in enumerate(matches):
         start_idx = heading_match.start()
         end_idx = matches[idx + 1].start() if idx + 1 < len(matches) else len(questions_text)
         section_text = questions_text[start_idx:end_idx].strip()
-        
+
         # Check if this section has word limit instructions
         if not word_limit_pattern.search(section_text):
             continue
-        
-        # Find question numbers and text in this section
-        question_pattern = re.compile(
-            r'^(\d+)\s+(.+?)$',
-            re.MULTILINE
-        )
-        
-        for match in question_pattern.finditer(section_text):
-            number = match.group(1)
-            text = normalize_whitespace(match.group(2))
-            
-            # Filter out section headers and instructions
-            if any(keyword in text.lower() for keyword in ['questions', 'answer the', 'write', 'using no more']):
+
+        question_number_pattern = re.compile(r'(?m)^(?P<number>\d{1,2})\s*(?:[).:-])?')
+        number_matches = list(question_number_pattern.finditer(section_text))
+
+        for q_idx, match in enumerate(number_matches):
+            number = match.group('number')
+            content_start = match.end()
+            content_end = number_matches[q_idx + 1].start() if q_idx + 1 < len(number_matches) else len(section_text)
+            raw_chunk = section_text[content_start:content_end]
+
+            # Break chunk into lines and filter out instructional text
+            chunk_lines = []
+            for line in raw_chunk.splitlines():
+                cleaned_line = normalize_whitespace(line)
+                if not cleaned_line:
+                    continue
+                lowered_line = cleaned_line.lower()
+                if any(marker in lowered_line for marker in instruction_markers):
+                    continue
+                chunk_lines.append(cleaned_line)
+
+            text = normalize_whitespace(' '.join(chunk_lines))
+
+            if not text:
                 continue
-            
-            # Must be a real question (ends with ?)
-            if text and '?' in text:
-                questions.append({
-                    'type': 'short_answer',
-                    'number': number,
-                    'text': text,
-                    'word_limit': word_limit,
-                    'match_start': match.start() + start_idx,
-                    'match_end': match.end() + start_idx
-                })
+
+            questions.append({
+                'type': 'short_answer',
+                'number': number,
+                'text': text,
+                'word_limit': word_limit,
+                'match_start': match.start('number') + start_idx,
+                'match_end': content_end + start_idx
+            })
     
     return questions
 
@@ -1051,6 +1488,48 @@ def parse_questions(questions_text: str, blocks: Optional[List[Dict[str, Any]]] 
     consumed_numbers: set[str] = set()
     consumed_ranges: List[Tuple[int, int]] = []
     question_blocks = collect_question_blocks(questions_text, blocks)
+
+    def parse_number(value: Any) -> Optional[int]:
+        if isinstance(value, int):
+            return value
+        if isinstance(value, str):
+            stripped = value.strip()
+            if stripped.isdigit():
+                return int(stripped)
+        return None
+
+    def collect_section_numbers(entry: Dict[str, Any]) -> List[int]:
+        numbers: List[int] = []
+
+        def add(value: Any) -> None:
+            number = parse_number(value)
+            if number is not None:
+                numbers.append(number)
+
+        add(entry.get('number'))
+
+        for blank in entry.get('blanks', []):
+            add(blank)
+
+        nested_keys = (
+            'statements',
+            'paragraphs',
+            'sentence_beginnings',
+            'labels',
+            'questions'
+        )
+
+        for key in nested_keys:
+            items = entry.get(key, [])
+            if not isinstance(items, list):
+                continue
+            for item in items:
+                if isinstance(item, dict):
+                    add(item.get('number'))
+                else:
+                    add(item)
+
+        return numbers
 
     def is_consumed(start: int, end: int) -> bool:
         if start < 0 or end < 0:
@@ -1316,6 +1795,24 @@ def parse_questions(questions_text: str, blocks: Optional[List[Dict[str, Any]]] 
         questions.append(single)
         if start >= 0 and end >= 0:
             consumed_ranges.append((start, end))
+
+    if questions:
+        ordered: List[Tuple[float, float, int, Dict[str, Any]]] = []
+        for idx, question in enumerate(questions):
+            section_numbers = collect_section_numbers(question)
+            first_number: Optional[int] = min(section_numbers) if section_numbers else None
+            positional_hint = question.get('match_start')
+            if not isinstance(positional_hint, int):
+                positional_hint = float('inf')
+            ordered.append((
+                float(first_number) if first_number is not None else float('inf'),
+                float(positional_hint),
+                idx,
+                question
+            ))
+
+        ordered.sort(key=lambda item: (item[0], item[1], item[2]))
+        questions = [entry[3] for entry in ordered]
 
     # Clean up temporary keys from question dicts
     for q in questions:
