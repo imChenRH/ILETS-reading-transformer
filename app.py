@@ -512,7 +512,9 @@ def structure_passage(raw_passage: str, passage_blocks: Optional[List[str]] = No
         if len(text) < 60:  # Short paragraph
             text_lower = text.lower()
             for keyword in subheading_keywords:
-                if keyword in text_lower:
+                # Use word boundaries to avoid false matches like "reintroduction"
+                # For multi-word keywords, check if the whole phrase exists
+                if re.search(r'\b' + re.escape(keyword) + r'\b', text_lower):
                     is_subheading = True
                     break
         
