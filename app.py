@@ -64,29 +64,32 @@ def split_passage_questions(full_text: str) -> Tuple[str, str]:
         remaining_text = full_text[search_start:]
         lines = remaining_text.split('\n')
         
-        # Skip lines that are roman numerals or their descriptions until we find the passage title
+        # Skip lines that are roman numerals and their associated heading texts
+        # Two patterns: 
+        # 1. "i" on one line, "heading text" on next line
+        # 2. "i    heading text" on same line
         passage_start_line = -1
-        last_roman_idx = -1
+        in_heading_list = True
+        last_was_roman = False
         
         for idx, line in enumerate(lines):
             stripped = line.strip()
             if not stripped:
                 continue
             
-            # Check if this is a standalone roman numeral OR starts with one
-            is_roman_numeral = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x|xi{0,3})$', stripped, re.IGNORECASE)
-            starts_with_roman = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x|xi{0,3})\s+', stripped, re.IGNORECASE)
+            # Check if this line has roman numeral (standalone or with text)
+            has_roman = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x|xi{1,3})', stripped, re.IGNORECASE)
             
-            if is_roman_numeral or starts_with_roman:
-                last_roman_idx = idx
+            if has_roman and in_heading_list:
+                # This is part of the heading list, skip it
+                last_was_roman = False  # Reset since we handled it
                 continue
             
-            # After we've seen roman numerals, look for the passage title
-            # Title characteristics: short line (< 80 chars), appears after roman numerals, before paragraph letter "A"
-            if last_roman_idx >= 0 and idx > last_roman_idx:
-                # This line comes after roman numerals
-                # If it's relatively short and not a single letter, it's likely the title
-                if len(stripped) > 3 and len(stripped) < 80 and stripped != 'A':
+            # If we haven't seen a roman numeral recently and this line doesn't start with roman
+            if not has_roman and in_heading_list:
+                # Check if this looks like a passage title (short, not a paragraph letter)
+                if len(stripped) > 3 and len(stripped) < 80 and stripped not in ['A', 'B', 'C', 'D', 'E', 'F', 'G']:
+                    # This is likely the passage title
                     passage_start_line = idx
                     break
         
@@ -932,6 +935,7 @@ def parse_matching_headings(questions_text: str) -> List[Dict[str, Any]]:
         # Parse headings with roman numerals
         heading_list_started = False
         paragraph_list_started = False
+        pending_roman = None  # Track standalone roman numerals
         
         for line in lines:
             stripped = line.strip()
@@ -942,13 +946,28 @@ def parse_matching_headings(questions_text: str) -> List[Dict[str, Any]]:
                 title = normalize_whitespace(stripped)
                 continue
             
-            # Check for heading list (i, ii, iii, iv, etc.)
-            roman_match = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x)\s+(.+)$', stripped, re.IGNORECASE)
-            if roman_match:
+            # Check if this is a standalone roman numeral (no text after it)
+            standalone_roman_match = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x|xi{1,3})\s*$', stripped, re.IGNORECASE)
+            if standalone_roman_match:
                 heading_list_started = True
-                roman = roman_match.group(1)
-                text = normalize_whitespace(roman_match.group(2))
+                pending_roman = standalone_roman_match.group(1)
+                continue
+            
+            # Check for heading list (i, ii, iii, iv, etc.) with text on same line
+            roman_with_text_match = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x|xi{1,3})\s+(.+)$', stripped, re.IGNORECASE)
+            if roman_with_text_match:
+                heading_list_started = True
+                roman = roman_with_text_match.group(1)
+                text = normalize_whitespace(roman_with_text_match.group(2))
                 headings.append({'key': roman, 'text': text})
+                pending_roman = None
+                continue
+            
+            # If we have a pending roman numeral and this line has text, pair them
+            if pending_roman and len(stripped) > 3:
+                text = normalize_whitespace(stripped)
+                headings.append({'key': pending_roman, 'text': text})
+                pending_roman = None
                 continue
             
             # Check for paragraph list (A, B, C, etc.) - allow multiple spaces
@@ -964,7 +983,31 @@ def parse_matching_headings(questions_text: str) -> List[Dict[str, Any]]:
             if not heading_list_started and not paragraph_list_started:
                 instructions.append(normalize_whitespace(stripped))
         
-        if headings and title:
+        # If we found paragraphs but no headings, look for "List of Headings" elsewhere in the text
+        if paragraphs and not headings:
+            # Look for "List of Headings" in the remaining text after this section
+            list_of_headings_match = re.search(r'List of Headings\s*\n', questions_text[end_idx:], re.IGNORECASE)
+            if list_of_headings_match:
+                # Parse headings from this section
+                heading_section_start = end_idx + list_of_headings_match.end()
+                # Read until next "Questions" section or end of text
+                next_questions_match = re.search(r'\nQuestions?\s+\d+', questions_text[heading_section_start:], re.IGNORECASE)
+                heading_section_end = heading_section_start + (next_questions_match.start() if next_questions_match else 1000)
+                heading_section_text = questions_text[heading_section_start:heading_section_end]
+                
+                # Parse roman numerals with text
+                heading_lines = heading_section_text.splitlines()
+                for line in heading_lines:
+                    stripped = line.strip()
+                    if not stripped:
+                        continue
+                    roman_match = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x|xi{1,3})\s+(.+)$', stripped, re.IGNORECASE)
+                    if roman_match:
+                        roman = roman_match.group(1)
+                        text = normalize_whitespace(roman_match.group(2))
+                        headings.append({'key': roman, 'text': text})
+        
+        if headings and paragraphs and title:
             sections.append({
                 'type': 'matching_headings',
                 'title': title,
