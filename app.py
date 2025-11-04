@@ -493,6 +493,49 @@ def structure_passage(raw_passage: str, passage_blocks: Optional[List[str]] = No
                 continue
             paragraphs.append({'letter': '', 'text': cleaned})
 
+    # Post-process: Merge standalone subheadings with following paragraphs
+    # Subheadings are typically short (< 60 chars) and contain certain keywords
+    subheading_keywords = [
+        'introduction', 'background', 'conclusion', 'discussion',
+        'results', 'methods', 'methodology', 'description of',
+        'methodological issues', 'lessons to consider'
+    ]
+    
+    merged_paragraphs = []
+    i = 0
+    while i < len(paragraphs):
+        para = paragraphs[i]
+        text = para.get('text', '').strip()
+        
+        # Check if this looks like a standalone subheading
+        is_subheading = False
+        if len(text) < 60:  # Short paragraph
+            text_lower = text.lower()
+            for keyword in subheading_keywords:
+                if keyword in text_lower:
+                    is_subheading = True
+                    break
+        
+        # If it's a subheading and there's a next paragraph, merge them
+        if is_subheading and i + 1 < len(paragraphs):
+            next_para = paragraphs[i + 1]
+            next_text = next_para.get('text', '').strip()
+            
+            # Merge: subheading becomes a prefix to the next paragraph
+            merged_text = f"{text}\n\n{next_text}"
+            merged_para = {
+                'letter': next_para.get('letter', ''),  # Keep the letter from next para
+                'text': merged_text
+            }
+            merged_paragraphs.append(merged_para)
+            i += 2  # Skip both paragraphs
+        else:
+            # Not a subheading or last paragraph, keep as is
+            merged_paragraphs.append(para)
+            i += 1
+    
+    paragraphs = merged_paragraphs
+
     return {
         'title': title,
         'intro': intro_text,
@@ -930,8 +973,11 @@ def parse_yes_no_not_given(questions_text: str) -> List[Dict[str, Any]]:
                 statements_text = statements_block.strip()
                 
                 # Find where options/word banks start (lines like "A  word" or "List of")
+                # Fixed: Only match single letters (A, B, C) not abbreviations (C. Auguste)
                 option_start = -1
-                letter_option_pattern = re.compile(r'^[A-Z](?:[).:-]|\s{2,})\s+\S')
+                # Pattern should match: "A  word" or "A) word" or "A: word" but NOT "C. Auguste"
+                # Exclude period (.) to avoid matching abbreviations
+                letter_option_pattern = re.compile(r'^[A-Z](?:[):-]\s+|\s{2,})\S')
                 for line in statements_text.split('\n'):
                     stripped_line = line.strip()
                     if not stripped_line:
