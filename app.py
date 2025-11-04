@@ -633,6 +633,90 @@ def parse_single_choice(questions_text: str) -> List[Dict[str, Any]]:
     return questions
 
 
+def parse_multi_answer_mcq(questions_text: str) -> List[Dict[str, Any]]:
+    """
+    Parse Multi-Answer MCQs - questions like "Questions 25 and 26: Choose TWO letters".
+    These questions have multiple question numbers sharing the same prompt and options.
+    """
+    if not questions_text:
+        return []
+    
+    questions: List[Dict[str, Any]] = []
+    
+    # Pattern to match "Questions X and Y" or "Questions X, Y and Z" etc.
+    # Followed by "Choose TWO/THREE/FOUR letters"
+    heading_pattern = re.compile(
+        r'Questions?\s+(\d+)(?:\s+and\s+(\d+)|\s*,\s*(\d+)(?:\s+and\s+(\d+))?)',
+        re.IGNORECASE
+    )
+    choose_pattern = re.compile(r'Choose\s+(TWO|THREE|FOUR|FIVE)\s+letters?', re.IGNORECASE)
+    
+    matches = list(heading_pattern.finditer(questions_text))
+    
+    for idx, match in enumerate(matches):
+        start_idx = match.start()
+        end_idx = matches[idx + 1].start() if idx + 1 < len(matches) else len(questions_text)
+        section_text = questions_text[start_idx:end_idx].strip()
+        
+        # Check if this section has "Choose TWO/THREE letters"
+        if not choose_pattern.search(section_text):
+            continue
+        
+        # Extract question numbers from the heading
+        question_numbers = []
+        for i in range(1, 5):  # Check groups 1-4
+            num = match.group(i)
+            if num and num.isdigit():
+                question_numbers.append(num)
+        
+        if not question_numbers:
+            continue
+        
+        # Find the prompt (text before the options)
+        lines = section_text.splitlines()
+        prompt_lines = []
+        options = []
+        
+        in_options = False
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            
+            # Check if this is an option line (A  text, B  text, etc.)
+            option_match = re.match(r'^([A-Z])\s+(.+)$', stripped)
+            if option_match and len(option_match.group(1)) == 1:
+                in_options = True
+                letter = option_match.group(1)
+                text = option_match.group(2).strip()
+                options.append({'letter': letter, 'text': text})
+                continue
+            
+            # If we haven't started options yet, this is part of the prompt
+            if not in_options:
+                # Skip instruction lines
+                if not any(kw in stripped.lower() for kw in ['choose', 'write the correct', 'boxes', 'answer sheet']):
+                    prompt_lines.append(stripped)
+        
+        prompt = normalize_whitespace(' '.join(prompt_lines))
+        
+        if not prompt or not options:
+            continue
+        
+        # Create a question for each number in the heading
+        for qnum in question_numbers:
+            questions.append({
+                'type': 'single_choice',
+                'number': qnum,
+                'text': prompt,
+                'options': [opt['text'] for opt in options],
+                'match_start': start_idx,
+                'match_end': end_idx
+            })
+    
+    return questions
+
+
 def parse_summary_completion(questions_text: str, blocks: Optional[List[Dict[str, Any]]]) -> Optional[Dict[str, Any]]:
     if not blocks:
         return None
@@ -1451,25 +1535,40 @@ def parse_diagram_label_completion(questions_text: str) -> List[Dict[str, Any]]:
 
 
 def parse_short_answer_questions(questions_text: str) -> List[Dict[str, Any]]:
-    """Parse Short-Answer Questions - answer using NO MORE THAN X WORDS."""
+    """
+    Parse Short-Answer Questions - answer using NO MORE THAN X WORDS or ONE/TWO/THREE WORD(S) ONLY.
+    This handles sentence completion questions (with blanks) that have word limits.
+    Does NOT handle summary/note completion (those are handled by parse_summary_completion).
+    """
     if not questions_text:
         return []
     
     questions: List[Dict[str, Any]] = []
     
-    # Look for the "NO MORE THAN X WORDS" pattern
+    # Look for word limit patterns:
+    # 1. "NO MORE THAN X WORDS"
+    # 2. "ONE WORD ONLY", "TWO WORDS ONLY", etc.
     word_limit_pattern = re.compile(
-        r'(?:using|write|answer)?\s*(?:no more than|maximum of|maximum)\s+(\w+)\s+(?:words?|numbers?)',
+        r'(?:using|write|answer|choose)?\s*(?:no more than|maximum of|maximum)\s+(\w+)\s+(?:words?|numbers?)',
+        re.IGNORECASE
+    )
+    word_only_pattern = re.compile(
+        r'(?:choose|write|use)?\s*(one|two|three|four|five)\s+words?\s+only',
         re.IGNORECASE
     )
     
-    # Only proceed if we find word limit instructions
-    if not word_limit_pattern.search(questions_text):
+    # Check for either pattern
+    word_limit_match = word_limit_pattern.search(questions_text)
+    word_only_match = word_only_pattern.search(questions_text)
+    
+    if not word_limit_match and not word_only_match:
         return []
     
     # Extract word limit
-    word_limit_match = word_limit_pattern.search(questions_text)
-    word_limit = word_limit_match.group(1) if word_limit_match else 'THREE'
+    if word_only_match:
+        word_limit = word_only_match.group(1).upper()
+    else:
+        word_limit = word_limit_match.group(1) if word_limit_match else 'THREE'
     
     # Find the section that contains short answer questions
     heading_pattern = re.compile(r'Questions?\s+(\d+)(?:\s*[-\u2013]\s*(\d+))?', re.IGNORECASE)
@@ -1492,8 +1591,13 @@ def parse_short_answer_questions(questions_text: str) -> List[Dict[str, Any]]:
         end_idx = matches[idx + 1].start() if idx + 1 < len(matches) else len(questions_text)
         section_text = questions_text[start_idx:end_idx].strip()
 
-        # Check if this section has word limit instructions
-        if not word_limit_pattern.search(section_text):
+        # Skip sections that are summary/note completion (handled by parse_summary_completion)
+        section_lower = section_text.lower()
+        if any(marker in section_lower for marker in ['complete the summary', 'complete the notes', 'complete the note', 'complete the table', 'complete the flow']):
+            continue
+
+        # Check if this section has word limit instructions (either pattern)
+        if not word_limit_pattern.search(section_text) and not word_only_pattern.search(section_text):
             continue
 
         question_number_pattern = re.compile(r'(?m)^(?P<number>\d{1,2})\s*(?:[).:-])?')
@@ -1837,6 +1941,26 @@ def parse_questions(questions_text: str, blocks: Optional[List[Dict[str, Any]]] 
         questions.append(section)
         consumed_numbers.update(statement['number'] for statement in section['statements'])
 
+    # Parse multi-answer MCQs (e.g., "Questions 25 and 26: Choose TWO letters")
+    # These questions share the same text range, so we only check number consumption
+    multi_mcqs = parse_multi_answer_mcq(questions_text)
+    multi_mcq_range = None  # Track the range of multi-answer MCQs
+    for mcq in multi_mcqs:
+        if mcq['number'] in consumed_numbers:
+            continue
+        questions.append(mcq)
+        consumed_numbers.add(mcq['number'])
+        # Store the range but don't add to consumed_ranges yet
+        start = mcq.get('match_start', -1)
+        end = mcq.get('match_end', -1)
+        if start >= 0 and end >= 0:
+            multi_mcq_range = (start, end)
+    
+    # Now add the range once after all multi-answer MCQs are processed
+    if multi_mcq_range:
+        consumed_ranges.append(multi_mcq_range)
+
+    # Parse single choice MCQs
     for single in parse_single_choice(questions_text):
         start = single.get('match_start', -1)
         end = single.get('match_end', -1)
