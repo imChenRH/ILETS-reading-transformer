@@ -38,8 +38,8 @@ instance/
 .webassets-cache
 
 # Uploads
-uploads/
-*.pdf
+# uploads/
+# *.pdf
 
 # OS
 .DS_Store
