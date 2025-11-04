@@ -752,7 +752,8 @@ def parse_summary_completion(questions_text: str, blocks: Optional[List[Dict[str
         lowered = stripped.lower()
         if 'write the correct letter' in lowered or 'choose the correct letter' in lowered:
             return False
-        return bool(re.match(r'^[A-Z](?:[).:-]|\s{2,})\s+\S', stripped))
+        # Fixed pattern to match "A  text" (2 spaces) as well as "A) text"
+        return bool(re.match(r'^[A-Z](?:[):-]\s+|\s{2,})\S', stripped))
 
     blank_pattern = re.compile(r'(?P<num>\d{1,2})\s*[_]{2,}')
 
@@ -779,6 +780,10 @@ def parse_summary_completion(questions_text: str, blocks: Optional[List[Dict[str
             continue
         plain = normalize(block.get('text', ''))
         if plain and is_option_line(plain):
+            option_lines.append(plain)
+        # Also check for lines with multiple options (e.g., "A America  B Philippines")
+        elif plain and re.search(r'[A-Z]\s+\w+\s+[A-Z]\s+\w', plain):
+            # This line might contain multiple options
             option_lines.append(plain)
 
     seen_option_lines = set(option_lines)
@@ -809,7 +814,15 @@ def parse_summary_completion(questions_text: str, blocks: Optional[List[Dict[str
             idx += 1
             continue
         lowered_plain = plain.lower()
+        # Check for option lines (single or multiple options per line)
         if is_option_line(plain) and idx >= summary_anchor_idx:
+            if plain not in seen_option_lines:
+                option_lines_after.append(plain)
+                seen_option_lines.add(plain)
+            idx += 1
+            continue
+        # Also check for lines with multiple options
+        if re.search(r'[A-Z]\s+\w+\s+[A-Z]\s+\w', plain) and idx >= summary_anchor_idx:
             if plain not in seen_option_lines:
                 option_lines_after.append(plain)
                 seen_option_lines.add(plain)
@@ -855,6 +868,24 @@ def parse_summary_completion(questions_text: str, blocks: Optional[List[Dict[str
     blank_numbers = list(dict.fromkeys(blank_numbers))
 
     option_entries: List[Dict[str, str]] = []
+    
+    # Parse option lines into structured entries
+    for option_line in option_lines:
+        # Check if this line contains multiple options (e.g., "A America  B Philippines")
+        # Split by pattern: capital letter followed by space and text
+        parts = re.split(r'(?=[A-Z]\s+\w)', option_line.strip())
+        
+        for part in parts:
+            part = part.strip()
+            if not part:
+                continue
+            # Match pattern like "A  text" or "A) text" or "A: text"
+            option_match = re.match(r'^([A-Z])(?:[):-]\s+|\s{1,})\s*(.+)', part)
+            if option_match:
+                letter = option_match.group(1)
+                text = option_match.group(2).strip()
+                if text:  # Only add if there's actual text
+                    option_entries.append({'key': letter, 'text': text})
 
     if not blank_numbers:
         return None
@@ -938,7 +969,8 @@ def parse_paragraph_matching(questions_text: str) -> List[Dict[str, Any]]:
             if not title:
                 title = normalize_whitespace(stripped)
                 continue
-            if re.match(r'\d{1,2}\s+', stripped):
+            # Match lines that start with a number (with or without following space/text)
+            if re.match(r'^\d{1,2}(?:\s|$)', stripped):
                 statement_started = True
             if statement_started:
                 statement_lines.append(raw_line)
