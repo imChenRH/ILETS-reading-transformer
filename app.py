@@ -46,9 +46,74 @@ def extract_text_and_blocks(filepath: Path) -> Tuple[str, List[Dict[str, Any]]]:
 
 
 def split_passage_questions(full_text: str) -> Tuple[str, str]:
+    """
+    Split the full text into passage and questions.
+    Handles multiple formats:
+    1. Standard: passage followed by questions
+    2. Matching Headings: questions (with List of Headings) then passage title, then more questions
+    """
     passage = full_text
     questions = ''
 
+    # Check for "List of Headings" pattern - indicates Matching Headings question format
+    list_of_headings_match = re.search(r'List of Headings\s*\n', full_text, re.IGNORECASE)
+    if list_of_headings_match:
+        # After "List of Headings", skip the roman numeral headings to find passage title
+        search_start = list_of_headings_match.end()
+        remaining_text = full_text[search_start:]
+        lines = remaining_text.split('\n')
+        
+        # Skip lines that are roman numerals or their descriptions until we find the passage title
+        passage_start_line = -1
+        last_roman_idx = -1
+        
+        for idx, line in enumerate(lines):
+            stripped = line.strip()
+            if not stripped:
+                continue
+            
+            # Check if this is a standalone roman numeral OR starts with one
+            is_roman_numeral = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x|xi{0,3})$', stripped, re.IGNORECASE)
+            starts_with_roman = re.match(r'^(i{1,3}|iv|v|vi{0,3}|ix|x|xi{0,3})\s+', stripped, re.IGNORECASE)
+            
+            if is_roman_numeral or starts_with_roman:
+                last_roman_idx = idx
+                continue
+            
+            # After we've seen roman numerals, look for the passage title
+            # Title characteristics: short line (< 80 chars), appears after roman numerals, before paragraph letter "A"
+            if last_roman_idx >= 0 and idx > last_roman_idx:
+                # This line comes after roman numerals
+                # If it's relatively short and not a single letter, it's likely the title
+                if len(stripped) > 3 and len(stripped) < 80 and stripped != 'A':
+                    passage_start_line = idx
+                    break
+        
+        if passage_start_line >= 0:
+            # Calculate absolute position
+            passage_start_pos = search_start + sum(len(lines[i]) + 1 for i in range(passage_start_line))
+            
+            # Find where questions resume after the passage
+            # Look for "Questions \d+" after the passage start
+            passage_text = full_text[passage_start_pos:]
+            next_questions_match = re.search(r'\n\s*Questions?\s+\d+', passage_text, re.IGNORECASE)
+            
+            if next_questions_match:
+                # Passage ends where next questions section starts
+                passage_end_pos = passage_start_pos + next_questions_match.start()
+                passage = full_text[passage_start_pos:passage_end_pos]
+                # Questions are before passage + after passage
+                questions_before = full_text[:passage_start_pos]
+                questions_after = full_text[passage_end_pos:]
+                questions = questions_before + '\n\n' + questions_after
+            else:
+                # No more questions after passage
+                passage = full_text[passage_start_pos:]
+                questions = full_text[:passage_start_pos]
+            
+            return passage.strip(), questions.strip()
+
+    # Standard pattern: look for "below" keyword
     passage_start = re.search(r'below\.', full_text, re.IGNORECASE)
     if passage_start:
         passage_start_index = passage_start.end()
@@ -58,7 +123,6 @@ def split_passage_questions(full_text: str) -> Tuple[str, str]:
             'Complete the summary',
             'Do the following statements agree',
             'Matching',
-            'List of Headings',
             r'Questions?\s+\d+'
         ]
         question_start_index = -1
@@ -783,9 +847,23 @@ def parse_yes_no_not_given(questions_text: str) -> List[Dict[str, Any]]:
                 additional_instructions = cleaned_instructions[1:] if len(cleaned_instructions) > 1 else []
 
                 statements_block = '\n'.join(section_lines[statement_start_idx:])
+                # Stop at option lists (A  text, B  text) or "List of" markers
+                # Split by double newline or when we hit option markers
+                statements_text = statements_block.strip()
+                
+                # Find where options/word banks start (lines like "A  word" or "List of")
+                option_start = -1
+                for line in statements_text.split('\n'):
+                    if re.match(r'^[A-Z]\s+\w', line) or re.match(r'^List of', line, re.IGNORECASE):
+                        option_start = statements_text.find(line)
+                        break
+                
+                if option_start > 0:
+                    statements_text = statements_text[:option_start].strip()
+                
                 statement_pattern = re.compile(r'(\d+)\s+(.*?)(?=(?:\n\d+\s)|\Z)', re.DOTALL)
                 statements: List[Dict[str, str]] = []
-                for match in statement_pattern.finditer(statements_block.strip()):
+                for match in statement_pattern.finditer(statements_text):
                     number = match.group(1)
                     text_value = clean(match.group(2))
                     if text_value:
@@ -855,7 +933,7 @@ def parse_matching_headings(questions_text: str) -> List[Dict[str, Any]]:
                 headings.append({'key': roman, 'text': text})
                 continue
             
-            # Check for paragraph list (A, B, C, etc.)
+            # Check for paragraph list (A, B, C, etc.) - allow multiple spaces
             para_match = re.match(r'^(\d+)\s+Paragraph\s+([A-Z])$', stripped, re.IGNORECASE)
             if para_match:
                 paragraph_list_started = True
@@ -900,8 +978,8 @@ def parse_matching_features(questions_text: str) -> List[Dict[str, Any]]:
         section_text = questions_text[start_idx:end_idx].strip()
         
         lowered = section_text.lower()
-        # Look for matching features keywords
-        if not any(keyword in lowered for keyword in ['match', 'list of']):
+        # Look for matching features keywords - expanded to include "classify"
+        if not any(keyword in lowered for keyword in ['match', 'list of', 'classify']):
             continue
         
         # Avoid confusion with paragraph matching
@@ -916,6 +994,7 @@ def parse_matching_features(questions_text: str) -> List[Dict[str, Any]]:
         
         feature_list_started = False
         statement_list_started = False
+        in_list_section = False
         
         for line in lines:
             stripped = line.strip()
@@ -926,9 +1005,23 @@ def parse_matching_features(questions_text: str) -> List[Dict[str, Any]]:
                 title = normalize_whitespace(stripped)
                 continue
             
+            # Check for "List of" header (for reversed order where statements come first)
+            if re.match(r'^List of ', stripped, re.IGNORECASE):
+                in_list_section = True
+                continue
+            
+            # Check for numbered statements (can appear first in some formats)
+            statement_match = re.match(r'^(\d+)\s+(.+)$', stripped)
+            if statement_match and not in_list_section:
+                statement_list_started = True
+                number = statement_match.group(1)
+                text = normalize_whitespace(statement_match.group(2))
+                statements.append({'number': number, 'text': text})
+                continue
+            
             # Check for feature list (A Name1, B Name2, etc.)
             feature_match = re.match(r'^([A-Z])\s+(.+)$', stripped)
-            if feature_match and not statement_list_started:
+            if feature_match:
                 letter = feature_match.group(1)
                 name = normalize_whitespace(feature_match.group(2))
                 # Only single capital letters for features
@@ -937,17 +1030,8 @@ def parse_matching_features(questions_text: str) -> List[Dict[str, Any]]:
                     features.append({'key': letter, 'text': name})
                     continue
             
-            # Check for statement list (numbered statements)
-            statement_match = re.match(r'^(\d+)\s+(.+)$', stripped)
-            if statement_match and feature_list_started:
-                statement_list_started = True
-                number = statement_match.group(1)
-                text = normalize_whitespace(statement_match.group(2))
-                statements.append({'number': number, 'text': text})
-                continue
-            
-            # Instructions
-            if not feature_list_started:
+            # Instructions (collect everything before statements/features start)
+            if not feature_list_started and not statement_list_started:
                 instructions.append(normalize_whitespace(stripped))
         
         if features and statements and title:
