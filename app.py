@@ -1263,8 +1263,24 @@ def parse_matching_features(questions_text: str) -> List[Dict[str, Any]]:
         section_text = questions_text[start_idx:end_idx].strip()
         
         lowered = section_text.lower()
-        # Look for matching features keywords - expanded to include "classify"
-        if not any(keyword in lowered for keyword in ['match', 'list of', 'classify']):
+        
+        # Look for matching features keywords in instruction context (not question text)
+        # Check for "List of" which is a strong indicator
+        if 'list of' in lowered:
+            pass  # This is likely a matching features question
+        # Check for "match" in instruction context (first few lines), not in question text
+        elif 'match' in lowered:
+            # Only consider "match" if it appears in the first 200 characters (instructions)
+            # and is part of instruction phrases like "Match each", "Match the following"
+            instruction_text = section_text[:200].lower()
+            if 'match' not in instruction_text:
+                continue
+            # Also check it's not just "matches" in a question like "which view matches"
+            if not any(phrase in instruction_text for phrase in ['match each', 'match the', 'matching']):
+                continue
+        elif 'classify' in lowered:
+            pass  # This could be a matching features question
+        else:
             continue
         
         # Avoid confusion with paragraph matching
