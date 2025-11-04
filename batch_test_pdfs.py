@@ -19,6 +19,7 @@ from app import (
     collect_passage_blocks,
     parse_questions,
 )
+from constants import SUBHEADING_KEYWORDS
 
 
 class PDFTestResult:
@@ -97,17 +98,12 @@ def test_left_side_formatting(structured_passage: Dict[str, Any], result: PDFTes
     
     # Check for standalone subheadings (common bug)
     standalone_subheadings = []
-    subheading_keywords = [
-        'introduction', 'background', 'conclusion', 'discussion',
-        'results', 'methods', 'methodology', 'description of',
-        'methodological issues', 'lessons to consider'
-    ]
     
     for para in paragraphs:
         text = para.get('text', '').strip()
         if len(text) < 60:  # Short paragraphs might be subheadings
             text_lower = text.lower()
-            for keyword in subheading_keywords:
+            for keyword in SUBHEADING_KEYWORDS:
                 if keyword in text_lower and len(text) < 100:
                     standalone_subheadings.append(text)
                     break

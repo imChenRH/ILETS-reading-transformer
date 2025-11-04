@@ -6,6 +6,8 @@ import fitz  # PyMuPDF
 from flask import Flask, flash, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
 
+from constants import SUBHEADING_KEYWORDS
+
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'pdf'}
@@ -495,11 +497,6 @@ def structure_passage(raw_passage: str, passage_blocks: Optional[List[str]] = No
 
     # Post-process: Merge standalone subheadings with following paragraphs
     # Subheadings are typically short (< 60 chars) and contain certain keywords
-    subheading_keywords = [
-        'introduction', 'background', 'conclusion', 'discussion',
-        'results', 'methods', 'methodology', 'description of',
-        'methodological issues', 'lessons to consider'
-    ]
     
     merged_paragraphs = []
     i = 0
@@ -511,7 +508,7 @@ def structure_passage(raw_passage: str, passage_blocks: Optional[List[str]] = No
         is_subheading = False
         if len(text) < 60:  # Short paragraph
             text_lower = text.lower()
-            for keyword in subheading_keywords:
+            for keyword in SUBHEADING_KEYWORDS:
                 # Use word boundaries to avoid false matches like "reintroduction"
                 # For multi-word keywords, check if the whole phrase exists
                 if re.search(r'\b' + re.escape(keyword) + r'\b', text_lower):
@@ -977,8 +974,13 @@ def parse_yes_no_not_given(questions_text: str) -> List[Dict[str, Any]]:
                 # Find where options/word banks start (lines like "A  word" or "List of")
                 # Fixed: Only match single letters (A, B, C) not abbreviations (C. Auguste)
                 option_start = -1
-                # Pattern should match: "A  word" or "A) word" or "A: word" but NOT "C. Auguste"
-                # Exclude period (.) to avoid matching abbreviations
+                # Pattern explanation:
+                # ^[A-Z] - starts with capital letter
+                # (?:[):-]\s+|\s{2,}) - followed by either:
+                #   [):-]\s+ - one of ), :, or - with spaces (e.g., "A) ", "B: ", "C- ")
+                #   \s{2,} - OR two or more spaces (e.g., "A  ")
+                # \S - followed by non-whitespace character
+                # Deliberately excludes period (.) to avoid matching abbreviations like "C. Auguste"
                 letter_option_pattern = re.compile(r'^[A-Z](?:[):-]\s+|\s{2,})\S')
                 for line in statements_text.split('\n'):
                     stripped_line = line.strip()
