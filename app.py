@@ -1071,6 +1071,10 @@ def parse_matching_sentence_endings(questions_text: str) -> List[Dict[str, Any]]
         if ('yes' in lowered and 'not given' in lowered) or ('true' in lowered and 'not given' in lowered):
             continue
         
+        # Exclude MCQ sections
+        if 'choose the correct letter' in lowered or 'write the correct letter' in lowered:
+            continue
+        
         # Look for sentence ending keywords
         if not any(keyword in lowered for keyword in ['complete', 'sentence', 'ending']):
             continue
