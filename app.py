@@ -1004,7 +1004,52 @@ def parse_paragraph_matching(questions_text: str) -> List[Dict[str, Any]]:
         seen_numbers = set()
         for stmt_match in statement_pattern.finditer(statements_block):
             number = stmt_match.group(1)
-            text_value = normalize_whitespace(stmt_match.group(2))
+            raw_text = stmt_match.group(2)
+            
+            # Filter out contaminating content before processing
+            # Split into lines and filter
+            filtered_lines = []
+            for line in raw_text.splitlines():
+                line_stripped = line.strip()
+                if not line_stripped:
+                    continue
+                
+                # Stop processing if we hit a new section (e.g., "Types of homing behaviour", "Questions 23-26")
+                if re.match(r'^(Types?|Questions?|Complete|Write|Choose|Match)\b', line_stripped, re.IGNORECASE):
+                    break
+                    
+                # Skip lines with numbered blanks (summary completion contamination)
+                if re.search(r'\d+\s*[_]{2,}', line_stripped):
+                    continue
+                    
+                # Skip lines that look like option definitions (word bank contamination)
+                # Pattern: "A methodology" or "B  needs" (capital letter followed by space(s) and lowercase word)
+                # Avoid false positives like "A typical..." by requiring 2+ spaces OR punctuation before lowercase
+                if re.match(r'^[A-Z](?:\s{2,}|[):-]\s+)[a-z]', line_stripped):
+                    continue
+                    
+                # Skip lines that are question headings
+                if re.match(r'^(How|Why|What|When|Where|Which|Who)\b.*\?', line_stripped):
+                    continue
+                    
+                # Skip lines that are section headers (e.g., "Types of homing behaviour")
+                # These often appear in contaminated content
+                if re.match(r'^[A-Z][a-z]+\s+(of|for|in|on)\s+', line_stripped) and len(line_stripped) < 60:
+                    continue
+                
+                filtered_lines.append(line_stripped)
+            
+            text_value = normalize_whitespace(' '.join(filtered_lines))
+            
+            # Additional cleaning: Remove contaminating patterns from the joined text
+            # Remove ordinal list markers like "First type:", "Second type:", "Third type:"
+            text_value = re.sub(r'\b(First|Second|Third|Fourth|Fifth)\s+type:\s*', '', text_value, flags=re.IGNORECASE)
+            
+            # Remove other common contaminating section markers
+            text_value = re.sub(r'\b(Step|Stage|Phase|Part)\s+\d+:\s*', '', text_value, flags=re.IGNORECASE)
+            
+            # Clean up extra whitespace after removal
+            text_value = normalize_whitespace(text_value)
             
             # Skip if already seen this number (avoid duplicates from annotations)
             if number in seen_numbers:
