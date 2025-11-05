@@ -6,6 +6,8 @@ import fitz  # PyMuPDF
 from flask import Flask, flash, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
 
+from constants import SUBHEADING_KEYWORDS
+
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'pdf'}
@@ -493,6 +495,46 @@ def structure_passage(raw_passage: str, passage_blocks: Optional[List[str]] = No
                 continue
             paragraphs.append({'letter': '', 'text': cleaned})
 
+    # Post-process: Merge standalone subheadings with following paragraphs
+    # Subheadings are typically short (< 60 chars) and contain certain keywords
+    
+    merged_paragraphs = []
+    i = 0
+    while i < len(paragraphs):
+        para = paragraphs[i]
+        text = para.get('text', '').strip()
+        
+        # Check if this looks like a standalone subheading
+        is_subheading = False
+        if len(text) < 60:  # Short paragraph
+            text_lower = text.lower()
+            for keyword in SUBHEADING_KEYWORDS:
+                # Use word boundaries to avoid false matches like "reintroduction"
+                # For multi-word keywords, check if the whole phrase exists
+                if re.search(r'\b' + re.escape(keyword) + r'\b', text_lower):
+                    is_subheading = True
+                    break
+        
+        # If it's a subheading and there's a next paragraph, merge them
+        if is_subheading and i + 1 < len(paragraphs):
+            next_para = paragraphs[i + 1]
+            next_text = next_para.get('text', '').strip()
+            
+            # Merge: subheading becomes a prefix to the next paragraph
+            merged_text = f"{text}\n\n{next_text}"
+            merged_para = {
+                'letter': next_para.get('letter', ''),  # Keep the letter from next para
+                'text': merged_text
+            }
+            merged_paragraphs.append(merged_para)
+            i += 2  # Skip both paragraphs
+        else:
+            # Not a subheading or last paragraph, keep as is
+            merged_paragraphs.append(para)
+            i += 1
+    
+    paragraphs = merged_paragraphs
+
     return {
         'title': title,
         'intro': intro_text,
@@ -591,6 +633,90 @@ def parse_single_choice(questions_text: str) -> List[Dict[str, Any]]:
     return questions
 
 
+def parse_multi_answer_mcq(questions_text: str) -> List[Dict[str, Any]]:
+    """
+    Parse Multi-Answer MCQs - questions like "Questions 25 and 26: Choose TWO letters".
+    These questions have multiple question numbers sharing the same prompt and options.
+    """
+    if not questions_text:
+        return []
+    
+    questions: List[Dict[str, Any]] = []
+    
+    # Pattern to match "Questions X and Y" or "Questions X, Y and Z" etc.
+    # Followed by "Choose TWO/THREE/FOUR letters"
+    heading_pattern = re.compile(
+        r'Questions?\s+(\d+)(?:\s+and\s+(\d+)|\s*,\s*(\d+)(?:\s+and\s+(\d+))?)',
+        re.IGNORECASE
+    )
+    choose_pattern = re.compile(r'Choose\s+(TWO|THREE|FOUR|FIVE)\s+letters?', re.IGNORECASE)
+    
+    matches = list(heading_pattern.finditer(questions_text))
+    
+    for idx, match in enumerate(matches):
+        start_idx = match.start()
+        end_idx = matches[idx + 1].start() if idx + 1 < len(matches) else len(questions_text)
+        section_text = questions_text[start_idx:end_idx].strip()
+        
+        # Check if this section has "Choose TWO/THREE letters"
+        if not choose_pattern.search(section_text):
+            continue
+        
+        # Extract question numbers from the heading
+        question_numbers = []
+        for i in range(1, 5):  # Check groups 1-4
+            num = match.group(i)
+            if num and num.isdigit():
+                question_numbers.append(num)
+        
+        if not question_numbers:
+            continue
+        
+        # Find the prompt (text before the options)
+        lines = section_text.splitlines()
+        prompt_lines = []
+        options = []
+        
+        in_options = False
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            
+            # Check if this is an option line (A  text, B  text, etc.)
+            option_match = re.match(r'^([A-Z])\s+(.+)$', stripped)
+            if option_match and len(option_match.group(1)) == 1:
+                in_options = True
+                letter = option_match.group(1)
+                text = option_match.group(2).strip()
+                options.append({'letter': letter, 'text': text})
+                continue
+            
+            # If we haven't started options yet, this is part of the prompt
+            if not in_options:
+                # Skip instruction lines
+                if not any(kw in stripped.lower() for kw in ['choose', 'write the correct', 'boxes', 'answer sheet']):
+                    prompt_lines.append(stripped)
+        
+        prompt = normalize_whitespace(' '.join(prompt_lines))
+        
+        if not prompt or not options:
+            continue
+        
+        # Create a question for each number in the heading
+        for qnum in question_numbers:
+            questions.append({
+                'type': 'single_choice',
+                'number': qnum,
+                'text': prompt,
+                'options': [opt['text'] for opt in options],
+                'match_start': start_idx,
+                'match_end': end_idx
+            })
+    
+    return questions
+
+
 def parse_summary_completion(questions_text: str, blocks: Optional[List[Dict[str, Any]]]) -> Optional[Dict[str, Any]]:
     if not blocks:
         return None
@@ -626,7 +752,8 @@ def parse_summary_completion(questions_text: str, blocks: Optional[List[Dict[str
         lowered = stripped.lower()
         if 'write the correct letter' in lowered or 'choose the correct letter' in lowered:
             return False
-        return bool(re.match(r'^[A-Z](?:[).:-]|\s{2,})\s+\S', stripped))
+        # Fixed pattern to match "A  text" (2 spaces) as well as "A) text"
+        return bool(re.match(r'^[A-Z](?:[):-]\s+|\s{2,})\S', stripped))
 
     blank_pattern = re.compile(r'(?P<num>\d{1,2})\s*[_]{2,}')
 
@@ -653,6 +780,10 @@ def parse_summary_completion(questions_text: str, blocks: Optional[List[Dict[str
             continue
         plain = normalize(block.get('text', ''))
         if plain and is_option_line(plain):
+            option_lines.append(plain)
+        # Also check for lines with multiple options (e.g., "A America  B Philippines")
+        elif plain and re.search(r'[A-Z]\s+\w+\s+[A-Z]\s+\w', plain):
+            # This line might contain multiple options
             option_lines.append(plain)
 
     seen_option_lines = set(option_lines)
@@ -683,19 +814,42 @@ def parse_summary_completion(questions_text: str, blocks: Optional[List[Dict[str
             idx += 1
             continue
         lowered_plain = plain.lower()
-        if is_option_line(plain) and idx >= summary_anchor_idx:
+        
+        # Check for option lines (single or multiple options per line) - both before and after anchor
+        if is_option_line(plain):
             if plain not in seen_option_lines:
-                option_lines_after.append(plain)
+                if idx < summary_anchor_idx:
+                    option_lines.append(plain)
+                else:
+                    option_lines_after.append(plain)
                 seen_option_lines.add(plain)
             idx += 1
             continue
-        if idx > summary_anchor_idx and (
-            lowered_plain.startswith('questions ')
+            
+        # Also check for lines with multiple options
+        if re.search(r'[A-Z]\s+\w+\s+[A-Z]\s+\w', plain):
+            if plain not in seen_option_lines:
+                if idx < summary_anchor_idx:
+                    option_lines.append(plain)
+                else:
+                    option_lines_after.append(plain)
+                seen_option_lines.add(plain)
+            idx += 1
+            continue
+        
+        # Skip instruction lines (both before and after anchor)
+        if (lowered_plain.startswith('questions ')
             or lowered_plain.startswith('choose the correct letter')
             or lowered_plain.startswith('write the correct letter')
-            or lowered_plain.startswith('list of ')
-        ):
-            break
+            or lowered_plain.startswith('complete the summary')
+            or lowered_plain.startswith('list of ')):
+            # If we're after the anchor and hit these, stop
+            if idx > summary_anchor_idx:
+                break
+            # Otherwise just skip this line
+            idx += 1
+            continue
+            
         summary_lines.append(plain)
         idx += 1
 
@@ -729,6 +883,27 @@ def parse_summary_completion(questions_text: str, blocks: Optional[List[Dict[str
     blank_numbers = list(dict.fromkeys(blank_numbers))
 
     option_entries: List[Dict[str, str]] = []
+    
+    # Parse option lines into structured entries
+    for option_line in option_lines:
+        # Check if this line contains multiple options (e.g., "A America  B Philippines")
+        # Split by pattern: capital letter followed by space and text
+        parts = re.split(r'(?=[A-Z]\s+\w)', option_line.strip())
+        
+        for part in parts:
+            part = part.strip()
+            if not part:
+                continue
+            # Match pattern like "A  text" or "A) text" or "A: text"
+            option_match = re.match(r'^([A-Z])(?:[):-]\s+|\s{1,})\s*(.+)', part)
+            if option_match:
+                letter = option_match.group(1)
+                text = option_match.group(2).strip()
+                if text:  # Only add if there's actual text
+                    option_entries.append({'key': letter, 'text': text})
+    
+    # Sort options by their key (A, B, C, ...) for consistent ordering
+    option_entries.sort(key=lambda x: x['key'])
 
     if not blank_numbers:
         return None
@@ -812,7 +987,8 @@ def parse_paragraph_matching(questions_text: str) -> List[Dict[str, Any]]:
             if not title:
                 title = normalize_whitespace(stripped)
                 continue
-            if re.match(r'\d{1,2}\s+', stripped):
+            # Match lines that start with a number (with or without following space/text)
+            if re.match(r'^\d{1,2}(?:\s|$)', stripped):
                 statement_started = True
             if statement_started:
                 statement_lines.append(raw_line)
@@ -828,7 +1004,52 @@ def parse_paragraph_matching(questions_text: str) -> List[Dict[str, Any]]:
         seen_numbers = set()
         for stmt_match in statement_pattern.finditer(statements_block):
             number = stmt_match.group(1)
-            text_value = normalize_whitespace(stmt_match.group(2))
+            raw_text = stmt_match.group(2)
+            
+            # Filter out contaminating content before processing
+            # Split into lines and filter
+            filtered_lines = []
+            for line in raw_text.splitlines():
+                line_stripped = line.strip()
+                if not line_stripped:
+                    continue
+                
+                # Stop processing if we hit a new section (e.g., "Types of homing behaviour", "Questions 23-26")
+                if re.match(r'^(Types?|Questions?|Complete|Write|Choose|Match)\b', line_stripped, re.IGNORECASE):
+                    break
+                    
+                # Skip lines with numbered blanks (summary completion contamination)
+                if re.search(r'\d+\s*[_]{2,}', line_stripped):
+                    continue
+                    
+                # Skip lines that look like option definitions (word bank contamination)
+                # Pattern: "A methodology" or "B  needs" (capital letter followed by space(s) and lowercase word)
+                # Avoid false positives like "A typical..." by requiring 2+ spaces OR punctuation before lowercase
+                if re.match(r'^[A-Z](?:\s{2,}|[):-]\s+)[a-z]', line_stripped):
+                    continue
+                    
+                # Skip lines that are question headings
+                if re.match(r'^(How|Why|What|When|Where|Which|Who)\b.*\?', line_stripped):
+                    continue
+                    
+                # Skip lines that are section headers (e.g., "Types of homing behaviour")
+                # These often appear in contaminated content
+                if re.match(r'^[A-Z][a-z]+\s+(of|for|in|on)\s+', line_stripped) and len(line_stripped) < 60:
+                    continue
+                
+                filtered_lines.append(line_stripped)
+            
+            text_value = normalize_whitespace(' '.join(filtered_lines))
+            
+            # Additional cleaning: Remove contaminating patterns from the joined text
+            # Remove ordinal list markers like "First type:", "Second type:", "Third type:"
+            text_value = re.sub(r'\b(First|Second|Third|Fourth|Fifth)\s+type:\s*', '', text_value, flags=re.IGNORECASE)
+            
+            # Remove other common contaminating section markers
+            text_value = re.sub(r'\b(Step|Stage|Phase|Part)\s+\d+:\s*', '', text_value, flags=re.IGNORECASE)
+            
+            # Clean up extra whitespace after removal
+            text_value = normalize_whitespace(text_value)
             
             # Skip if already seen this number (avoid duplicates from annotations)
             if number in seen_numbers:
@@ -925,23 +1146,37 @@ def parse_yes_no_not_given(questions_text: str) -> List[Dict[str, Any]]:
                 additional_instructions = cleaned_instructions[1:] if len(cleaned_instructions) > 1 else []
 
                 statements_block = '\n'.join(section_lines[statement_start_idx:])
-                # Stop at option lists (A  text, B  text) or "List of" markers
-                # Split by double newline or when we hit option markers
                 statements_text = statements_block.strip()
                 
-                # Find where options/word banks start (lines like "A  word" or "List of")
-                option_start = -1
-                letter_option_pattern = re.compile(r'^[A-Z](?:[).:-]|\s{2,})\s+\S')
+                # First, detect and remove contaminating content (options, blanks, headings)
+                # that shouldn't be part of YES/NO/NOT GIVEN statements
+                clean_lines = []
+                found_contamination = False
+                
+                # Patterns for detection
+                letter_option_pattern = re.compile(r'^[A-Z](?:[):-]\s+|\s{1,})[A-Za-z]')
+                blank_pattern = re.compile(r'\d+\s*[_]{2,}')
+                question_heading_pattern = re.compile(r'^(How|Why|What|When|Where|Which|Who|Complete|Choose|Write|Match)\s+', re.IGNORECASE)
+                
                 for line in statements_text.split('\n'):
                     stripped_line = line.strip()
+                    
+                    # Skip empty lines
                     if not stripped_line:
+                        clean_lines.append(line)
                         continue
-                    if letter_option_pattern.match(stripped_line) or re.match(r'^List of', stripped_line, re.IGNORECASE):
-                        option_start = statements_text.find(line)
+                    
+                    # Stop at contaminating content
+                    if (letter_option_pattern.match(stripped_line) or 
+                        re.match(r'^List of', stripped_line, re.IGNORECASE) or
+                        blank_pattern.search(stripped_line) or
+                        (question_heading_pattern.match(stripped_line) and not re.match(r'^\d+\s+', stripped_line))):
+                        found_contamination = True
                         break
+                    
+                    clean_lines.append(line)
                 
-                if option_start > 0:
-                    statements_text = statements_text[:option_start].strip()
+                statements_text = '\n'.join(clean_lines).strip()
                 
                 statement_pattern = re.compile(r'(\d+)\s+(.*?)(?=(?:\n\s*\d+)|\Z)', re.DOTALL)
                 statements: List[Dict[str, str]] = []
@@ -1129,8 +1364,24 @@ def parse_matching_features(questions_text: str) -> List[Dict[str, Any]]:
         section_text = questions_text[start_idx:end_idx].strip()
         
         lowered = section_text.lower()
-        # Look for matching features keywords - expanded to include "classify"
-        if not any(keyword in lowered for keyword in ['match', 'list of', 'classify']):
+        
+        # Look for matching features keywords in instruction context (not question text)
+        # Check for "List of" which is a strong indicator
+        if 'list of' in lowered:
+            pass  # This is likely a matching features question
+        # Check for "match" in instruction context (first few lines), not in question text
+        elif 'match' in lowered:
+            # Only consider "match" if it appears in the first 200 characters (instructions)
+            # and is part of instruction phrases like "Match each", "Match the following"
+            instruction_text = section_text[:200].lower()
+            if 'match' not in instruction_text:
+                continue
+            # Also check it's not just "matches" in a question like "which view matches"
+            if not any(phrase in instruction_text for phrase in ['match each', 'match the', 'matching']):
+                continue
+        elif 'classify' in lowered:
+            pass  # This could be a matching features question
+        else:
             continue
         
         # Avoid confusion with paragraph matching
@@ -1401,25 +1652,40 @@ def parse_diagram_label_completion(questions_text: str) -> List[Dict[str, Any]]:
 
 
 def parse_short_answer_questions(questions_text: str) -> List[Dict[str, Any]]:
-    """Parse Short-Answer Questions - answer using NO MORE THAN X WORDS."""
+    """
+    Parse Short-Answer Questions - answer using NO MORE THAN X WORDS or ONE/TWO/THREE WORD(S) ONLY.
+    This handles sentence completion questions (with blanks) that have word limits.
+    Does NOT handle summary/note completion (those are handled by parse_summary_completion).
+    """
     if not questions_text:
         return []
     
     questions: List[Dict[str, Any]] = []
     
-    # Look for the "NO MORE THAN X WORDS" pattern
+    # Look for word limit patterns:
+    # 1. "NO MORE THAN X WORDS"
+    # 2. "ONE WORD ONLY", "TWO WORDS ONLY", etc.
     word_limit_pattern = re.compile(
-        r'(?:using|write|answer)?\s*(?:no more than|maximum of|maximum)\s+(\w+)\s+(?:words?|numbers?)',
+        r'(?:using|write|answer|choose)?\s*(?:no more than|maximum of|maximum)\s+(\w+)\s+(?:words?|numbers?)',
+        re.IGNORECASE
+    )
+    word_only_pattern = re.compile(
+        r'(?:choose|write|use)?\s*(one|two|three|four|five)\s+words?\s+only',
         re.IGNORECASE
     )
     
-    # Only proceed if we find word limit instructions
-    if not word_limit_pattern.search(questions_text):
+    # Check for either pattern
+    word_limit_match = word_limit_pattern.search(questions_text)
+    word_only_match = word_only_pattern.search(questions_text)
+    
+    if not word_limit_match and not word_only_match:
         return []
     
     # Extract word limit
-    word_limit_match = word_limit_pattern.search(questions_text)
-    word_limit = word_limit_match.group(1) if word_limit_match else 'THREE'
+    if word_only_match:
+        word_limit = word_only_match.group(1).upper()
+    else:
+        word_limit = word_limit_match.group(1) if word_limit_match else 'THREE'
     
     # Find the section that contains short answer questions
     heading_pattern = re.compile(r'Questions?\s+(\d+)(?:\s*[-\u2013]\s*(\d+))?', re.IGNORECASE)
@@ -1442,8 +1708,13 @@ def parse_short_answer_questions(questions_text: str) -> List[Dict[str, Any]]:
         end_idx = matches[idx + 1].start() if idx + 1 < len(matches) else len(questions_text)
         section_text = questions_text[start_idx:end_idx].strip()
 
-        # Check if this section has word limit instructions
-        if not word_limit_pattern.search(section_text):
+        # Skip sections that are summary/note completion (handled by parse_summary_completion)
+        section_lower = section_text.lower()
+        if any(marker in section_lower for marker in ['complete the summary', 'complete the notes', 'complete the note', 'complete the table', 'complete the flow']):
+            continue
+
+        # Check if this section has word limit instructions (either pattern)
+        if not word_limit_pattern.search(section_text) and not word_only_pattern.search(section_text):
             continue
 
         question_number_pattern = re.compile(r'(?m)^(?P<number>\d{1,2})\s*(?:[).:-])?')
@@ -1787,6 +2058,26 @@ def parse_questions(questions_text: str, blocks: Optional[List[Dict[str, Any]]] 
         questions.append(section)
         consumed_numbers.update(statement['number'] for statement in section['statements'])
 
+    # Parse multi-answer MCQs (e.g., "Questions 25 and 26: Choose TWO letters")
+    # These questions share the same text range, so we only check number consumption
+    multi_mcqs = parse_multi_answer_mcq(questions_text)
+    multi_mcq_range = None  # Track the range of multi-answer MCQs
+    for mcq in multi_mcqs:
+        if mcq['number'] in consumed_numbers:
+            continue
+        questions.append(mcq)
+        consumed_numbers.add(mcq['number'])
+        # Store the range but don't add to consumed_ranges yet
+        start = mcq.get('match_start', -1)
+        end = mcq.get('match_end', -1)
+        if start >= 0 and end >= 0:
+            multi_mcq_range = (start, end)
+    
+    # Now add the range once after all multi-answer MCQs are processed
+    if multi_mcq_range:
+        consumed_ranges.append(multi_mcq_range)
+
+    # Parse single choice MCQs
     for single in parse_single_choice(questions_text):
         start = single.get('match_start', -1)
         end = single.get('match_end', -1)

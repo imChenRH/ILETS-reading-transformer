@@ -351,19 +351,18 @@
                             {% for blank in q.blanks %}
                                 <div class="blank-select">
                                     <label for="blank{{ blank }}">Blank {{ blank }}</label>
-                                    <input type="text" id="blank{{ blank }}" name="blank{{ blank }}" placeholder="Enter answer" autocomplete="off" />
+                                    {% if q.options %}
+                                        <select id="blank{{ blank }}" name="blank{{ blank }}">
+                                            <option value="">-- Select Answer --</option>
+                                            {% for option in q.options %}
+                                                <option value="{{ option.key }}">{{ option.key }}. {{ option.text }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    {% else %}
+                                        <input type="text" id="blank{{ blank }}" name="blank{{ blank }}" placeholder="Enter answer" autocomplete="off" />
+                                    {% endif %}
                                 </div>
                             {% endfor %}
-                            {% if q.options %}
-                                <div class="option-pool">
-                                    {% for option in q.options %}
-                                        <div class="pool-card">
-                                            <span>{{ option.key }}</span>
-                                            <span>{{ option.text }}</span>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
                         </div>
                     {% elif q.type == 'paragraph_matching' %}
                         <div class="question-group">
