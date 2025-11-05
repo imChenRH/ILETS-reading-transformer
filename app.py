@@ -1101,31 +1101,37 @@ def parse_yes_no_not_given(questions_text: str) -> List[Dict[str, Any]]:
                 additional_instructions = cleaned_instructions[1:] if len(cleaned_instructions) > 1 else []
 
                 statements_block = '\n'.join(section_lines[statement_start_idx:])
-                # Stop at option lists (A  text, B  text) or "List of" markers
-                # Split by double newline or when we hit option markers
                 statements_text = statements_block.strip()
                 
-                # Find where options/word banks start (lines like "A  word" or "List of")
-                # Fixed: Only match single letters (A, B, C) not abbreviations (C. Auguste)
-                option_start = -1
-                # Pattern explanation:
-                # ^[A-Z] - starts with capital letter
-                # (?:[):-]\s+|\s{2,}) - followed by either:
-                #   [):-]\s+ - one of ), :, or - with spaces (e.g., "A) ", "B: ", "C- ")
-                #   \s{2,} - OR two or more spaces (e.g., "A  ")
-                # \S - followed by non-whitespace character
-                # Deliberately excludes period (.) to avoid matching abbreviations like "C. Auguste"
-                letter_option_pattern = re.compile(r'^[A-Z](?:[):-]\s+|\s{2,})\S')
+                # First, detect and remove contaminating content (options, blanks, headings)
+                # that shouldn't be part of YES/NO/NOT GIVEN statements
+                clean_lines = []
+                found_contamination = False
+                
+                # Patterns for detection
+                letter_option_pattern = re.compile(r'^[A-Z](?:[):-]\s+|\s{1,})[A-Za-z]')
+                blank_pattern = re.compile(r'\d+\s*[_]{2,}')
+                question_heading_pattern = re.compile(r'^(How|Why|What|When|Where|Which|Who|Complete|Choose|Write|Match)\s+', re.IGNORECASE)
+                
                 for line in statements_text.split('\n'):
                     stripped_line = line.strip()
+                    
+                    # Skip empty lines
                     if not stripped_line:
+                        clean_lines.append(line)
                         continue
-                    if letter_option_pattern.match(stripped_line) or re.match(r'^List of', stripped_line, re.IGNORECASE):
-                        option_start = statements_text.find(line)
+                    
+                    # Stop at contaminating content
+                    if (letter_option_pattern.match(stripped_line) or 
+                        re.match(r'^List of', stripped_line, re.IGNORECASE) or
+                        blank_pattern.search(stripped_line) or
+                        (question_heading_pattern.match(stripped_line) and not re.match(r'^\d+\s+', stripped_line))):
+                        found_contamination = True
                         break
+                    
+                    clean_lines.append(line)
                 
-                if option_start > 0:
-                    statements_text = statements_text[:option_start].strip()
+                statements_text = '\n'.join(clean_lines).strip()
                 
                 statement_pattern = re.compile(r'(\d+)\s+(.*?)(?=(?:\n\s*\d+)|\Z)', re.DOTALL)
                 statements: List[Dict[str, str]] = []

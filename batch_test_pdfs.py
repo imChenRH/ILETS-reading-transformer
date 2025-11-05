@@ -255,6 +255,91 @@ def test_matching_headings_special(parsed_questions: List[Dict[str, Any]],
             result.add_warning("MATCHING HEADINGS: No instructions found")
 
 
+def test_content_contamination(parsed_questions: List[Dict[str, Any]], result: PDFTestResult):
+    """
+    Advanced test to detect cross-contamination between questions.
+    Checks for content from other question types bleeding into statements/text.
+    """
+    import re
+    
+    # Contamination patterns to detect
+    blank_pattern = re.compile(r'\d+\s*[_]{2,}')  # Numbered blanks like "27 _____"
+    # More specific option pattern - must have 2+ spaces OR punctuation, and typically lowercase after
+    # Examples: "A  methodology", "A) answer", "B: reason"
+    # Not: "A typical tribe" (article + uppercase), "A cultured pearl" (article + uppercase)
+    option_pattern = re.compile(r'^[A-Z](?:[):-]\s|\s{2,})(?:[a-z]|[A-Z][a-z])')
+    question_heading_pattern = re.compile(r'^(How|Why|What|When|Where|Which|Who|Complete|Choose|Write|Match)\s+', re.IGNORECASE)
+    
+    for q in parsed_questions:
+        q_type = q.get('type')
+        
+        # Check YES/NO/NOT GIVEN and similar statement-based questions
+        if q_type in ['yes_no_not_given', 'paragraph_matching', 'matching_features', 'matching_sentence_endings']:
+            statements = q.get('statements', [])
+            for stmt in statements:
+                num = stmt.get('number', '?')
+                text = stmt.get('text', '')
+                
+                # Check for numbered blank contamination (from summary completion)
+                if blank_pattern.search(text):
+                    result.add_error(f"CONTAMINATION: Q{num} ({q_type}) contains numbered blanks: '{text[:100]}'")
+                
+                # Check for option list contamination
+                lines = text.split('\n')
+                for line in lines:
+                    stripped = line.strip()
+                    if option_pattern.match(stripped):
+                        result.add_error(f"CONTAMINATION: Q{num} ({q_type}) contains option list: '{stripped[:60]}'")
+                
+                # Check for question heading contamination (except at start of question text)
+                if question_heading_pattern.search(text[20:]):  # Skip first 20 chars to allow legitimate questions
+                    # Find the match
+                    match = question_heading_pattern.search(text[20:])
+                    if match:
+                        context = text[20 + match.start():20 + match.start() + 80]
+                        result.add_warning(f"CONTAMINATION?: Q{num} ({q_type}) may contain question heading: '{context}'")
+                
+                # Check for excessive length (likely contamination)
+                if len(text) > 500:
+                    result.add_warning(f"LENGTH: Q{num} ({q_type}) has unusually long text ({len(text)} chars)")
+        
+        # Check single choice questions
+        elif q_type == 'single_choice':
+            num = q.get('number', '?')
+            text = q.get('text', '')
+            options = q.get('options', [])
+            
+            # Check for blank contamination in MCQ text
+            if blank_pattern.search(text):
+                result.add_error(f"CONTAMINATION: Q{num} (MCQ) contains numbered blanks")
+            
+            # Check for excessive options (should be 4-5 typically)
+            if len(options) > 10:
+                result.add_warning(f"OPTIONS: Q{num} (MCQ) has {len(options)} options (typically 4-5)")
+            
+            # Check if options look contaminated (contain question-like text)
+            for opt in options[:5]:  # Check first 5 options
+                if blank_pattern.search(opt):
+                    result.add_error(f"CONTAMINATION: Q{num} (MCQ) option contains blanks: '{opt[:60]}'")
+        
+        # Check summary completion
+        elif q_type == 'summary_completion':
+            text = q.get('text', '')
+            options = q.get('options', [])
+            
+            # Summary text should not contain option definitions
+            for opt in options:
+                opt_text = opt.get('text', '')
+                # Check if full option text appears in summary (contamination)
+                # Skip if it's a common word that might legitimately appear
+                if opt_text and len(opt_text) > 8 and opt_text.lower() not in ['persia', 'persian'] and opt_text in text:
+                    result.add_warning(f"CONTAMINATION?: Summary contains option text: '{opt_text}'")
+            
+            # Check for question heading in summary
+            if question_heading_pattern.match(text):
+                result.add_warning(f"CONTAMINATION?: Summary starts with question heading")
+
+
 def test_single_pdf(pdf_path: Path) -> PDFTestResult:
     """Test a single PDF file."""
     result = PDFTestResult(pdf_path.name)
@@ -271,6 +356,7 @@ def test_single_pdf(pdf_path: Path) -> PDFTestResult:
         test_left_side_formatting(structured_passage, result)
         test_right_side_questions(parsed_questions, result)
         test_matching_headings_special(parsed_questions, structured_passage, result)
+        test_content_contamination(parsed_questions, result)  # New comprehensive test
         
     except Exception as e:
         result.add_error(f"EXCEPTION: {type(e).__name__}: {str(e)[:200]}")
