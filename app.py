@@ -814,27 +814,42 @@ def parse_summary_completion(questions_text: str, blocks: Optional[List[Dict[str
             idx += 1
             continue
         lowered_plain = plain.lower()
-        # Check for option lines (single or multiple options per line)
-        if is_option_line(plain) and idx >= summary_anchor_idx:
+        
+        # Check for option lines (single or multiple options per line) - both before and after anchor
+        if is_option_line(plain):
             if plain not in seen_option_lines:
-                option_lines_after.append(plain)
+                if idx < summary_anchor_idx:
+                    option_lines.append(plain)
+                else:
+                    option_lines_after.append(plain)
                 seen_option_lines.add(plain)
             idx += 1
             continue
+            
         # Also check for lines with multiple options
-        if re.search(r'[A-Z]\s+\w+\s+[A-Z]\s+\w', plain) and idx >= summary_anchor_idx:
+        if re.search(r'[A-Z]\s+\w+\s+[A-Z]\s+\w', plain):
             if plain not in seen_option_lines:
-                option_lines_after.append(plain)
+                if idx < summary_anchor_idx:
+                    option_lines.append(plain)
+                else:
+                    option_lines_after.append(plain)
                 seen_option_lines.add(plain)
             idx += 1
             continue
-        if idx > summary_anchor_idx and (
-            lowered_plain.startswith('questions ')
+        
+        # Skip instruction lines (both before and after anchor)
+        if (lowered_plain.startswith('questions ')
             or lowered_plain.startswith('choose the correct letter')
             or lowered_plain.startswith('write the correct letter')
-            or lowered_plain.startswith('list of ')
-        ):
-            break
+            or lowered_plain.startswith('complete the summary')
+            or lowered_plain.startswith('list of ')):
+            # If we're after the anchor and hit these, stop
+            if idx > summary_anchor_idx:
+                break
+            # Otherwise just skip this line
+            idx += 1
+            continue
+            
         summary_lines.append(plain)
         idx += 1
 
