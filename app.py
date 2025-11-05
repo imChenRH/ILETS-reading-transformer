@@ -901,6 +901,9 @@ def parse_summary_completion(questions_text: str, blocks: Optional[List[Dict[str
                 text = option_match.group(2).strip()
                 if text:  # Only add if there's actual text
                     option_entries.append({'key': letter, 'text': text})
+    
+    # Sort options by their key (A, B, C, ...) for consistent ordering
+    option_entries.sort(key=lambda x: x['key'])
 
     if not blank_numbers:
         return None
